@@ -16,15 +16,14 @@ import { encrypt, decrypt } from './crypto-utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const UPLOADS_DIR = process.env.NODE_ENV === 'production' ? '/data/uploads' : 'uploads';
-const upload = multer({ dest: UPLOADS_DIR });
+const upload = multer({ dest: 'uploads/' });
 const JWT_SECRET = process.env.JWT_SECRET || 'medivoix-dev-secret-change-in-prod';
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-if (!existsSync(UPLOADS_DIR)) mkdirSync(UPLOADS_DIR, { recursive: true });
+if (!existsSync('uploads')) mkdirSync('uploads');
 
 const openai = process.env.OPENAI_API_KEY
   ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
