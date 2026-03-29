@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Patient {
+  id             String   @id @default(cuid())
+  nom            String
+  prenom         String
+  dateNaissance  String
+  sexe           String   @default("M")
+  telephone      String?
+  email          String?
+  antecedents    String?
+  allergies      String?
+  traitements    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  consultations  Consultation[]
+}
+
+model Consultation {
+  id            String   @id @default(cuid())
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  motif         String
+  date          DateTime @default(now())
+  statut        String   @default("en_cours")
+  transcription String?
+  noteJson      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}

@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: medivoix
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+    disk:
+      name: medivoix-data
+      mountPath: /data
+      sizeGB: 1
