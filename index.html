@@ -719,7 +719,7 @@ function PatientFile({patientId,onConsultation,onEdit,onBack}){
 
   const statusInfo=s=>s==='validee'?{l:'Validée',c:'green'}:s==='note_generee'?{l:'Note générée',c:'blue'}:{l:'En cours',c:'amber'};
 
-  return(
+  return(<>
     <Page title={`${patient.prenom} ${patient.nom}`}
       breadcrumb={<><span className="cursor-pointer hover:text-slate-600" onClick={onBack}>Patients</span> / {patient.prenom} {patient.nom}</>}
       actions={<Btn variant="secondary" icon={Ic.User} onClick={onEdit} size="sm">Modifier le dossier</Btn>}>
@@ -836,7 +836,7 @@ function PatientFile({patientId,onConsultation,onEdit,onBack}){
       </div>
     </Page>
     {noteModal&&<NoteModal consultationId={noteModal.id} motif={noteModal.motif} onClose={()=>setNoteModal(null)}/>}
-  );
+  </>);
 }
 
 /* ══════════════════════════════════════════════════════════════
