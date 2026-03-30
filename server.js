@@ -213,9 +213,14 @@ app.get('/api/patients', auth, (req, res) => {
 app.get('/api/patients/:id', auth, (req, res) => {
   const p = db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
   if (!p) return res.status(404).json({ error: 'Patient non trouvé' });
-  const consultations = db.prepare(
-    'SELECT id,motif,date,statut FROM consultations WHERE patientId=? ORDER BY date DESC'
-  ).all(p.id);
+  const consultations = db.prepare(`
+    SELECT c.id, c.motif, c.date, c.statut, c.userId,
+      u.nom as docteurNom, u.prenom as docteurPrenom, u.specialite as docteurSpec
+    FROM consultations c
+    LEFT JOIN users u ON u.id = c.userId
+    WHERE c.patientId = ?
+    ORDER BY c.date DESC
+  `).all(p.id);
   res.json({ ...p, consultations });
 });
 
@@ -543,6 +548,63 @@ app.get('/api/consultations/:id/prescription/pdf', auth, (req, res) => {
   doc.rect(0,fy2,doc.page.width,35).fill('#f8fafc');
   doc.fontSize(7).fillColor('#94a3b8').text('MedPilot — Valable 3 mois — Signature manuscrite requise',50,fy2+12,{align:'center',width:495});
   doc.end();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// IMAGERIE MÉDICALE — PostDICOM Cloud PACS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const IMAGING_MOCK = {
+  p1: [
+    {id:'i1-1',studyDate:'20260210',modality:'CR',description:'Radiographie thoracique — silhouette cardiaque dans les limites de la normale, pas d\'épanchement',imageCount:2,reportSummary:'RAS hormis discret épaississement hilaire gauche à surveiller.'},
+    {id:'i1-2',studyDate:'20260115',modality:'US',description:'Échographie thyroïde — goitre multinodulaire discret, nodule dominant 8 mm en lobe droit',imageCount:8,reportSummary:'Surveillance à 6 mois recommandée. Pas d\'indication biopsique.'},
+  ],
+  p2: [
+    {id:'i2-1',studyDate:'20260305',modality:'OT',description:'ECG 12 dérivations — rythme sinusal régulier 72/min, pas d\'anomalie de repolarisation',imageCount:1,reportSummary:'ECG dans les limites de la normale. Pas de trouble du rythme ou de la conduction.'},
+    {id:'i2-2',studyDate:'20260220',modality:'US',description:'Échographie abdominale — stéatose hépatique légère, vésicule biliaire saine, reins normaux',imageCount:12,reportSummary:'Stéatose hépatique grade 1 compatible avec le contexte métabolique.'},
+  ],
+  p3: [
+    {id:'i3-1',studyDate:'20260308',modality:'CR',description:'Radiographie thoracique — distension pulmonaire modérée, pas de foyer infectieux',imageCount:2,reportSummary:'Distension thoracique compatible avec l\'asthme connu. Pas de pneumothorax.'},
+  ],
+  p4: [
+    {id:'i4-1',studyDate:'20260228',modality:'MR',description:'IRM lombaire — hernie discale L4-L5 paramédiane gauche avec débord postérieur modéré',imageCount:24,reportSummary:'Compression radiculaire L5 gauche probable. Avis neurochirurgical conseillé si douleurs résistantes.'},
+    {id:'i4-2',studyDate:'20260110',modality:'CR',description:'Radiographie rachis lombaire face et profil — pincement discal L4-L5, ostéophytose modérée',imageCount:3,reportSummary:'Spondylarthrose L4-L5 confirmée. Pas de lyse isthmique.'},
+  ],
+  p5: [],
+};
+
+app.get('/api/patients/:id/imaging', auth, async (req, res) => {
+  const p = db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Patient non trouvé' });
+
+  const { POSTDICOM_BASE_URL, POSTDICOM_USER, POSTDICOM_PASS } = process.env;
+
+  if (POSTDICOM_BASE_URL && POSTDICOM_USER && POSTDICOM_PASS) {
+    try {
+      const creds = Buffer.from(`${POSTDICOM_USER}:${POSTDICOM_PASS}`).toString('base64');
+      const url = `${POSTDICOM_BASE_URL}/studies?PatientID=${encodeURIComponent(p.id)}&includefield=all`;
+      const r = await fetch(url, {
+        headers: { Authorization: `Basic ${creds}`, Accept: 'application/dicom+json, application/json' }
+      });
+      if (r.ok) {
+        const data = await r.json();
+        const studies = (Array.isArray(data) ? data : []).map(s => ({
+          id:          s['0020000D']?.Value?.[0] || '',
+          studyDate:   s['00080020']?.Value?.[0] || '',
+          modality:    s['00080061']?.Value?.[0] || s['00080060']?.Value?.[0] || '',
+          description: s['00081030']?.Value?.[0] || '',
+          imageCount:  s['00201208']?.Value?.[0] || 0,
+          reportSummary: null,
+          viewerUrl:   s['viewerUrl'] || null,
+        }));
+        return res.json({ source: 'postdicom', studies });
+      }
+    } catch (e) {
+      console.error('PostDICOM error:', e.message);
+    }
+  }
+
+  res.json({ source: 'mock', studies: IMAGING_MOCK[req.params.id] || [] });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
