@@ -251,16 +251,18 @@ if (db.prepare('SELECT COUNT(*) as n FROM appointments').get().n === 0) {
 }
 
 // Seed demo honoraires
-if (db.prepare('SELECT COUNT(*) as n FROM honoraires').get().n === 0) {
-  const ins = db.prepare(`INSERT INTO honoraires (id,consultationId,userId,montant,statut,caisse,typeActe,dateFacturation,datePaiement) VALUES (?,?,?,?,?,?,?,?,?)`);
-  ins.run('h1','c1','u1',25000,'paye','CNAMGS','Consultation spécialisée','2026-03-15','2026-03-17');
-  ins.run('h2','c3','u1',25000,'en_attente','CNSS','Consultation spécialisée','2026-03-20',null);
-  ins.run('h3','c5','u1',20000,'paye','Privée (Saham)','Consultation simple','2026-03-10','2026-03-10');
-  console.log('Honoraires de démo créés');
-}
+try {
+  if (db.prepare('SELECT COUNT(*) as n FROM honoraires').get().n === 0) {
+    const ins = db.prepare(`INSERT OR IGNORE INTO honoraires (id,consultationId,userId,montant,statut,caisse,typeActe,dateFacturation,datePaiement) VALUES (?,?,?,?,?,?,?,?,?)`);
+    ins.run('h1','c1','u1',25000,'paye','CNAMGS','Consultation spécialisée','2026-03-15','2026-03-17');
+    ins.run('h2','c3','u1',25000,'en_attente','CNSS','Consultation spécialisée','2026-03-20',null);
+    ins.run('h3','c5','u1',20000,'paye','Privée (Saham)','Consultation simple','2026-03-10','2026-03-10');
+    console.log('Honoraires de démo créés');
+  }
+} catch(e) { console.warn('Seed honoraires ignoré:', e.message); }
 
 // Seed demo discussion
-if (db.prepare('SELECT COUNT(*) as n FROM discussions').get().n === 0) {
+try { if (db.prepare('SELECT COUNT(*) as n FROM discussions').get().n === 0) {
   db.prepare(`INSERT INTO discussions (id,patientId,titre,createdBy,createdAt) VALUES (?,?,?,?,?)`).run('d1','p2','Évaluation risque cardiovasculaire — NGUEMA B.','u1','2026-03-21 08:00:00');
   db.prepare(`INSERT INTO discussion_participants (discussionId,userId,joinedAt) VALUES (?,?,?)`).run('d1','u1','2026-03-21 08:00:00');
   db.prepare(`INSERT INTO discussion_participants (discussionId,userId,joinedAt) VALUES (?,?,?)`).run('d1','u2','2026-03-21 08:05:00');
@@ -270,7 +272,7 @@ if (db.prepare('SELECT COUNT(*) as n FROM discussions').get().n === 0) {
   insMsg.run('m3','d1','u1','Parfait, je lui prescris l\'ECG + lipides complets + créatininémie dès aujourd\'hui. Je lui fixe le RDV au 9 avril chez toi. Je t\'envoie le compte-rendu de consultation dès qu\'il est validé.','2026-03-21 09:10:00');
   insMsg.run('m4','d1','u2','Super. N\'hésite pas à me contacter si la situation évolue défavorablement. À bientôt.','2026-03-21 09:15:00');
   console.log('Discussion de démo créée');
-}
+}} catch(e) { console.warn('Seed discussion ignoré:', e.message); }
 
 // Seed secretary alerts
 if (db.prepare('SELECT COUNT(*) as n FROM secretary_alerts').get().n === 0) {
