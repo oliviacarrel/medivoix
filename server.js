@@ -608,6 +608,184 @@ app.get('/api/patients/:id/imaging', auth, async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// INTELLIGENCE MÉDICALE — Épidémio · Risque · Prévision
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function classifyCIM10(code) {
+  if (!code) return null;
+  const l = code[0].toUpperCase();
+  const n = parseInt(code.slice(1)) || 0;
+  if ('AB'.includes(l)) return 'Infectieux / Parasitaire';
+  if (l === 'C' || l === 'D' && n <= 48) return 'Oncologie';
+  if (l === 'E') return 'Endocrinologie / Métabolique';
+  if ('FG'.includes(l)) return 'Psychiatrique / Neuro';
+  if (l === 'H' && n <= 59) return 'Ophtalmologie';
+  if (l === 'H' && n >= 60) return 'ORL';
+  if (l === 'I') return 'Cardiologique / HTA';
+  if (l === 'J') return 'ORL / Respiratoire';
+  if (l === 'K') return 'Gastro-Entérologie';
+  if (l === 'L') return 'Dermatologie';
+  if (l === 'M') return 'Rhumatologie / Ostéo';
+  if (l === 'N' && n <= 69) return 'Urologie / Néphro';
+  if (l === 'N' && n >= 70) return 'Gynécologie / Obstétrique';
+  if (l === 'O') return 'Gynécologie / Obstétrique';
+  if (l === 'Z') return 'Préventif / Dépistage';
+  return 'Autre';
+}
+
+const DEMO_EPIDEMIO = {
+  ageGroups: [
+    {label:'0–14',h:12,f:10},{label:'15–24',h:18,f:22},{label:'25–34',h:25,f:31},
+    {label:'35–44',h:30,f:28},{label:'45–54',h:22,f:24},{label:'55–64',h:16,f:18},
+    {label:'65–74',h:10,f:12},{label:'75+',h:5,f:7}
+  ],
+  familles:[
+    {name:'Cardiologique / HTA',n:142},{name:'Infectieux / Parasitaire',n:118},
+    {name:'ORL / Respiratoire',n:97},{name:'Endocrinologie / Métabolique',n:88},
+    {name:'Gastro-Entérologie',n:74},{name:'Psychiatrique / Neuro',n:61},
+    {name:'Rhumatologie / Ostéo',n:53},{name:'Dermatologie',n:44},
+    {name:'Urologie / Néphro',n:38},{name:'Gynécologie / Obstétrique',n:35},
+    {name:'Ophtalmologie',n:22},{name:'Autre',n:28}
+  ],
+  topDiag:[
+    {code:'I10',libelle:'Hypertension essentielle',n:98},{code:'J06',libelle:'Inf. aiguë voies respir. sup.',n:76},
+    {code:'E11',libelle:'Diabète type 2',n:64},{code:'K21',libelle:'Reflux gastro-œsophagien',n:52},
+    {code:'J45',libelle:'Asthme',n:48},{code:'M54',libelle:'Dorsalgie',n:44},
+    {code:'E78',libelle:'Dyslipidémie',n:41},{code:'F41',libelle:'Anxiété',n:37},
+    {code:'N39',libelle:'Inf. urinaire',n:33},{code:'I25',libelle:'Cardiopathie ischémique',n:29},
+    {code:'L30',libelle:'Dermatite',n:26},{code:'K29',libelle:'Gastrite',n:24},
+    {code:'J44',libelle:'BPCO',n:22},{code:'E03',libelle:'Hypothyroïdie',n:20},
+    {code:'M05',libelle:'Polyarthrite rhumatoïde',n:18},{code:'F32',libelle:'Épisode dépressif',n:16},
+    {code:'I50',libelle:'Insuffisance cardiaque',n:14},{code:'N18',libelle:'MRC',n:12},
+    {code:'C34',libelle:'Néoplasie bronchopulmonaire',n:10},{code:'O80',libelle:'Accouchement normal',n:9}
+  ],
+  saisonnalite:[
+    {month:'Jan',resp:28,card:18,inf:22},{month:'Fév',resp:24,card:16,inf:18},
+    {month:'Mar',resp:20,card:15,inf:14},{month:'Avr',resp:15,card:17,inf:10},
+    {month:'Mai',resp:12,card:18,inf:8},{month:'Jun',resp:10,card:19,inf:12},
+    {month:'Jul',resp:9,card:20,inf:15},{month:'Aoû',resp:11,card:18,inf:14},
+    {month:'Sep',resp:14,card:17,inf:12},{month:'Oct',resp:18,card:19,inf:16},
+    {month:'Nov',resp:22,card:20,inf:20},{month:'Déc',resp:26,card:22,inf:24}
+  ]
+};
+
+app.get('/api/analytics/epidemio', auth, (req, res) => {
+  // Real CIM-10 from DB
+  const consults = db.prepare("SELECT noteJson FROM consultations WHERE statut='validee'").all();
+  const diagCounts = {};
+  for (const c of consults) {
+    try {
+      const note = JSON.parse(decrypt(c.noteJson) || c.noteJson || '{}');
+      const cim = note.cim10;
+      if (cim?.code) diagCounts[cim.code] = (diagCounts[cim.code] || { code: cim.code, libelle: cim.libelle, n: 0 });
+      if (cim?.code) diagCounts[cim.code].n++;
+    } catch {}
+  }
+  const realDiags = Object.values(diagCounts).sort((a,b)=>b.n-a.n);
+  const realFamilles = {};
+  for (const d of realDiags) {
+    const fam = classifyCIM10(d.code);
+    if (fam) realFamilles[fam] = (realFamilles[fam] || 0) + d.n;
+  }
+
+  // Patient age pyramid from DB
+  const patients = db.prepare("SELECT dateNaissance, sexe FROM patients WHERE dateNaissance IS NOT NULL AND dateNaissance != ''").all();
+  const realAgeGroups = {};
+  for (const p of patients) {
+    const age = new Date().getFullYear() - new Date(p.dateNaissance + 'T00:00:00').getFullYear();
+    const bracket = age < 15 ? '0–14' : age < 25 ? '15–24' : age < 35 ? '25–34' : age < 45 ? '35–44' : age < 55 ? '45–54' : age < 65 ? '55–64' : age < 75 ? '65–74' : '75+';
+    if (!realAgeGroups[bracket]) realAgeGroups[bracket] = { label: bracket, h: 0, f: 0 };
+    if (p.sexe === 'M') realAgeGroups[bracket].h++; else realAgeGroups[bracket].f++;
+  }
+
+  res.json({
+    real: {
+      topDiag: realDiags.slice(0, 20),
+      familles: Object.entries(realFamilles).map(([name,n])=>({name,n})).sort((a,b)=>b.n-a.n),
+      ageGroups: Object.values(realAgeGroups)
+    },
+    demo: DEMO_EPIDEMIO,
+    hasRealData: realDiags.length > 0
+  });
+});
+
+app.get('/api/analytics/risk', auth, (req, res) => {
+  const patients = db.prepare("SELECT * FROM patients").all();
+  const riskList = [];
+  for (const p of patients) {
+    let score = 0; const flags = [];
+    const age = p.dateNaissance ? new Date().getFullYear() - new Date(p.dateNaissance + 'T00:00:00').getFullYear() : 0;
+    if (age >= 65) { score += 2; flags.push('Âge ≥65 ans'); }
+    else if (age >= 50) { score += 1; flags.push('Âge ≥50 ans'); }
+
+    const diags = db.prepare("SELECT noteJson FROM consultations WHERE patientId=? AND statut='validee' ORDER BY date DESC LIMIT 10").all(p.id);
+    const codes = new Set();
+    for (const c of diags) {
+      try { const n = JSON.parse(decrypt(c.noteJson)||c.noteJson||'{}'); if(n.cim10?.code) codes.add(n.cim10.code); } catch {}
+    }
+    if ([...codes].some(c=>c.startsWith('I1')||c==='I10')) { score+=3; flags.push('HTA'); }
+    if ([...codes].some(c=>c.startsWith('E1')||c.startsWith('E11'))) { score+=3; flags.push('Diabète'); }
+    if ([...codes].some(c=>c==='E78'||c.startsWith('E78'))) { score+=2; flags.push('Dyslipidémie'); }
+    if ([...codes].some(c=>c.startsWith('I2')||c.startsWith('I5'))) { score+=4; flags.push('Cardiopathie'); }
+    if ([...codes].some(c=>c.startsWith('C'))) { score+=4; flags.push('Oncologie'); }
+    if ([...codes].some(c=>c==='N18')) { score+=3; flags.push('MRC'); }
+
+    if (p.allergies?.trim()) { score+=1; flags.push('Allergies connues'); }
+
+    const rxCount = db.prepare("SELECT COUNT(DISTINCT consultationId) as n FROM prescriptions p JOIN consultations c ON c.id=p.consultationId WHERE c.patientId=?").get(p.id)?.n||0;
+    if (rxCount >= 3) { score+=2; flags.push('Polymédication'); }
+
+    const lastConsult = db.prepare("SELECT date FROM consultations WHERE patientId=? ORDER BY date DESC LIMIT 1").get(p.id);
+    const daysSince = lastConsult ? Math.floor((Date.now()-new Date(lastConsult.date).getTime())/(864e5)) : 999;
+    if (daysSince > 180) { score+=2; flags.push(`Dernière visite il y a ${daysSince}j`); }
+
+    const level = score >= 8 ? 'critique' : score >= 5 ? 'élevé' : score >= 3 ? 'modéré' : 'faible';
+    riskList.push({ id:p.id, nom:p.nom, prenom:p.prenom, age, score, level, flags, daysSince, lastConsultDate: lastConsult?.date||null });
+  }
+  riskList.sort((a,b)=>b.score-a.score);
+  res.json({ patients: riskList });
+});
+
+app.get('/api/analytics/forecast', auth, (req, res) => {
+  // Monthly consultation counts last 18 months
+  const monthly = db.prepare(`
+    SELECT strftime('%Y-%m', date) as month, COUNT(*) as n
+    FROM consultations WHERE userId=?
+    GROUP BY month ORDER BY month ASC LIMIT 18
+  `).all(req.user.id);
+
+  // Linear regression on real data
+  let forecast = null;
+  if (monthly.length >= 3) {
+    const n = monthly.length;
+    const xs = monthly.map((_,i)=>i);
+    const ys = monthly.map(r=>r.n);
+    const sumX=xs.reduce((a,b)=>a+b,0), sumY=ys.reduce((a,b)=>a+b,0);
+    const sumXY=xs.reduce((a,x,i)=>a+x*ys[i],0), sumX2=xs.reduce((a,x)=>a+x*x,0);
+    const slope=(n*sumXY-sumX*sumY)/(n*sumX2-sumX*sumX)||0;
+    const intercept=(sumY-slope*sumX)/n;
+    const lastIdx=n-1;
+    forecast=[1,2,3].map(d=>({
+      month: (() => { const dt=new Date(); dt.setDate(1); dt.setMonth(dt.getMonth()+d); return dt.toISOString().slice(0,7); })(),
+      n: Math.max(0, Math.round(intercept+slope*(lastIdx+d)))
+    }));
+  }
+
+  // Demo supplement (18 months of realistic Libreville data if sparse)
+  const demoMonthly = [
+    {month:'2024-09',n:41},{month:'2024-10',n:47},{month:'2024-11',n:52},{month:'2024-12',n:44},
+    {month:'2025-01',n:50},{month:'2025-02',n:55},{month:'2025-03',n:58},{month:'2025-04',n:61},
+    {month:'2025-05',n:64},{month:'2025-06',n:60},{month:'2025-07',n:57},{month:'2025-08',n:63},
+    {month:'2025-09',n:68},{month:'2025-10',n:72},{month:'2025-11',n:75},{month:'2025-12',n:70},
+    {month:'2026-01',n:78},{month:'2026-02',n:82}
+  ];
+  const demoForecast=[{month:'2026-03',n:86},{month:'2026-04',n:90},{month:'2026-05',n:94}];
+  const trend = monthly.length >= 2 ? (monthly[monthly.length-1].n - monthly[0].n > 0 ? 'hausse' : 'baisse') : 'stable';
+
+  res.json({ monthly, forecast, trend, demo: { monthly: demoMonthly, forecast: demoForecast }, hasRealData: monthly.length > 0 });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PAPETERIE MÉDICALE STANDARD (sans consultation)
 // ═══════════════════════════════════════════════════════════════════════════════
 

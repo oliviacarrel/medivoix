@@ -98,6 +98,9 @@ const Ic={
   Send:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>,
   UserPlus:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>,
   Paperclip:  p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/></svg>,
+  Brain:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3a4 4 0 014 4c0 .37-.048.728-.138 1.07A4 4 0 0119 12a4.002 4.002 0 01-2.637 3.765A4 4 0 0112 21a4 4 0 01-4.363-5.235A4 4 0 015 12a4 4 0 013.138-3.93A4.002 4.002 0 018 4c0-2.21 1.79-4 4-4z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 7v4m0 0l-1.5-1.5M12 11l1.5-1.5"/></svg>,
+  TrendUp:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>,
+  AlertTri:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>,
 };
 
 /* ── Badge ── */
@@ -113,6 +116,7 @@ function Sidebar({page,onNav,user,onLogout}){
     {id:'patients',label:'Patients',Icon:Ic.Users},
     {id:'agenda',label:'Agenda',Icon:Ic.Calendar},
     {id:'analytics',label:'Analytiques',Icon:Ic.BarChart},
+    {id:'intelligence',label:'Intelligence IA',Icon:Ic.Brain},
     {id:'honoraires',label:'Honoraires',Icon:Ic.Money},
     {id:'profile',label:'Mon profil',Icon:Ic.User},
     {id:'audit',label:'Journal d\'audit',Icon:Ic.Shield},
@@ -1988,6 +1992,410 @@ function ConsultationScreen({consultationId,patientId,onBack}){
 }
 
 /* ══════════════════════════════════════════════════════════════
+   INTELLIGENCE IA — Épidémio · Risque · Prévision
+══════════════════════════════════════════════════════════════ */
+
+// ── SVG helpers ──────────────────────────────────────────────
+function AgePyramideChart({groups}){
+  const W=560,H=280,barH=24,gap=6,midX=W/2,labelW=70;
+  const maxVal=Math.max(...groups.flatMap(g=>[g.h,g.f]),1);
+  const scale=v=>(midX-labelW-16)*v/maxVal;
+  return(
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
+      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#3b82f6" fontWeight="bold">Hommes</text>
+      <text x={midX+(midX-labelW)/2+labelW} y={14} textAnchor="middle" fontSize={11} fill="#ec4899" fontWeight="bold">Femmes</text>
+      {groups.map((g,i)=>{
+        const y=20+i*(barH+gap);
+        const hw=scale(g.h), fw=scale(g.f);
+        return(
+          <g key={g.label}>
+            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={3} fill="#3b82f6" opacity={0.8}/>
+            <rect x={midX+labelW} y={y} width={fw} height={barH} rx={3} fill="#ec4899" opacity={0.8}/>
+            <text x={midX} y={y+barH/2+4} textAnchor="middle" fontSize={10} fill="#64748b">{g.label}</text>
+            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#3b82f6">{g.h}</text>
+            <text x={midX+labelW+fw+4} y={y+barH/2+4} textAnchor="start" fontSize={9} fill="#ec4899">{g.f}</text>
+          </g>
+        );
+      })}
+      <line x1={midX} y1={16} x2={midX} y2={H-8} stroke="#e2e8f0" strokeWidth={1}/>
+    </svg>
+  );
+}
+
+function FamillesPieChart({familles}){
+  const W=340,R=110,cx=W/2,cy=130;
+  const total=familles.reduce((s,f)=>s+f.n,0)||1;
+  const COLORS=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#a78bfa'];
+  let angle=-Math.PI/2;
+  const slices=familles.map((f,i)=>{
+    const sweep=2*Math.PI*f.n/total;
+    const a1=angle,a2=angle+sweep;
+    angle=a2;
+    return{...f,a1,a2,color:COLORS[i%COLORS.length]};
+  });
+  const arc=(r,a1,a2)=>{
+    const x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);
+    const x2=cx+r*Math.cos(a2),y2=cy+r*Math.sin(a2);
+    const large=a2-a1>Math.PI?1:0;
+    return`M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`;
+  };
+  return(
+    <svg width="100%" viewBox={`0 0 ${W} 260`} style={{fontFamily:'inherit'}}>
+      {slices.map((s,i)=><path key={i} d={arc(R,s.a1,s.a2)} fill={s.color} stroke="white" strokeWidth={1.5}/>)}
+      <circle cx={cx} cy={cy} r={55} fill="white"/>
+      <text x={cx} y={cy-6} textAnchor="middle" fontSize={11} fill="#64748b">Total</text>
+      <text x={cx} y={cy+12} textAnchor="middle" fontSize={18} fontWeight="bold" fill="#0f172a">{total}</text>
+      {slices.map((s,i)=>{
+        const midA=(s.a1+s.a2)/2;
+        const lx=cx+(R+22)*Math.cos(midA), ly=cy+(R+22)*Math.sin(midA);
+        if((s.a2-s.a1)*180/Math.PI<12) return null;
+        return<text key={i} x={lx} y={ly} textAnchor="middle" fontSize={8.5} fill={s.color} fontWeight="bold">{Math.round(s.n/total*100)}%</text>;
+      })}
+    </svg>
+  );
+}
+
+function TopDiagChart({diags}){
+  const max=Math.max(...diags.map(d=>d.n),1);
+  return(
+    <div className="space-y-1.5">
+      {diags.map((d,i)=>(
+        <div key={d.code} className="flex items-center gap-2">
+          <span className="text-xs text-slate-400 w-4 text-right">{i+1}</span>
+          <span className="text-xs font-mono text-blue-600 w-10 flex-shrink-0">{d.code}</span>
+          <div className="flex-1 bg-slate-100 rounded-full h-4 relative overflow-hidden">
+            <div className="h-full rounded-full" style={{width:`${d.n/max*100}%`,background:'linear-gradient(90deg,#3b82f6,#6366f1)'}}/>
+            <span className="absolute inset-0 flex items-center pl-2 text-xs text-slate-700 font-medium truncate">{d.libelle}</span>
+          </div>
+          <span className="text-xs font-semibold text-slate-600 w-7 text-right">{d.n}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SaisonnaliteChart({data}){
+  const W=560,H=180,pad={t:20,r:20,b:30,l:30};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+  const months=data.map(d=>d.month);
+  const maxV=Math.max(...data.flatMap(d=>[d.resp,d.card,d.inf]),1);
+  const px=(i)=>pad.l+i*(iW/(data.length-1));
+  const py=(v)=>pad.t+iH-(v/maxV*iH);
+  const line=(key,color)=>{
+    const pts=data.map((d,i)=>`${px(i)},${py(d[key])}`).join(' ');
+    const area=`M${px(0)},${py(0)} `+data.map((d,i)=>`L${px(i)},${py(d[key])}`).join(' ')+` L${px(data.length-1)},${pad.t+iH} L${px(0)},${pad.t+iH} Z`;
+    return(<g>
+      <path d={area} fill={color} opacity={0.1}/>
+      <polyline points={pts} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round"/>
+      {data.map((d,i)=><circle key={i} cx={px(i)} cy={py(d[key])} r={3} fill={color}/>)}
+    </g>);
+  };
+  return(
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
+      {[0,0.25,0.5,0.75,1].map(f=>{
+        const y=pad.t+iH*(1-f);
+        return<g key={f}><line x1={pad.l} y1={y} x2={W-pad.r} y2={y} stroke="#f1f5f9" strokeWidth={1}/><text x={pad.l-4} y={y+4} textAnchor="end" fontSize={8} fill="#94a3b8">{Math.round(maxV*f)}</text></g>;
+      })}
+      {months.map((m,i)=><text key={m} x={px(i)} y={H-6} textAnchor="middle" fontSize={8} fill="#94a3b8">{m}</text>)}
+      {line('resp','#3b82f6')}
+      {line('card','#ef4444')}
+      {line('inf','#10b981')}
+      <g transform={`translate(${W-120},${pad.t})`}>
+        {[['#3b82f6','Respiratoire'],['#ef4444','Cardiaque'],['#10b981','Infectieux']].map(([c,l],i)=>(
+          <g key={l} transform={`translate(0,${i*16})`}>
+            <rect width={10} height={6} y={0} rx={2} fill={c}/>
+            <text x={14} y={7} fontSize={8} fill="#64748b">{l}</text>
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+function ForecastChart({monthly,forecast,demoMonthly,demoForecast,useDemo}){
+  const hist=useDemo?demoMonthly:monthly;
+  const proj=useDemo?demoForecast:forecast;
+  if(!hist||hist.length===0) return<div className="text-slate-400 text-sm text-center py-8">Aucune donnée disponible</div>;
+  const all=[...hist,...(proj||[])];
+  const W=560,H=180,pad={t:20,r:20,b:30,l:30};
+  const iW=W-pad.l-pad.r,iH=H-pad.t-pad.b;
+  const maxV=Math.max(...all.map(d=>d.n),1);
+  const px=i=>pad.l+i*(iW/(all.length-1));
+  const py=v=>pad.t+iH-(v/maxV*iH);
+  const histPts=hist.map((d,i)=>`${px(i)},${py(d.n)}`).join(' ');
+  const projOffset=hist.length-1;
+  const projPts=proj?.map((d,i)=>`${px(projOffset+i)},${py(d.n)}`).join(' ')||'';
+  const joinPt=`${px(projOffset)},${py(hist[hist.length-1].n)}`;
+  const fullProjPts=proj?`${joinPt} ${projPts}`:'';
+  const areaPath=`M${px(0)},${pad.t+iH} `+hist.map((d,i)=>`L${px(i)},${py(d.n)}`).join(' ')+` L${px(hist.length-1)},${pad.t+iH} Z`;
+  return(
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
+      <defs>
+        <linearGradient id="fgrd" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25"/>
+          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
+        </linearGradient>
+      </defs>
+      {[0,0.25,0.5,0.75,1].map(f=>{
+        const y=pad.t+iH*(1-f);
+        return<g key={f}><line x1={pad.l} y1={y} x2={W-pad.r} y2={y} stroke="#f1f5f9" strokeWidth={1}/><text x={pad.l-4} y={y+4} textAnchor="end" fontSize={8} fill="#94a3b8">{Math.round(maxV*f)}</text></g>;
+      })}
+      {all.map((d,i)=>{
+        if(i%3!==0&&i!==all.length-1) return null;
+        return<text key={d.month} x={px(i)} y={H-6} textAnchor="middle" fontSize={8} fill="#94a3b8">{d.month.slice(2)}</text>;
+      })}
+      <path d={areaPath} fill="url(#fgrd)"/>
+      <polyline points={histPts} fill="none" stroke="#3b82f6" strokeWidth={2} strokeLinejoin="round"/>
+      {proj&&<polyline points={fullProjPts} fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="6,3" strokeLinejoin="round"/>}
+      {hist.map((d,i)=><circle key={i} cx={px(i)} cy={py(d.n)} r={3} fill="#3b82f6"/>)}
+      {proj?.map((d,i)=><circle key={i} cx={px(projOffset+i)} cy={py(d.n)} r={3} fill="#f59e0b" stroke="white" strokeWidth={1.5}/>)}
+      <g transform={`translate(${W-160},${pad.t})`}>
+        <rect width={10} height={4} y={1} rx={2} fill="#3b82f6"/><text x={14} y={7} fontSize={8} fill="#64748b">Historique</text>
+        <rect width={10} height={4} y={17} rx={2} fill="#f59e0b"/><text x={14} y={23} fontSize={8} fill="#64748b">Prévision (régression linéaire)</text>
+      </g>
+    </svg>
+  );
+}
+
+const RISK_COLORS={critique:{bg:'bg-red-50',border:'border-red-200',badge:'bg-red-100 text-red-700',dot:'bg-red-500'},élevé:{bg:'bg-orange-50',border:'border-orange-200',badge:'bg-orange-100 text-orange-700',dot:'bg-orange-400'},modéré:{bg:'bg-amber-50',border:'border-amber-200',badge:'bg-amber-100 text-amber-700',dot:'bg-amber-400'},faible:{bg:'bg-slate-50',border:'border-slate-100',badge:'bg-slate-100 text-slate-600',dot:'bg-slate-300'}};
+
+function RiskPatientCard({p,onView}){
+  const rc=RISK_COLORS[p.level]||RISK_COLORS.faible;
+  return(
+    <div className={`rounded-xl border p-4 flex items-start gap-3 ${rc.bg} ${rc.border}`}>
+      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${rc.dot}`}/>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="font-semibold text-slate-800 text-sm">{p.prenom} {p.nom}</span>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rc.badge}`}>{p.level.toUpperCase()} — {p.score}pts</span>
+          {p.age>0&&<span className="text-xs text-slate-400">{p.age} ans</span>}
+        </div>
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {p.flags.map(f=><span key={f} className="text-xs bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{f}</span>)}
+        </div>
+        {p.lastConsultDate&&<p className="text-xs text-slate-400">Dernière consultation : {new Date(p.lastConsultDate).toLocaleDateString('fr-FR')}</p>}
+      </div>
+      <button onClick={()=>onView(p.id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap">Dossier →</button>
+    </div>
+  );
+}
+
+function IntelligencePage({onViewPatient}){
+  const [tab,setTab]=useState('epidemio');
+  const [epidemio,setEpidemio]=useState(null);
+  const [risk,setRisk]=useState(null);
+  const [forecast,setForecast]=useState(null);
+  const [loading,setLoading]=useState({epidemio:false,risk:false,forecast:false});
+  const [riskFilter,setRiskFilter]=useState('all');
+  const [useDemo,setUseDemo]=useState(false);
+
+  const tok=()=>localStorage.getItem('medpilot_token');
+  const hdr=()=>({'Content-Type':'application/json','Authorization':'Bearer '+tok()});
+
+  React.useEffect(()=>{
+    if(tab==='epidemio'&&!epidemio){
+      setLoading(l=>({...l,epidemio:true}));
+      fetch('/api/analytics/epidemio',{headers:hdr()}).then(r=>r.json()).then(d=>{setEpidemio(d);setLoading(l=>({...l,epidemio:false}));}).catch(()=>setLoading(l=>({...l,epidemio:false})));
+    }
+    if(tab==='risk'&&!risk){
+      setLoading(l=>({...l,risk:true}));
+      fetch('/api/analytics/risk',{headers:hdr()}).then(r=>r.json()).then(d=>{setRisk(d);setLoading(l=>({...l,risk:false}));}).catch(()=>setLoading(l=>({...l,risk:false})));
+    }
+    if(tab==='forecast'&&!forecast){
+      setLoading(l=>({...l,forecast:true}));
+      fetch('/api/analytics/forecast',{headers:hdr()}).then(r=>r.json()).then(d=>{setForecast(d);setLoading(l=>({...l,forecast:false}));}).catch(()=>setLoading(l=>({...l,forecast:false})));
+    }
+  },[tab]);
+
+  const TABS=[
+    {id:'epidemio',label:'Module A — Épidémiologie',icon:'🧬'},
+    {id:'risk',label:'Module B — Patients à risque',icon:'⚠️'},
+    {id:'forecast',label:'Module C — Prévision d\'activité',icon:'📈'},
+  ];
+
+  return(
+    <div className="p-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="mb-6 flex items-center gap-4">
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)'}}>
+          <Ic.Brain className="w-6 h-6 text-white"/>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Intelligence Médicale</h1>
+          <p className="text-sm text-slate-500">Analyse prédictive et épidémiologique de votre patientèle</p>
+        </div>
+        <div className="ml-auto flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
+          <span className="text-xs text-violet-600 font-medium">⚡ Alimenté par l'IA</span>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6">
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab===t.id?'bg-white text-slate-800 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
+            <span>{t.icon}</span><span className="hidden sm:inline">{t.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* ── Module A — Épidémiologie ── */}
+      {tab==='epidemio'&&(
+        <div>
+          {loading.epidemio&&<div className="text-center py-16 text-slate-400">Chargement…</div>}
+          {epidemio&&(()=>{
+            const ag=epidemio.hasRealData&&epidemio.real.ageGroups.length>0?epidemio.real.ageGroups:epidemio.demo.ageGroups;
+            const fam=epidemio.hasRealData&&epidemio.real.familles.length>0?epidemio.real.familles:epidemio.demo.familles;
+            const top=epidemio.hasRealData&&epidemio.real.topDiag.length>0?epidemio.real.topDiag:epidemio.demo.topDiag;
+            const isDemo=!epidemio.hasRealData;
+            return(
+              <div>
+                {isDemo&&<div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2 text-sm text-amber-700"><span>⚠</span> Données de simulation — alimentez le système avec de vraies consultations CIM-10 pour obtenir vos analyses réelles.</div>}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+                  {/* Pyramide des âges */}
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-4">Pyramide des âges</h2>
+                    <AgePyramideChart groups={ag}/>
+                  </div>
+                  {/* Familles pathologiques */}
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-1">Familles pathologiques (12 familles CIM-10)</h2>
+                    <FamillesPieChart familles={fam.slice(0,12)}/>
+                    <div className="grid grid-cols-2 gap-1 mt-2">
+                      {fam.slice(0,12).map((f,i)=>{
+                        const colors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#a78bfa'];
+                        return<div key={f.name} className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{background:colors[i]}}/><span className="text-xs text-slate-600 truncate">{f.name}</span><span className="text-xs text-slate-400 ml-auto">{f.n}</span></div>;
+                      })}
+                    </div>
+                  </div>
+                </div>
+                {/* Top 20 diagnostics */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-5">
+                  <h2 className="text-sm font-semibold text-slate-700 mb-4">Top 20 diagnostics CIM-10</h2>
+                  <TopDiagChart diags={top.slice(0,20)}/>
+                </div>
+                {/* Saisonnalité */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                  <h2 className="text-sm font-semibold text-slate-700 mb-4">Saisonnalité des pathologies (données régionales)</h2>
+                  <SaisonnaliteChart data={epidemio.demo.saisonnalite}/>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── Module B — Patients à risque ── */}
+      {tab==='risk'&&(
+        <div>
+          {loading.risk&&<div className="text-center py-16 text-slate-400">Calcul des scores de risque…</div>}
+          {risk&&(()=>{
+            const counts={critique:0,élevé:0,modéré:0,faible:0};
+            risk.patients.forEach(p=>{if(counts[p.level]!==undefined)counts[p.level]++;});
+            const filtered=riskFilter==='all'?risk.patients:risk.patients.filter(p=>p.level===riskFilter);
+            return(
+              <div>
+                {/* Summary cards */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {[{key:'all',label:'Tous les patients',n:risk.patients.length,color:'bg-slate-50 border-slate-200 text-slate-700'},{key:'critique',label:'Critiques',n:counts.critique,color:'bg-red-50 border-red-200 text-red-700'},{key:'élevé',label:'Risque élevé',n:counts['élevé'],color:'bg-orange-50 border-orange-200 text-orange-700'},{key:'modéré',label:'Risque modéré',n:counts.modéré,color:'bg-amber-50 border-amber-200 text-amber-700'}].map(c=>(
+                    <button key={c.key} onClick={()=>setRiskFilter(c.key)}
+                      className={`rounded-xl border p-4 text-left transition-all ${c.color} ${riskFilter===c.key?'ring-2 ring-blue-400':''}`}>
+                      <div className="text-2xl font-bold">{c.n}</div>
+                      <div className="text-xs font-medium mt-1">{c.label}</div>
+                    </button>
+                  ))}
+                </div>
+                {/* Methodology note */}
+                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5 text-xs text-blue-700">
+                  <strong>Méthodologie du score de risque :</strong> HTA (+3) · Diabète (+3) · Cardiopathie (+4) · Oncologie (+4) · MRC (+3) · Dyslipidémie (+2) · Polymédication (+2) · Âge ≥65 (+2) · Allergies (+1) · Suivi &gt;180j (+2). Critique ≥8 · Élevé ≥5 · Modéré ≥3 · Faible.
+                </div>
+                {/* Patient list */}
+                <div className="space-y-3">
+                  {filtered.length===0&&<div className="text-slate-400 text-sm text-center py-8">Aucun patient dans cette catégorie.</div>}
+                  {filtered.map(p=><RiskPatientCard key={p.id} p={p} onView={id=>onViewPatient&&onViewPatient(id)}/>)}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── Module C — Prévision d'activité ── */}
+      {tab==='forecast'&&(
+        <div>
+          {loading.forecast&&<div className="text-center py-16 text-slate-400">Calcul de la prévision…</div>}
+          {forecast&&(()=>{
+            const hist=useDemo?forecast.demo.monthly:forecast.monthly;
+            const proj=useDemo?forecast.demo.forecast:forecast.forecast;
+            const avgHist=hist.length>0?Math.round(hist.reduce((s,d)=>s+d.n,0)/hist.length):0;
+            const lastN=hist[hist.length-1]?.n||0;
+            const prevN=hist[hist.length-2]?.n||lastN;
+            const pctChange=prevN?Math.round((lastN-prevN)/prevN*100):0;
+            return(
+              <div>
+                {/* KPIs */}
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <div className="text-xs text-slate-500 mb-1">Moy. mensuelle (hist.)</div>
+                    <div className="text-3xl font-bold text-slate-800">{avgHist}</div>
+                    <div className="text-xs text-slate-400 mt-1">consultations/mois</div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <div className="text-xs text-slate-500 mb-1">Évolution M vs M-1</div>
+                    <div className={`text-3xl font-bold ${pctChange>=0?'text-emerald-600':'text-red-600'}`}>{pctChange>=0?'+':''}{pctChange}%</div>
+                    <div className="text-xs text-slate-400 mt-1">variation mensuelle</div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <div className="text-xs text-slate-500 mb-1">Prévision M+1</div>
+                    <div className="text-3xl font-bold text-amber-600">{proj?.[0]?.n||'—'}</div>
+                    <div className="text-xs text-slate-400 mt-1">consultations prévues</div>
+                  </div>
+                </div>
+                {/* Chart */}
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 mb-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-sm font-semibold text-slate-700">Historique & prévision (régression linéaire)</h2>
+                    {!forecast.hasRealData&&(
+                      <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer">
+                        <input type="checkbox" checked={useDemo} onChange={e=>setUseDemo(e.target.checked)} className="rounded"/>
+                        Afficher données démo
+                      </label>
+                    )}
+                  </div>
+                  <ForecastChart monthly={forecast.monthly} forecast={forecast.forecast} demoMonthly={forecast.demo.monthly} demoForecast={forecast.demo.forecast} useDemo={useDemo||!forecast.hasRealData}/>
+                  {!forecast.hasRealData&&<div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">⚠ Données de simulation — la prévision sera recalculée automatiquement à mesure que vos consultations s'accumulent.</div>}
+                </div>
+                {/* 3-month forecast table */}
+                {proj&&(
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                    <h2 className="text-sm font-semibold text-slate-700 mb-4">Prévision sur 3 mois (régression linéaire)</h2>
+                    <table className="w-full text-sm">
+                      <thead><tr className="text-xs text-slate-400 border-b border-slate-100">
+                        <th className="text-left py-2 font-medium">Mois</th>
+                        <th className="text-right py-2 font-medium">Consultations prévues</th>
+                        <th className="text-right py-2 font-medium">vs moy. historique</th>
+                      </tr></thead>
+                      <tbody>{proj.map(m=>{
+                        const delta=avgHist>0?Math.round((m.n-avgHist)/avgHist*100):0;
+                        return<tr key={m.month} className="border-b border-slate-50">
+                          <td className="py-3 font-medium text-slate-700">{new Date(m.month+'-01').toLocaleDateString('fr-FR',{month:'long',year:'numeric'})}</td>
+                          <td className="py-3 text-right font-bold text-slate-800">{m.n}</td>
+                          <td className={`py-3 text-right font-semibold ${delta>=0?'text-emerald-600':'text-red-600'}`}>{delta>=0?'+':''}{delta}%</td>
+                        </tr>;
+                      })}</tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
    ANALYTICS
 ══════════════════════════════════════════════════════════════ */
 function AnalyticsPage(){
@@ -3039,6 +3447,7 @@ function App(){
     if(page==='edit-patient')return<PatientForm patientId={params.patientId} onSave={()=>nav('patient/'+params.patientId)} onBack={()=>nav('patient/'+params.patientId)}/>;
     if(page==='consultation')return<ConsultationScreen consultationId={params.consultationId} patientId={params.patientId} onBack={()=>nav('patient/'+params.patientId)}/>;
     if(page==='analytics')return<AnalyticsPage/>;
+    if(page==='intelligence')return<IntelligencePage onViewPatient={id=>{setParams(p=>({...p,patientId:id}));nav('patient/'+id);}}/>;
     if(page==='agenda')return<AgendaPage/>;
     if(page==='profile')return<ProfilePage user={user} onUpdate={u=>setUser(u)}/>;
     if(page==='audit')return<AuditLog/>;
