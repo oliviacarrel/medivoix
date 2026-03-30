@@ -546,6 +546,112 @@ app.get('/api/consultations/:id/prescription/pdf', auth, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// PAPETERIE MÉDICALE STANDARD (sans consultation)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/patients/:id/papeterie/arret-maladie/pdf', auth, (req,res)=>{
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if(!p) return res.status(404).json({error:'Patient non trouvé'});
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const{duree=3,dateDebut,sortie='autorisee'}=req.body;
+  const debut=dateDebut?new Date(dateDebut+'T00:00:00'):new Date();
+  const fin=new Date(debut);fin.setDate(debut.getDate()+Number(duree)-1);
+  const fmt=d=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const sortieLabel={autorisee:'Sorties autorisées',interdite:'Sorties interdites',autorisee_horaires:'Sorties autorisées aux heures habituelles (8h–12h / 14h–18h)'}[sortie]||'Sorties autorisées';
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="arret-maladie-${p.nom}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,"CERTIFICAT D'ARRÊT DE TRAVAIL",'#dc2626');
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  doc.fillColor('#1e293b').fontSize(10).font('Helvetica').text('Je soussigné(e), certifie avoir examiné ce jour le patient susmentionné et prescrit un arrêt de travail :',50,y,{width:495});y+=30;
+  doc.rect(50,y,495,56).fill('#fef2f2');
+  doc.fillColor('#dc2626').fontSize(13).font('Helvetica-Bold').text(`Du ${fmt(debut)} au ${fmt(fin)}`,0,y+8,{align:'center',width:595});
+  doc.fontSize(10).font('Helvetica').fillColor('#991b1b').text(`Durée : ${duree} jour${duree>1?'s':''}  —  ${sortieLabel}`,0,y+26,{align:'center',width:595});
+  y+=72;
+  doc.fillColor('#334155').fontSize(9).font('Helvetica').text('Ce certificat est établi à la demande de l\'intéressé(e) et lui est remis pour faire valoir ce que de droit.',50,y,{width:495});
+  docSig(doc,y+24);docFooter(doc);doc.end();
+});
+
+app.post('/api/patients/:id/papeterie/certificat-sante/pdf', auth, (req,res)=>{
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if(!p) return res.status(404).json({error:'Patient non trouvé'});
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const{observations='',objet='bonne santé générale'}=req.body;
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="certificat-sante-${p.nom}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,'CERTIFICAT MÉDICAL','#16a34a');
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  const age=p.dateNaissance?Math.floor((Date.now()-new Date(p.dateNaissance+'T00:00:00'))/(365.25*24*3600*1000))+' an(s)':'';
+  const texte=`Je soussigné(e), Docteur ${u?.prenom||''} ${u?.nom||''}, certifie avoir examiné ce jour ${p.prenom} ${p.nom}${age?', âgé(e) de '+age:''}.\n\nAu terme de cet examen, je certifie que ce patient présente un état de ${objet}.${observations?'\n\n'+observations:''}`;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(texte,50,y,{width:495});y+=doc.heightOfString(texte,{width:495})+20;
+  doc.fillColor('#334155').fontSize(9).font('Helvetica').text('Ce certificat est établi à la demande de l\'intéressé(e) et lui est remis pour faire valoir ce que de droit.',50,y,{width:495});
+  docSig(doc,y+24);docFooter(doc);doc.end();
+});
+
+app.post('/api/patients/:id/papeterie/dispense-sport/pdf', auth, (req,res)=>{
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if(!p) return res.status(404).json({error:'Patient non trouvé'});
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const{duree='1 mois',motif='',partielle=false}=req.body;
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="dispense-sport-${p.nom}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,'CERTIFICAT DE DISPENSE DE SPORT','#0284c7');
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  const age=p.dateNaissance?Math.floor((Date.now()-new Date(p.dateNaissance+'T00:00:00'))/(365.25*24*3600*1000))+' an(s)':'';
+  const typeDispense=partielle?'une dispense partielle de sport (activités physiques intenses)':'une dispense totale de sport';
+  const texte=`Je soussigné(e), Docteur ${u?.prenom||''} ${u?.nom||''}, certifie avoir examiné ce jour ${p.prenom} ${p.nom}${age?', âgé(e) de '+age:''}.\n\nPour des raisons médicales${motif?(' : '+motif):'.'}, je prescris ${typeDispense} pour une durée de ${duree}.`;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(texte,50,y,{width:495});y+=doc.heightOfString(texte,{width:495})+20;
+  doc.fillColor('#334155').fontSize(9).font('Helvetica').text('Ce certificat est établi à la demande de l\'intéressé(e) et lui est remis pour faire valoir ce que de droit.',50,y,{width:495});
+  docSig(doc,y+24);docFooter(doc);doc.end();
+});
+
+app.post('/api/patients/:id/papeterie/attestation-soins/pdf', auth, (req,res)=>{
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if(!p) return res.status(404).json({error:'Patient non trouvé'});
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const{nature='Consultation médicale',datesSoins}=req.body;
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const soinsDate=datesSoins||dateStr;
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="attestation-soins-${p.nom}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,'ATTESTATION DE SOINS','#7c3aed');
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  const texte=`Je soussigné(e), Docteur ${u?.prenom||''} ${u?.nom||''}, atteste avoir dispensé les soins suivants à ${p.prenom} ${p.nom} :\n\nNature des soins : ${nature}\nDate des soins : ${soinsDate}\n\nCette attestation est délivrée à titre de justificatif pour remboursement auprès de l'organisme d'assurance maladie.`;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(texte,50,y,{width:495});y+=doc.heightOfString(texte,{width:495})+20;
+  docSig(doc,y+10);docFooter(doc);doc.end();
+});
+
+app.post('/api/patients/:id/papeterie/entete-vierge/pdf', auth, (req,res)=>{
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if(!p) return res.status(404).json({error:'Patient non trouvé'});
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="document-${p.nom}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=178;
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=20;
+  for(let i=0;i<12;i++){doc.moveTo(50,y+i*36).lineTo(545,y+i*36).strokeColor('#e2e8f0').lineWidth(0.5).stroke();}
+  docSig(doc,y+12*36+20);docFooter(doc);doc.end();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // HONORAIRES & TARIFS
 // ═══════════════════════════════════════════════════════════════════════════════
 
