@@ -297,10 +297,10 @@ function LoginPage({onLogin}){
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-8" style={{background:'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
             <Ic.Steth className="w-8 h-8 text-white"/>
           </div>
-          <h1 className="text-4xl font-bold mb-4 leading-tight">La gestion médicale<br/>de l'établissement,<br/>centralisée.</h1>
-          <p className="text-slate-400 text-lg leading-relaxed">MedPilot centralise patients, agenda, consultations et honoraires — pour que vos médecins pilotent leur activité en toute clarté.</p>
+          <h1 className="text-4xl font-bold mb-4 leading-tight">Tout ce dont vous avez<br/>besoin, exactement<br/>là où il faut.</h1>
+          <p className="text-slate-400 text-lg leading-relaxed">MedPilot vous donne une vision complète de votre activité — patients, agenda, notes cliniques et honoraires — en un seul endroit.</p>
           <div className="mt-10 space-y-4">
-            {[{icon:Ic.Users,t:'Dossiers patients centralisés et structurés'},{icon:Ic.Calendar,t:'Agenda, consultations et prescriptions'},{icon:Ic.Money,t:'Honoraires et activité suivis en temps réel'}].map(({icon:I,t})=>(
+            {[{icon:Ic.Users,t:'Vos dossiers patients, organisés et accessibles'},{icon:Ic.Calendar,t:'Agenda, consultations et prescriptions en temps réel'},{icon:Ic.Money,t:'Vos honoraires et revenus sous contrôle'}].map(({icon:I,t})=>(
               <div key={t} className="flex items-center gap-3 text-slate-300">
                 <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0"><I className="w-4 h-4"/></div>
                 <span className="text-sm">{t}</span>
@@ -379,21 +379,22 @@ function Dashboard({onNav,user}){
 
   const statusLabel=s=>s==='validee'?{t:'Validée',c:'green'}:s==='note_generee'?{t:'Note générée',c:'blue'}:{t:'En cours',c:'amber'};
   const statutAgenda=s=>s==='confirme'?{t:'Confirmé',c:'green'}:s==='annule'?{t:'Annulé',c:'red'}:{t:'Planifié',c:'blue'};
-
   const hasAlerts=(stats?.pendingNotes>0)||(hon?.nonFactures?.count>0)||(hon?.rejets?.count>0);
+
+  const drName=`Dr. ${user?.nom||''}`;
 
   return(
     <Page
-      title={`${greeting}, ${user?.prenom?.split(' ').pop() || user?.prenom} 👋`}
+      title={`${greeting}, ${drName}`}
       subtitle={dayStr.charAt(0).toUpperCase()+dayStr.slice(1)}
       actions={<Btn variant="primary" icon={Ic.Plus} onClick={()=>onNav('patients')}>Nouvelle consultation</Btn>}
     >
-      {/* Search */}
-      <div className="relative mb-6">
+      {/* ── Search bar ── */}
+      <div className="relative mb-7">
         <Ic.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
         <input value={search} onChange={e=>setSearch(e.target.value)}
-          placeholder="Rechercher un patient, un motif de consultation…"
-          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+          placeholder="Rechercher un patient, un motif…"
+          className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
         {searchRes&&(
           <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl z-10 overflow-hidden fade-in">
             {searchRes.patients?.length>0&&<>
@@ -426,207 +427,242 @@ function Dashboard({onNav,user}){
         )}
       </div>
 
-      {/* Honoraires cockpit */}
-      <button onClick={()=>onNav('honoraires')} className="w-full text-left mb-6 block">
-        <div className="rounded-2xl p-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-800 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><Ic.Money className="w-5 h-5"/></div>
-              <span className="text-sm font-semibold text-white/90">Honoraires</span>
-            </div>
-            <span className="text-xs text-white/60 flex items-center gap-1">Voir détails <Ic.Chevron className="w-3 h-3 rotate-[-90deg]"/></span>
+      {/* ── Main grid: left (2/3) + right agenda (1/3) ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+        {/* ─── LEFT column ─── */}
+        <div className="xl:col-span-2 space-y-6">
+
+          {/* Stat cards — white, clean, no gradients */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              {label:'Patients',     val:stats?.totalPatients??'—', sub:'dans la base',    icon:Ic.Users,  accent:'#3b82f6'},
+              {label:'Aujourd\'hui', val:stats?.consultToday??'—',  sub:'consultations',   icon:Ic.Steth,  accent:'#14b8a6'},
+              {label:'Cette semaine',val:stats?.consultWeek??'—',   sub:'consultations',   icon:Ic.Chart,  accent:'#8b5cf6'},
+              {label:'Notes validées',val:stats?.notesValidated??'—',sub:'comptes rendus', icon:Ic.Check,  accent:'#10b981'},
+            ].map(({label,val,sub,icon:Icon,accent})=>(
+              <div key={label} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">{label}</p>
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:accent+'18'}}>
+                    <Icon className="w-4 h-4" style={{color:accent}}/>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-3xl font-bold text-slate-900">{val}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <p className="text-2xl font-bold">{hon?fmtFCFA(hon.revenus?.jour):'—'}</p>
-              <p className="text-white/60 text-xs">Aujourd'hui</p>
+
+          {/* Activity line chart */}
+          {stats?.last7days?.length>0&&(
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-5">
+                <div>
+                  <h3 className="font-semibold text-slate-900 text-sm">Consultations — 7 derniers jours</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">{stats.last7days.reduce((a,d)=>a+d.n,0)} au total cette semaine</p>
+                </div>
+                <button onClick={()=>onNav('analytics')} className="text-xs text-blue-500 font-medium hover:underline">Statistiques →</button>
+              </div>
+              {(()=>{
+                const data=stats.last7days;
+                const maxV=Math.max(...data.map(d=>d.n),1);
+                const W=500,H=90,pad=20;
+                const pts=data.map((d,i)=>{
+                  const x=pad+i*((W-pad*2)/(data.length-1||1));
+                  const y=H-(d.n/maxV)*(H-16)+8;
+                  return{x,y,d};
+                });
+                const path=pts.map((p,i)=>i===0?`M${p.x},${p.y}`:`L${p.x},${p.y}`).join(' ');
+                const area=`M${pts[0].x},${H} `+pts.map(p=>`L${p.x},${p.y}`).join(' ')+` L${pts[pts.length-1].x},${H} Z`;
+                return(
+                  <svg width="100%" viewBox={`0 0 ${W} ${H+22}`} style={{overflow:'visible'}}>
+                    <defs>
+                      <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.15"/>
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
+                      </linearGradient>
+                    </defs>
+                    {/* Grid lines */}
+                    {[0,1,2,3].map(i=>{
+                      const y=8+(i/3)*(H-16);
+                      return<line key={i} x1={pad} y1={y} x2={W-pad} y2={y} stroke="#f1f5f9" strokeWidth="1"/>;
+                    })}
+                    {/* Area fill */}
+                    <path d={area} fill="url(#chartGrad)"/>
+                    {/* Line */}
+                    <path d={path} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    {/* Dots + labels */}
+                    {pts.map((p,i)=>(
+                      <g key={i}>
+                        <circle cx={p.x} cy={p.y} r="4" fill="#fff" stroke="#3b82f6" strokeWidth="2"/>
+                        {p.d.n>0&&<text x={p.x} y={p.y-10} fontSize="9" textAnchor="middle" fill="#3b82f6" fontWeight="700">{p.d.n}</text>}
+                        <text x={p.x} y={H+18} fontSize="9" textAnchor="middle" fill="#94a3b8">{p.d.d?.slice(5)}</text>
+                      </g>
+                    ))}
+                  </svg>
+                );
+              })()}
             </div>
-            <div>
-              <p className="text-2xl font-bold">{hon?fmtFCFA(hon.revenus?.mois):'—'}</p>
-              <p className="text-white/60 text-xs">Ce mois</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{hon?.nonFactures?.count??'—'}</p>
-              <p className="text-white/60 text-xs">Non facturé{hon?.nonFactures?.count!==1?'s':''}</p>
+          )}
+
+          {/* Honoraires + Alertes row */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Honoraires card */}
+            <button onClick={()=>onNav('honoraires')} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-left hover:border-blue-200 hover:shadow-md transition-all group">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center"><Ic.Money className="w-4 h-4 text-blue-600"/></div>
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Honoraires</p>
+                </div>
+                <span className="text-xs text-blue-500 group-hover:underline">Voir →</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-xl font-bold text-slate-900">{hon?fmtFCFA(hon.revenus?.jour):'—'}</p>
+                  <p className="text-xs text-slate-400">Aujourd'hui</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-slate-900">{hon?fmtFCFA(hon.revenus?.mois):'—'}</p>
+                  <p className="text-xs text-slate-400">Ce mois</p>
+                </div>
+                <div>
+                  <p className="text-xl font-bold text-slate-900">{hon?.nonFactures?.count??'—'}</p>
+                  <p className="text-xs text-slate-400">Non facturés</p>
+                </div>
+              </div>
+              {hon?.projection?.mois>0&&(
+                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center gap-1.5">
+                  <Ic.Chart className="w-3 h-3 text-slate-400"/>
+                  <span className="text-xs text-slate-500">Projection : <span className="font-semibold text-slate-700">{fmtFCFA(hon.projection.mois)}</span></span>
+                </div>
+              )}
+            </button>
+
+            {/* Alertes */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3">À traiter</p>
+              {!hasAlerts&&<p className="text-sm text-slate-400 text-center py-4">Aucune alerte en cours ✓</p>}
+              <div className="space-y-2.5">
+                {stats?.pendingNotes>0&&(
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-amber-50 border border-amber-100">
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0"><Ic.Warn className="w-3.5 h-3.5 text-amber-600"/></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-amber-900 truncate">{stats.pendingNotes} note{stats.pendingNotes>1?'s':''} en attente</p>
+                    </div>
+                    <button onClick={()=>onNav('patients')} className="text-xs text-amber-600 font-semibold hover:underline flex-shrink-0">Voir</button>
+                  </div>
+                )}
+                {hon?.nonFactures?.count>0&&(
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-orange-50 border border-orange-100">
+                    <div className="w-7 h-7 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0"><Ic.Money className="w-3.5 h-3.5 text-orange-600"/></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-orange-900 truncate">{hon.nonFactures.count} acte{hon.nonFactures.count>1?'s':''} non facturé{hon.nonFactures.count>1?'s':''}</p>
+                    </div>
+                    <button onClick={()=>onNav('honoraires')} className="text-xs text-orange-600 font-semibold hover:underline flex-shrink-0">Facturer</button>
+                  </div>
+                )}
+                {hon?.rejets?.count>0&&(
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-red-50 border border-red-100">
+                    <div className="w-7 h-7 rounded-lg bg-red-100 flex items-center justify-center flex-shrink-0"><Ic.Warn className="w-3.5 h-3.5 text-red-500"/></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-red-900 truncate">{hon.rejets.count} rejet{hon.rejets.count>1?'s':''} — {fmtFCFA(hon.rejets.total)}</p>
+                    </div>
+                    <button onClick={()=>onNav('honoraires')} className="text-xs text-red-500 font-semibold hover:underline flex-shrink-0">Traiter</button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-          {hon?.projection?.mois>0&&(
-            <div className="mt-3 pt-3 border-t border-white/20 flex items-center gap-2">
-              <Ic.Chart className="w-3.5 h-3.5 text-white/60"/>
-              <span className="text-xs text-white/70">Projection fin de mois : <span className="font-semibold text-white">{fmtFCFA(hon.projection.mois)}</span></span>
+
+          {/* Recent consultations */}
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-900">Consultations récentes</h3>
+              <button onClick={()=>onNav('patients')} className="text-xs text-blue-500 font-medium hover:underline">Voir patients →</button>
+            </div>
+            {stats?.recentConsultations?.length===0&&<p className="px-5 py-8 text-sm text-slate-400 text-center">Aucune consultation</p>}
+            <div className="divide-y divide-slate-50">
+              {stats?.recentConsultations?.map(c=>{
+                const {t,c:color}=statusLabel(c.statut);
+                return(
+                  <div key={c.id} onClick={()=>onNav('consultation/'+c.id+'/'+c.patientId)}
+                    className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer">
+                    <div className={`w-8 h-8 rounded-xl ${avatarColor(c.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{initials(c.prenom,c.nom)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{c.prenom} {c.nom}</p>
+                      <p className="text-xs text-slate-400 truncate">{c.motif}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge color={color} size="xs">{t}</Badge>
+                      <span className="text-xs text-slate-400 hidden sm:block">{fmtDate(c.date)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* ─── RIGHT column: Agenda du jour ─── */}
+        <div className="space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-slate-900">Agenda du jour</h3>
+              <button onClick={()=>onNav('agenda')} className="text-xs text-blue-500 font-medium hover:underline">Tout →</button>
+            </div>
+            {!agenda&&<p className="px-5 py-6 text-sm text-slate-400 text-center">Chargement…</p>}
+            {agenda?.length===0&&(
+              <div className="px-5 py-8 text-center">
+                <Ic.Calendar className="w-7 h-7 text-slate-200 mx-auto mb-2"/>
+                <p className="text-sm text-slate-400">Pas de RDV aujourd'hui</p>
+              </div>
+            )}
+            <div className="divide-y divide-slate-50">
+              {agenda?.slice(0,8).map(a=>{
+                const {t,c}=statutAgenda(a.statut);
+                return(
+                  <div key={a.id} className="px-5 py-3.5 flex items-start gap-3">
+                    <div className="text-right flex-shrink-0 pt-0.5" style={{minWidth:'40px'}}>
+                      <p className="text-sm font-bold text-slate-800">{a.heure}</p>
+                    </div>
+                    <div className={`w-8 h-8 rounded-full ${avatarColor(a.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{initials(a.prenom,a.nom)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{a.prenom} {a.nom}</p>
+                      <p className="text-xs text-slate-500 truncate mt-0.5">{a.motif||'Consultation'}</p>
+                      <div className="mt-1.5"><Badge color={c} size="xs">{t}</Badge></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Top motifs */}
+          {stats?.topMotifsWeek?.length>0&&(
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+              <h3 className="text-sm font-semibold text-slate-900 mb-3">Top motifs — 7 jours</h3>
+              <div className="space-y-2">
+                {stats.topMotifsWeek.map((m,i)=>{
+                  const pct=Math.round((m.n/(stats.topMotifsWeek[0].n||1))*100);
+                  return(
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs text-slate-700 font-medium truncate pr-2">{m.motif}</p>
+                        <span className="text-xs text-slate-400 flex-shrink-0">{m.n}</span>
+                      </div>
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-400 rounded-full" style={{width:pct+'%'}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
-      </button>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
-        {statCards.map(({label,val,sub,icon:Icon,from,to})=>(
-          <div key={label} className={`rounded-2xl p-5 bg-gradient-to-br ${from} ${to} text-white shadow-lg`}>
-            <div className="flex items-start justify-between mb-4">
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center"><Icon className="w-5 h-5"/></div>
-            </div>
-            <p className="text-3xl font-bold mb-0.5">{val}</p>
-            <p className="text-white/80 text-sm font-medium">{label}</p>
-            <p className="text-white/50 text-xs">{sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Alertes unifiées */}
-      {hasAlerts&&(
-        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm mb-6 overflow-hidden">
-          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Alertes</p>
-          </div>
-          <div className="divide-y divide-slate-50">
-            {stats?.pendingNotes>0&&(
-              <div className="px-5 py-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0"><Ic.Warn className="w-4 h-4 text-amber-600"/></div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{stats.pendingNotes} note{stats.pendingNotes>1?'s':''} en attente</p>
-                    <p className="text-xs text-slate-400">À valider avant la prochaine consultation</p>
-                  </div>
-                </div>
-                <Btn variant="secondary" size="sm" onClick={()=>onNav('patients')}>Voir →</Btn>
-              </div>
-            )}
-            {hon?.nonFactures?.count>0&&(
-              <div className="px-5 py-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0"><Ic.Money className="w-4 h-4 text-orange-600"/></div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{hon.nonFactures.count} acte{hon.nonFactures.count>1?'s':''} non facturé{hon.nonFactures.count>1?'s':''}</p>
-                    <p className="text-xs text-slate-400">Consultations validées sans honoraires</p>
-                  </div>
-                </div>
-                <Btn variant="secondary" size="sm" onClick={()=>onNav('honoraires')}>Facturer →</Btn>
-              </div>
-            )}
-            {hon?.rejets?.count>0&&(
-              <div className="px-5 py-3.5 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0"><Ic.Warn className="w-4 h-4 text-red-500"/></div>
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">{hon.rejets.count} rejet{hon.rejets.count>1?'s':''} — {fmtFCFA(hon.rejets.total)}</p>
-                    <p className="text-xs text-slate-400">Dossiers refusés par la caisse</p>
-                  </div>
-                </div>
-                <Btn variant="secondary" size="sm" onClick={()=>onNav('honoraires')}>Traiter →</Btn>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Agenda + Consultations récentes */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-        {/* Agenda du jour */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">Agenda du jour</h3>
-            <Btn variant="ghost" size="sm" onClick={()=>onNav('agenda')}>Tout l'agenda →</Btn>
-          </div>
-          {!agenda&&<p className="px-6 py-8 text-sm text-slate-400 text-center">Chargement…</p>}
-          {agenda?.length===0&&<p className="px-6 py-8 text-sm text-slate-400 text-center">Aucun rendez-vous aujourd'hui</p>}
-          <div className="divide-y divide-slate-50">
-            {agenda?.slice(0,6).map(a=>{
-              const {t,c}=statutAgenda(a.statut);
-              return(
-                <div key={a.id} className="px-5 py-3 flex items-center gap-3">
-                  <div className="w-10 text-center flex-shrink-0">
-                    <p className="text-sm font-bold text-slate-900">{a.heure}</p>
-                  </div>
-                  <div className={`w-8 h-8 rounded-xl ${avatarColor(a.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                    {initials(a.prenom,a.nom)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{a.prenom} {a.nom}</p>
-                    <p className="text-xs text-slate-400 truncate">{a.motif||'RDV'}</p>
-                  </div>
-                  <Badge color={c} size="xs">{t}</Badge>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Consultations récentes */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">Consultations récentes</h3>
-            <Btn variant="ghost" size="sm" onClick={()=>onNav('patients')}>Voir patients →</Btn>
-          </div>
-          {stats?.recentConsultations?.length===0&&<p className="px-6 py-8 text-sm text-slate-400 text-center">Aucune consultation pour l'instant</p>}
-          <div className="divide-y divide-slate-50">
-            {stats?.recentConsultations?.map(c=>{
-              const {t,c:color}=statusLabel(c.statut);
-              return(
-                <div key={c.id} onClick={()=>onNav('consultation/'+c.id+'/'+c.patientId)} className="px-6 py-3.5 flex items-center gap-4 hover:bg-slate-50/50 cursor-pointer">
-                  <div className={`w-9 h-9 rounded-xl ${avatarColor(c.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                    {initials(c.prenom,c.nom)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-900 truncate">{c.prenom} {c.nom}</p>
-                    <p className="text-xs text-slate-400 truncate">{c.motif}</p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <Badge color={color} size="xs">{t}</Badge>
-                    <span className="text-xs text-slate-400 hidden sm:block">{fmtDate(c.date)}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Activité */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* 7-day chart */}
-        {stats?.last7days?.length>0&&(
-          <div className="xl:col-span-2 bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-slate-900">Activité — 7 derniers jours</h3>
-              <button onClick={()=>onNav('analytics')} className="text-xs text-blue-500 hover:underline">Statistiques →</button>
-            </div>
-            {(()=>{
-              const max=Math.max(...stats.last7days.map(d=>d.n),1);
-              const W=460,H=60;
-              const data=stats.last7days;
-              return(
-                <svg width="100%" viewBox={`0 0 ${W} ${H+18}`}>
-                  {data.map((d,i)=>{
-                    const bw=Math.floor(W/data.length)-4;
-                    const bx=i*(W/data.length)+2;
-                    const bh=Math.max((d.n/max)*(H-8),2);
-                    return<g key={i}>
-                      <rect x={bx} y={H-bh} width={bw} height={bh} fill="#3b82f6" rx="3" opacity="0.8"/>
-                      <text x={bx+bw/2} y={H+14} fontSize="9" textAnchor="middle" fill="#94a3b8">{d.d?.slice(5)}</text>
-                      {d.n>0&&<text x={bx+bw/2} y={H-bh-3} fontSize="9" textAnchor="middle" fill="#3b82f6" fontWeight="bold">{d.n}</text>}
-                    </g>;
-                  })}
-                </svg>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Top motifs */}
-        {stats?.topMotifsWeek?.length>0&&(
-          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-            <h3 className="font-semibold text-slate-900 mb-3">Top motifs — 7 jours</h3>
-            <div className="space-y-2.5">
-              {stats.topMotifsWeek.map((m,i)=>(
-                <div key={i} className="flex items-center gap-3">
-                  <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold flex-shrink-0" style={{fontSize:'10px'}}>{m.n}</span>
-                  <p className="text-sm text-slate-700 truncate">{m.motif}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </Page>
   );
