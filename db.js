@@ -99,6 +99,31 @@ try { db.exec("ALTER TABLE consultations ADD COLUMN dureeMinutes INTEGER"); } ca
 try { db.exec("ALTER TABLE patients ADD COLUMN telephone2 TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE appointments ADD COLUMN notes TEXT"); } catch(e) {}
 
+// Honoraires & Tarifs
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tarifs (
+    id          TEXT PRIMARY KEY,
+    userId      TEXT NOT NULL REFERENCES users(id),
+    typeActe    TEXT NOT NULL,
+    montant     REAL NOT NULL DEFAULT 0,
+    createdAt   TEXT DEFAULT (datetime('now'))
+  );
+  CREATE TABLE IF NOT EXISTS honoraires (
+    id              TEXT PRIMARY KEY,
+    consultationId  TEXT NOT NULL REFERENCES consultations(id),
+    userId          TEXT NOT NULL REFERENCES users(id),
+    montant         REAL NOT NULL DEFAULT 0,
+    statut          TEXT DEFAULT 'non_facture',
+    caisse          TEXT,
+    typeActe        TEXT DEFAULT 'Consultation simple',
+    dateFacturation TEXT,
+    datePaiement    TEXT,
+    notes           TEXT,
+    createdAt       TEXT DEFAULT (datetime('now')),
+    updatedAt       TEXT DEFAULT (datetime('now'))
+  );
+`);
+
 // Seed demo doctor
 if (db.prepare('SELECT COUNT(*) as n FROM users').get().n === 0) {
   const hash = bcrypt.hashSync('demo1234', 10);

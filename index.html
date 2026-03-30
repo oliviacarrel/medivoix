@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MédiVoix</title>
+<title>MedPilot</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
@@ -62,6 +62,7 @@ const fmtDateLong=iso=>iso?new Date(iso).toLocaleDateString('fr-FR',{day:'2-digi
 const ageStr=dob=>{if(!dob)return'';return Math.floor((Date.now()-new Date(dob).getTime())/(365.25*24*3600*1000))+' ans';};
 const initials=(p,n)=>`${p?.[0]||''}${n?.[0]||''}`.toUpperCase();
 const avatarColor=sexe=>sexe==='F'?'bg-rose-500':'bg-blue-600';
+const fmtFCFA=n=>new Intl.NumberFormat('fr-FR').format(Math.round(n||0))+' FCFA';
 
 /* ── Icons ── */
 const Ic={
@@ -91,6 +92,8 @@ const Ic={
   Map:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>,
   BarChart: p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>,
   Calendar: p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" strokeWidth={1.8}/><line x1="16" y1="2" x2="16" y2="6" strokeWidth={1.8}/><line x1="8" y1="2" x2="8" y2="6" strokeWidth={1.8}/><line x1="3" y1="10" x2="21" y2="10" strokeWidth={1.8}/></svg>,
+  Money:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>,
+  FileText: p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>,
 };
 
 /* ── Badge ── */
@@ -106,6 +109,7 @@ function Sidebar({page,onNav,user,onLogout}){
     {id:'patients',label:'Patients',Icon:Ic.Users},
     {id:'agenda',label:'Agenda',Icon:Ic.Calendar},
     {id:'analytics',label:'Analytiques',Icon:Ic.BarChart},
+    {id:'honoraires',label:'Honoraires',Icon:Ic.Money},
     {id:'profile',label:'Mon profil',Icon:Ic.User},
     {id:'audit',label:'Journal d\'audit',Icon:Ic.Shield},
   ];
@@ -117,8 +121,8 @@ function Sidebar({page,onNav,user,onLogout}){
           <Ic.Steth className="w-5 h-5 text-white"/>
         </div>
         <div>
-          <p className="font-bold text-white text-sm tracking-tight">MédiVoix</p>
-          <p className="text-slate-400 text-xs">Assistant médical</p>
+          <p className="font-bold text-white text-sm tracking-tight">MedPilot</p>
+          <p className="text-slate-400 text-xs">Gestion médicale</p>
         </div>
       </div>
 
@@ -226,15 +230,15 @@ function RegisterPage({onLogin, onBack}){
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-8" style={{background:'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
             <Ic.Steth className="w-8 h-8 text-white"/>
           </div>
-          <h1 className="text-4xl font-bold mb-4 leading-tight">Rejoignez<br/>MédiVoix.</h1>
-          <p className="text-slate-400 text-lg leading-relaxed">Créez votre espace médical sécurisé en moins d'une minute.</p>
+          <h1 className="text-4xl font-bold mb-4 leading-tight">Rejoignez<br/>MedPilot.</h1>
+          <p className="text-slate-400 text-lg leading-relaxed">Créez votre accès praticien en moins d'une minute.</p>
         </div>
       </div>
       <div className="w-full lg:w-[520px] flex items-center justify-center p-8 bg-white lg:rounded-l-3xl shadow-2xl overflow-y-auto">
         <div className="w-full max-w-sm py-4">
           <button onClick={onBack} className="flex items-center gap-1 text-slate-400 hover:text-slate-600 text-sm mb-6"><Ic.Back className="w-4 h-4"/> Retour à la connexion</button>
-          <h2 className="text-2xl font-bold text-slate-900 mb-1">Créer un compte</h2>
-          <p className="text-slate-500 text-sm mb-6">Médecin ou professionnel de santé</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-1">Créer un accès</h2>
+          <p className="text-slate-500 text-sm mb-6">Praticien de l'établissement</p>
           <form onSubmit={submit} className="space-y-4">
             {error&&<div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm px-4 py-3 rounded-xl flex items-center gap-2"><Ic.Warn className="w-4 h-4 flex-shrink-0"/>{error}</div>}
             <div className="grid grid-cols-2 gap-3">
@@ -290,10 +294,10 @@ function LoginPage({onLogin}){
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-8" style={{background:'linear-gradient(135deg,#3b82f6,#1d4ed8)'}}>
             <Ic.Steth className="w-8 h-8 text-white"/>
           </div>
-          <h1 className="text-4xl font-bold mb-4 leading-tight">L'assistant vocal<br/>des médecins.</h1>
-          <p className="text-slate-400 text-lg leading-relaxed">Enregistrez, transcrivez et structurez vos consultations en quelques secondes. Consacrez-vous à vos patients.</p>
+          <h1 className="text-4xl font-bold mb-4 leading-tight">La gestion médicale<br/>de l'établissement,<br/>centralisée.</h1>
+          <p className="text-slate-400 text-lg leading-relaxed">MedPilot centralise patients, agenda, consultations et honoraires — pour que vos médecins pilotent leur activité en toute clarté.</p>
           <div className="mt-10 space-y-4">
-            {[{icon:Ic.Mic,t:'Transcription en temps réel'},{icon:Ic.Steth,t:'Note clinique générée par IA'},{icon:Ic.Shield,t:'Données chiffrées et sécurisées'}].map(({icon:I,t})=>(
+            {[{icon:Ic.Users,t:'Dossiers patients centralisés et structurés'},{icon:Ic.Calendar,t:'Agenda, consultations et prescriptions'},{icon:Ic.Money,t:'Honoraires et activité suivis en temps réel'}].map(({icon:I,t})=>(
               <div key={t} className="flex items-center gap-3 text-slate-300">
                 <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0"><I className="w-4 h-4"/></div>
                 <span className="text-sm">{t}</span>
@@ -308,10 +312,10 @@ function LoginPage({onLogin}){
         <div className="w-full max-w-sm">
           <div className="lg:hidden flex items-center gap-3 mb-8">
             <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center"><Ic.Steth className="w-6 h-6 text-white"/></div>
-            <span className="font-bold text-xl text-slate-900">MédiVoix</span>
+            <span className="font-bold text-xl text-slate-900">MedPilot</span>
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-1">Connexion</h2>
-          <p className="text-slate-500 text-sm mb-8">Bienvenue, entrez vos identifiants pour continuer.</p>
+          <p className="text-slate-500 text-sm mb-8">Accédez à l'espace médical de votre établissement.</p>
           <form onSubmit={submit} className="space-y-4">
             {error&&<div className="bg-rose-50 border border-rose-200 text-rose-700 text-sm px-4 py-3 rounded-xl flex items-center gap-2"><Ic.Warn className="w-4 h-4 flex-shrink-0"/>{error}</div>}
             <Input label="Email professionnel" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/>
@@ -322,10 +326,10 @@ function LoginPage({onLogin}){
             </button>
           </form>
           <div className="mt-6 bg-slate-50 rounded-xl px-4 py-3">
-            <p className="text-xs text-slate-500 font-medium mb-0.5">Compte de démo</p>
+            <p className="text-xs text-slate-500 font-medium mb-0.5">Accès démo</p>
             <p className="text-xs text-slate-400 font-mono">dr.maiga@medivoix.fr · demo1234</p>
           </div>
-          <p className="mt-4 text-center text-sm text-slate-500">Pas encore de compte ? <button onClick={()=>setShowRegister(true)} className="text-blue-600 font-semibold hover:underline">Créer un compte</button></p>
+          <p className="mt-4 text-center text-sm text-slate-500">Nouveau praticien ? <button onClick={()=>setShowRegister(true)} className="text-blue-600 font-semibold hover:underline">Créer un accès</button></p>
         </div>
       </div>
     </div>
@@ -337,11 +341,21 @@ function LoginPage({onLogin}){
 ══════════════════════════════════════════════════════════════ */
 function Dashboard({onNav,user}){
   const [stats,setStats]=useState(null);
+  const [hon,setHon]=useState(null);
+  const [agenda,setAgenda]=useState(null);
   const [search,setSearch]=useState('');
   const [searchRes,setSearchRes]=useState(null);
   const searchTimer=useRef(null);
 
-  useEffect(()=>{api.get('/dashboard').then(setStats);},[]);
+  const today=new Date().toISOString().slice(0,10);
+
+  useEffect(()=>{
+    Promise.all([
+      api.get('/dashboard'),
+      api.get('/honoraires/dashboard'),
+      api.get(`/agenda?from=${today}&to=${today}`),
+    ]).then(([s,h,ag])=>{setStats(s);setHon(h);setAgenda(ag);});
+  },[]);
 
   useEffect(()=>{
     clearTimeout(searchTimer.current);
@@ -361,6 +375,9 @@ function Dashboard({onNav,user}){
   ];
 
   const statusLabel=s=>s==='validee'?{t:'Validée',c:'green'}:s==='note_generee'?{t:'Note générée',c:'blue'}:{t:'En cours',c:'amber'};
+  const statutAgenda=s=>s==='confirme'?{t:'Confirmé',c:'green'}:s==='annule'?{t:'Annulé',c:'red'}:{t:'Planifié',c:'blue'};
+
+  const hasAlerts=(stats?.pendingNotes>0)||(hon?.nonFactures?.count>0)||(hon?.rejets?.count>0);
 
   return(
     <Page
@@ -369,7 +386,7 @@ function Dashboard({onNav,user}){
       actions={<Btn variant="primary" icon={Ic.Plus} onClick={()=>onNav('patients')}>Nouvelle consultation</Btn>}
     >
       {/* Search */}
-      <div className="relative mb-8">
+      <div className="relative mb-6">
         <Ic.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
         <input value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="Rechercher un patient, un motif de consultation…"
@@ -406,8 +423,41 @@ function Dashboard({onNav,user}){
         )}
       </div>
 
+      {/* Honoraires cockpit */}
+      <button onClick={()=>onNav('honoraires')} className="w-full text-left mb-6 block">
+        <div className="rounded-2xl p-5 bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-indigo-800 transition-all">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center"><Ic.Money className="w-5 h-5"/></div>
+              <span className="text-sm font-semibold text-white/90">Honoraires</span>
+            </div>
+            <span className="text-xs text-white/60 flex items-center gap-1">Voir détails <Ic.Chevron className="w-3 h-3 rotate-[-90deg]"/></span>
+          </div>
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <p className="text-2xl font-bold">{hon?fmtFCFA(hon.revenus?.jour):'—'}</p>
+              <p className="text-white/60 text-xs">Aujourd'hui</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{hon?fmtFCFA(hon.revenus?.mois):'—'}</p>
+              <p className="text-white/60 text-xs">Ce mois</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{hon?.nonFactures?.count??'—'}</p>
+              <p className="text-white/60 text-xs">Non facturé{hon?.nonFactures?.count!==1?'s':''}</p>
+            </div>
+          </div>
+          {hon?.projection?.mois>0&&(
+            <div className="mt-3 pt-3 border-t border-white/20 flex items-center gap-2">
+              <Ic.Chart className="w-3.5 h-3.5 text-white/60"/>
+              <span className="text-xs text-white/70">Projection fin de mois : <span className="font-semibold text-white">{fmtFCFA(hon.projection.mois)}</span></span>
+            </div>
+          )}
+        </div>
+      </button>
+
       {/* Stat cards */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
         {statCards.map(({label,val,sub,icon:Icon,from,to})=>(
           <div key={label} className={`rounded-2xl p-5 bg-gradient-to-br ${from} ${to} text-white shadow-lg`}>
             <div className="flex items-start justify-between mb-4">
@@ -420,67 +470,86 @@ function Dashboard({onNav,user}){
         ))}
       </div>
 
-      {/* Pending notes alert */}
-      {stats?.pendingNotes>0&&(
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center"><Ic.Warn className="w-4 h-4 text-amber-600"/></div>
-            <div>
-              <p className="text-sm font-semibold text-amber-900">{stats.pendingNotes} consultation{stats.pendingNotes>1?'s':''} en attente de validation</p>
-              <p className="text-xs text-amber-600">Notes non finalisées</p>
-            </div>
+      {/* Alertes unifiées */}
+      {hasAlerts&&(
+        <div className="rounded-2xl border border-slate-100 bg-white shadow-sm mb-6 overflow-hidden">
+          <div className="px-5 py-3 border-b border-slate-100 bg-slate-50/60">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Alertes</p>
           </div>
-          <Btn variant="secondary" size="sm" onClick={()=>onNav('patients')}>Voir →</Btn>
-        </div>
-      )}
-
-      {/* 7-day mini bar chart */}
-      {stats?.last7days?.length>0&&(
-        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-slate-900">Activité — 7 derniers jours</h3>
-            <button onClick={()=>onNav('analytics')} className="text-xs text-blue-500 hover:underline">Voir tout →</button>
-          </div>
-          {(()=>{
-            const max=Math.max(...stats.last7days.map(d=>d.n),1);
-            const W=460,H=60;
-            const data=stats.last7days;
-            return(
-              <svg width="100%" viewBox={`0 0 ${W} ${H+18}`}>
-                {data.map((d,i)=>{
-                  const bw=Math.floor(W/data.length)-4;
-                  const bx=i*(W/data.length)+2;
-                  const bh=Math.max((d.n/max)*(H-8),2);
-                  return<g key={i}>
-                    <rect x={bx} y={H-bh} width={bw} height={bh} fill="#3b82f6" rx="3" opacity="0.8"/>
-                    <text x={bx+bw/2} y={H+14} fontSize="9" textAnchor="middle" fill="#94a3b8">{d.d?.slice(5)}</text>
-                    {d.n>0&&<text x={bx+bw/2} y={H-bh-3} fontSize="9" textAnchor="middle" fill="#3b82f6" fontWeight="bold">{d.n}</text>}
-                  </g>;
-                })}
-              </svg>
-            );
-          })()}
-        </div>
-      )}
-
-      {/* Top motifs this week */}
-      {stats?.topMotifsWeek?.length>0&&(
-        <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm mb-6">
-          <h3 className="font-semibold text-slate-900 mb-3">Top motifs — 7 jours</h3>
-          <div className="flex flex-wrap gap-2">
-            {stats.topMotifsWeek.map((m,i)=>(
-              <span key={i} className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 text-xs font-medium px-3 py-1.5 rounded-full">
-                <span className="w-4 h-4 bg-blue-200 rounded-full flex items-center justify-center text-blue-700 font-bold" style={{fontSize:'9px'}}>{m.n}</span>
-                {m.motif}
-              </span>
-            ))}
+          <div className="divide-y divide-slate-50">
+            {stats?.pendingNotes>0&&(
+              <div className="px-5 py-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0"><Ic.Warn className="w-4 h-4 text-amber-600"/></div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{stats.pendingNotes} note{stats.pendingNotes>1?'s':''} en attente</p>
+                    <p className="text-xs text-slate-400">À valider avant la prochaine consultation</p>
+                  </div>
+                </div>
+                <Btn variant="secondary" size="sm" onClick={()=>onNav('patients')}>Voir →</Btn>
+              </div>
+            )}
+            {hon?.nonFactures?.count>0&&(
+              <div className="px-5 py-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0"><Ic.Money className="w-4 h-4 text-orange-600"/></div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{hon.nonFactures.count} acte{hon.nonFactures.count>1?'s':''} non facturé{hon.nonFactures.count>1?'s':''}</p>
+                    <p className="text-xs text-slate-400">Consultations validées sans honoraires</p>
+                  </div>
+                </div>
+                <Btn variant="secondary" size="sm" onClick={()=>onNav('honoraires')}>Facturer →</Btn>
+              </div>
+            )}
+            {hon?.rejets?.count>0&&(
+              <div className="px-5 py-3.5 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0"><Ic.Warn className="w-4 h-4 text-red-500"/></div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">{hon.rejets.count} rejet{hon.rejets.count>1?'s':''} — {fmtFCFA(hon.rejets.total)}</p>
+                    <p className="text-xs text-slate-400">Dossiers refusés par la caisse</p>
+                  </div>
+                </div>
+                <Btn variant="secondary" size="sm" onClick={()=>onNav('honoraires')}>Traiter →</Btn>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Recent */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Recent consultations */}
+      {/* Agenda + Consultations récentes */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+        {/* Agenda du jour */}
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-900">Agenda du jour</h3>
+            <Btn variant="ghost" size="sm" onClick={()=>onNav('agenda')}>Tout l'agenda →</Btn>
+          </div>
+          {!agenda&&<p className="px-6 py-8 text-sm text-slate-400 text-center">Chargement…</p>}
+          {agenda?.length===0&&<p className="px-6 py-8 text-sm text-slate-400 text-center">Aucun rendez-vous aujourd'hui</p>}
+          <div className="divide-y divide-slate-50">
+            {agenda?.slice(0,6).map(a=>{
+              const {t,c}=statutAgenda(a.statut);
+              return(
+                <div key={a.id} className="px-5 py-3 flex items-center gap-3">
+                  <div className="w-10 text-center flex-shrink-0">
+                    <p className="text-sm font-bold text-slate-900">{a.heure}</p>
+                  </div>
+                  <div className={`w-8 h-8 rounded-xl ${avatarColor(a.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
+                    {initials(a.prenom,a.nom)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-slate-900 truncate">{a.prenom} {a.nom}</p>
+                    <p className="text-xs text-slate-400 truncate">{a.motif||'RDV'}</p>
+                  </div>
+                  <Badge color={c} size="xs">{t}</Badge>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Consultations récentes */}
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
           <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="font-semibold text-slate-900">Consultations récentes</h3>
@@ -491,7 +560,7 @@ function Dashboard({onNav,user}){
             {stats?.recentConsultations?.map(c=>{
               const {t,c:color}=statusLabel(c.statut);
               return(
-                <div key={c.id} onClick={()=>onNav('consultation/'+c.id+'/'+c.patientId)} className="px-6 py-3.5 flex items-center gap-4 hover:bg-slate-50/50 cursor-pointer transition-colors hover:bg-slate-100">
+                <div key={c.id} onClick={()=>onNav('consultation/'+c.id+'/'+c.patientId)} className="px-6 py-3.5 flex items-center gap-4 hover:bg-slate-50/50 cursor-pointer">
                   <div className={`w-9 h-9 rounded-xl ${avatarColor(c.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
                     {initials(c.prenom,c.nom)}
                   </div>
@@ -508,31 +577,53 @@ function Dashboard({onNav,user}){
             })}
           </div>
         </div>
+      </div>
 
-        {/* Recent patients */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-semibold text-slate-900">Patients récents</h3>
-            <Btn variant="ghost" size="sm" onClick={()=>onNav('patients')}>Tous les patients →</Btn>
+      {/* Activité */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* 7-day chart */}
+        {stats?.last7days?.length>0&&(
+          <div className="xl:col-span-2 bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold text-slate-900">Activité — 7 derniers jours</h3>
+              <button onClick={()=>onNav('analytics')} className="text-xs text-blue-500 hover:underline">Statistiques →</button>
+            </div>
+            {(()=>{
+              const max=Math.max(...stats.last7days.map(d=>d.n),1);
+              const W=460,H=60;
+              const data=stats.last7days;
+              return(
+                <svg width="100%" viewBox={`0 0 ${W} ${H+18}`}>
+                  {data.map((d,i)=>{
+                    const bw=Math.floor(W/data.length)-4;
+                    const bx=i*(W/data.length)+2;
+                    const bh=Math.max((d.n/max)*(H-8),2);
+                    return<g key={i}>
+                      <rect x={bx} y={H-bh} width={bw} height={bh} fill="#3b82f6" rx="3" opacity="0.8"/>
+                      <text x={bx+bw/2} y={H+14} fontSize="9" textAnchor="middle" fill="#94a3b8">{d.d?.slice(5)}</text>
+                      {d.n>0&&<text x={bx+bw/2} y={H-bh-3} fontSize="9" textAnchor="middle" fill="#3b82f6" fontWeight="bold">{d.n}</text>}
+                    </g>;
+                  })}
+                </svg>
+              );
+            })()}
           </div>
-          {stats?.recentPatients?.length===0&&<p className="px-6 py-8 text-sm text-slate-400 text-center">Aucun patient</p>}
-          <div className="divide-y divide-slate-50">
-            {stats?.recentPatients?.map(p=>(
-              <button key={p.id} onClick={()=>onNav('patient/'+p.id)}
-                className="w-full px-6 py-3.5 flex items-center gap-4 hover:bg-slate-50/50 text-left">
-                <div className={`w-9 h-9 rounded-xl ${avatarColor(p.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>
-                  {initials(p.prenom,p.nom)}
+        )}
+
+        {/* Top motifs */}
+        {stats?.topMotifsWeek?.length>0&&(
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
+            <h3 className="font-semibold text-slate-900 mb-3">Top motifs — 7 jours</h3>
+            <div className="space-y-2.5">
+              {stats.topMotifsWeek.map((m,i)=>(
+                <div key={i} className="flex items-center gap-3">
+                  <span className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold flex-shrink-0" style={{fontSize:'10px'}}>{m.n}</span>
+                  <p className="text-sm text-slate-700 truncate">{m.motif}</p>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900">{p.prenom} {p.nom}</p>
-                  <p className="text-xs text-slate-400">{ageStr(p.dateNaissance)}</p>
-                </div>
-                {p.lastConsult&&<span className="text-xs text-slate-400 hidden sm:block">{fmtDate(p.lastConsult)}</span>}
-                <Ic.Chevron className="w-4 h-4 text-slate-300 flex-shrink-0"/>
-              </button>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </Page>
   );
@@ -935,6 +1026,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
   const [emailModal,setEmailModal]=useState(false);
   const [emailTo,setEmailTo]=useState('');
   const [emailSending,setEmailSending]=useState(false);
+  const [docModal,setDocModal]=useState(false);
   const [realtimeOk]=useState(typeof window!=='undefined'&&('SpeechRecognition' in window||'webkitSpeechRecognition' in window));
   const [heureDebut,setHeureDebut]=useState(null);
 
@@ -1025,6 +1117,8 @@ function ConsultationScreen({consultationId,patientId,onBack}){
   return(
     <Page title="Consultation"
       breadcrumb={<><span className="cursor-pointer hover:text-slate-600" onClick={onBack}>Dossier patient</span> / Consultation en cours</>}>
+
+      {docModal&&<DocModal consultationId={consultationId} patient={patient} onClose={()=>setDocModal(false)}/>}
 
       {/* Email modal */}
       {emailModal&&(
@@ -1160,6 +1254,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                       ):(
                         <>
                           <Btn variant="secondary" icon={ttsLoad?null:Ic.Volume} onClick={()=>speak(noteEdit?.conseils_patient)} loading={ttsLoad} size="sm">Consignes</Btn>
+                          <Btn variant="secondary" icon={Ic.FileText} onClick={()=>setDocModal(true)} size="sm">Documents</Btn>
                           <Btn variant="secondary" icon={Ic.Mail} onClick={()=>setEmailModal(true)} size="sm">Email</Btn>
                           <Btn variant="primary" icon={pdfLoad?null:Ic.Download} onClick={dlPdf} loading={pdfLoad} size="sm">PDF</Btn>
                           <Btn variant="danger" icon={Ic.Trash} onClick={deleteConsult} size="sm">Supprimer</Btn>
@@ -1175,6 +1270,16 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                     </div>
                   )}
 
+                  {noteEdit?.cim10?.code&&(
+                    <div className="flex items-center gap-2 mb-4">
+                      <span className="inline-flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-xl px-4 py-2">
+                        <span className="text-xs font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-lg font-mono">{noteEdit.cim10.code}</span>
+                        <span className="text-sm text-violet-700 font-medium">{noteEdit.cim10.libelle}</span>
+                      </span>
+                      <span className="text-xs text-slate-400">Code CIM-10</span>
+                    </div>
+                  )}
+
                   <div className="space-y-4">
                     <NF label="Motif" field="motif" ta={false}/>
                     <NF label="Histoire de la maladie" field="histoire"/>
@@ -1186,7 +1291,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                     <NF label="⚠ Signes d'alarme" field="drapeaux_rouges" alert/>
                     {noteEdit?.conseils_patient&&(
                       <div className="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                        <p className="text-xs font-bold text-blue-700 uppercase tracking-widest mb-2">Recommandations MédiVoix</p>
+                        <p className="text-xs font-bold text-blue-700 uppercase tracking-widest mb-2">Recommandations MedPilot</p>
                         <p className="text-sm text-blue-900 leading-relaxed">{noteEdit.conseils_patient}</p>
                       </div>
                     )}
@@ -1740,6 +1845,483 @@ function AgendaPage(){
 }
 
 /* ══════════════════════════════════════════════════════════════
+   DOC MODAL (Arrêt, Certificat, Adressage)
+══════════════════════════════════════════════════════════════ */
+function DocModal({consultationId,patient,onClose}){
+  const[type,setType]=useState('arret');
+  const[loading,setLoading]=useState(false);
+  const[duree,setDuree]=useState(3);
+  const[dateDebut,setDateDebut]=useState(new Date().toISOString().slice(0,10));
+  const[sortie,setSortie]=useState('autorisee');
+  const[objet,setObjet]=useState('');
+  const[observations,setObservations]=useState('');
+  const[specialiste,setSpecialiste]=useState('');
+  const[specialiteAdre,setSpecialiteAdre]=useState('');
+  const[motif,setMotif]=useState('');
+
+  const routes={arret:'arret-maladie',certificat:'certificat',adressage:'adressage'};
+  const bodies={arret:{duree,dateDebut,sortie},certificat:{objet,observations},adressage:{specialiste,specialite:specialiteAdre,motif}};
+
+  const generate=async()=>{
+    setLoading(true);
+    const r=await fetch(`${API}/consultations/${consultationId}/${routes[type]}/pdf`,{
+      method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},
+      body:JSON.stringify(bodies[type])
+    });
+    const blob=await r.blob();const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`${routes[type]}-${patient?.nom||'patient'}.pdf`;a.click();
+    URL.revokeObjectURL(url);setLoading(false);
+  };
+
+  const inp='w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const lbl='block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide';
+  const tabs=[{id:'arret',label:'Arrêt maladie'},{id:'certificat',label:'Certificat'},{id:'adressage',label:'Adressage'}];
+
+  return(
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="font-bold text-slate-900">Documents médicaux</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">✕</button>
+        </div>
+        <div className="px-6 py-5">
+          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
+            {tabs.map(t=>(
+              <button key={t.id} onClick={()=>setType(t.id)}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold ${type===t.id?'bg-white text-slate-900 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <div className="bg-slate-50 rounded-xl px-4 py-3 mb-5">
+            <p className="text-sm font-medium text-slate-900">{patient?.prenom} {patient?.nom}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{ageStr(patient?.dateNaissance)} · {patient?.typeAssurance||'Assurance non renseignée'}</p>
+          </div>
+
+          {type==='arret'&&<div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={lbl}>Date de début</label>
+                <input type="date" value={dateDebut} onChange={e=>setDateDebut(e.target.value)} className={inp}/></div>
+              <div><label className={lbl}>Durée (jours)</label>
+                <input type="number" min="1" value={duree} onChange={e=>setDuree(e.target.value)} className={inp}/></div>
+            </div>
+            <div><label className={lbl}>Sorties</label>
+              <select value={sortie} onChange={e=>setSortie(e.target.value)} className={inp}>
+                <option value="autorisee">Autorisées</option>
+                <option value="interdite">Interdites</option>
+                <option value="autorisee_horaires">Autorisées aux heures habituelles</option>
+              </select></div>
+          </div>}
+
+          {type==='certificat'&&<div className="space-y-3">
+            <div><label className={lbl}>Objet du certificat</label>
+              <input type="text" value={objet} onChange={e=>setObjet(e.target.value)}
+                placeholder="Ex : aptitude sportive, inaptitude temporaire..." className={inp}/></div>
+            <div><label className={lbl}>Observations (optionnel)</label>
+              <textarea value={observations} onChange={e=>setObservations(e.target.value)}
+                rows={3} placeholder="Informations complémentaires..." className={inp+' resize-none'}/></div>
+          </div>}
+
+          {type==='adressage'&&<div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div><label className={lbl}>Spécialiste</label>
+                <input type="text" value={specialiste} onChange={e=>setSpecialiste(e.target.value)}
+                  placeholder="Dr. Nom" className={inp}/></div>
+              <div><label className={lbl}>Spécialité</label>
+                <input type="text" value={specialiteAdre} onChange={e=>setSpecialiteAdre(e.target.value)}
+                  placeholder="Cardiologie, ORL..." className={inp}/></div>
+            </div>
+            <div><label className={lbl}>Motif d'adressage</label>
+              <textarea value={motif} onChange={e=>setMotif(e.target.value)}
+                rows={3} placeholder="Raison de la demande de consultation..." className={inp+' resize-none'}/></div>
+          </div>}
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+          <Btn variant="secondary" onClick={onClose}>Annuler</Btn>
+          <Btn variant="primary" icon={Ic.Download} onClick={generate} loading={loading}>Générer PDF</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HONORAIRES
+══════════════════════════════════════════════════════════════ */
+function FactureModal({consult,tarifs,onClose,onSave}){
+  const firstActe=tarifs[0]?.typeActe||'Consultation simple';
+  const[typeActe,setTypeActe]=useState(firstActe);
+  const[montant,setMontant]=useState(()=>{const t=tarifs.find(t=>t.typeActe===firstActe);return t?.montant||5000;});
+  const[statut,setStatut]=useState('en_attente');
+  const[caisse,setCaisse]=useState(consult?.typeAssurance||'');
+  const[dateFact,setDateFact]=useState(new Date().toISOString().slice(0,10));
+  const[datePay,setDatePay]=useState(new Date().toISOString().slice(0,10));
+  const[notes,setNotes]=useState('');
+  const[saving,setSaving]=useState(false);
+  useEffect(()=>{const t=tarifs.find(t=>t.typeActe===typeActe);if(t)setMontant(t.montant);},[typeActe]);
+  const handleSave=async()=>{
+    setSaving(true);
+    await api.post('/honoraires',{consultationId:consult.id,montant:Number(montant),statut,caisse:caisse||null,typeActe,dateFacturation:dateFact,datePaiement:statut==='paye'?datePay:null,notes:notes||null});
+    await onSave();onClose();
+  };
+  const sel='w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const inp='w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const lbl='block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide';
+  return(
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="font-bold text-slate-900">Facturer la consultation</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">✕</button>
+        </div>
+        <div className="px-6 py-5 space-y-4">
+          <div className="bg-slate-50 rounded-xl px-4 py-3">
+            <p className="text-sm font-medium text-slate-900">{consult?.prenom} {consult?.nom}</p>
+            <p className="text-xs text-slate-500 mt-0.5">{consult?.motif} · {fmtDate(consult?.date)}</p>
+          </div>
+          <div><label className={lbl}>Type d'acte</label>
+            <select value={typeActe} onChange={e=>setTypeActe(e.target.value)} className={sel}>
+              {tarifs.map(t=><option key={t.typeActe} value={t.typeActe}>{t.typeActe} — {new Intl.NumberFormat('fr-FR').format(t.montant)} FCFA</option>)}
+            </select>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={lbl}>Montant (FCFA)</label>
+              <input type="number" value={montant} onChange={e=>setMontant(e.target.value)} className={inp}/></div>
+            <div><label className={lbl}>Caisse</label>
+              <select value={caisse} onChange={e=>setCaisse(e.target.value)} className={sel}>
+                <option value="">Non spécifié</option>
+                {['CNAMGS','CNSS','Saham','NSIA','Particulier'].map(c=><option key={c}>{c}</option>)}
+              </select></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className={lbl}>Statut</label>
+              <select value={statut} onChange={e=>setStatut(e.target.value)} className={sel}>
+                <option value="en_attente">En attente</option>
+                <option value="paye">Payé</option>
+              </select></div>
+            <div><label className={lbl}>Date facturation</label>
+              <input type="date" value={dateFact} onChange={e=>setDateFact(e.target.value)} className={inp}/></div>
+          </div>
+          {statut==='paye'&&<div><label className={lbl}>Date de paiement</label>
+            <input type="date" value={datePay} onChange={e=>setDatePay(e.target.value)} className={inp}/></div>}
+          <div><label className={lbl}>Notes</label>
+            <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"/></div>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+          <Btn variant="secondary" onClick={onClose}>Annuler</Btn>
+          <Btn variant="primary" onClick={handleSave} loading={saving}>Enregistrer</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HonorairesPage(){
+  const[tab,setTab]=useState('overview');
+  const[data,setData]=useState(null);
+  const[tarifs,setTarifs]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[factureModal,setFactureModal]=useState(null);
+  const[editTarifs,setEditTarifs]=useState(false);
+  const[tarifsDraft,setTarifsDraft]=useState([]);
+  const[saving,setSaving]=useState(false);
+
+  const load=useCallback(async()=>{
+    setLoading(true);
+    const[dash,tar]=await Promise.all([api.get('/honoraires/dashboard'),api.get('/tarifs')]);
+    setData(dash);setTarifs(tar);setTarifsDraft(tar);setLoading(false);
+  },[]);
+  useEffect(()=>{load();},[load]);
+
+  const updateStatut=async(hId,statut,extra={})=>{await api.put('/honoraires/'+hId,{statut,...extra});load();};
+  const exportCSV=async()=>{
+    const r=await fetch(`${API}/honoraires/export`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const blob=await r.blob();const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download='honoraires.csv';a.click();URL.revokeObjectURL(url);
+  };
+  const saveTarifs=async()=>{setSaving(true);await api.put('/tarifs',{tarifs:tarifsDraft});setTarifs(tarifsDraft);setEditTarifs(false);setSaving(false);};
+
+  if(loading)return<Page title="Honoraires" subtitle="Suivi financier en temps réel"><div className="flex items-center justify-center h-64"><Ic.Spin className="w-8 h-8 text-blue-500"/></div></Page>;
+
+  const{revenus,projection,nonFactures,rejets,enAttente,vieillissement,parCaisse,kpis}=data||{};
+
+  const statutBadge=s=>{
+    const m={paye:['green','Payé'],en_attente:['amber','En attente'],rejete:['red','Rejeté'],non_facture:['slate','Non facturé']};
+    const[c,l]=m[s]||m.non_facture;return<Badge color={c}>{l}</Badge>;
+  };
+
+  return(<>
+    {factureModal&&<FactureModal consult={factureModal} tarifs={tarifs} onClose={()=>setFactureModal(null)} onSave={load}/>}
+    <Page title="Honoraires" subtitle="Suivi financier en temps réel"
+      actions={<Btn variant="secondary" icon={Ic.Download} onClick={exportCSV}>Export CSV</Btn>}>
+
+      {/* KPI Row */}
+      <div className="grid grid-cols-4 gap-4 mb-6">
+        {[
+          {label:"Aujourd'hui",val:revenus?.jour,emoji:'💰',sub:'payés aujourd\'hui'},
+          {label:'Cette semaine',val:revenus?.semaine,emoji:'📅',sub:'du lundi à aujourd\'hui'},
+          {label:'Ce mois',val:revenus?.mois,emoji:'📊',sub:new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})},
+          {label:'Projection mois',val:projection?.mois,emoji:'📈',sub:'au rythme actuel'},
+        ].map(({label,val,emoji,sub})=>(
+          <div key={label} className="stat-card card-hover">
+            <span className="text-2xl">{emoji}</span>
+            <p className="text-xl font-bold text-slate-900 mt-3">{fmtFCFA(val)}</p>
+            <p className="text-sm font-medium text-slate-700 mt-1">{label}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Alerts */}
+      {((nonFactures?.count||0)+(rejets?.count||0))>0&&(
+        <div className="flex gap-3 mb-6">
+          {nonFactures?.count>0&&(
+            <button onClick={()=>setTab('facturation')} className="flex-1 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-amber-100 text-left">
+              <span className="text-xl">⚠️</span>
+              <div><p className="font-semibold text-amber-800 text-sm">{nonFactures.count} acte{nonFactures.count>1?'s':''} non facturé{nonFactures.count>1?'s':''}</p>
+              <p className="text-xs text-amber-600">Cliquez pour facturer</p></div>
+            </button>
+          )}
+          {rejets?.count>0&&(
+            <button onClick={()=>setTab('facturation')} className="flex-1 bg-red-50 border border-red-200 rounded-xl px-4 py-3 flex items-center gap-3 hover:bg-red-100 text-left">
+              <span className="text-xl">❌</span>
+              <div><p className="font-semibold text-red-800 text-sm">{rejets.count} rejet{rejets.count>1?'s':''} — {fmtFCFA(rejets.total)}</p>
+              <p className="text-xs text-red-600">À relancer auprès des caisses</p></div>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Tabs */}
+      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-6 w-fit">
+        {[
+          {id:'overview',label:'Vue d\'ensemble'},
+          {id:'facturation',label:`Facturation${nonFactures?.count>0?` (${nonFactures.count})`:''}`},
+          {id:'tarifs',label:'Tarifs'},
+        ].map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium ${tab===t.id?'bg-white text-slate-900 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab: Vue d'ensemble */}
+      {tab==='overview'&&<div className="space-y-6">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="stat-card">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">En attente de paiement</p>
+            <p className="text-xl font-bold text-amber-600">{fmtFCFA(enAttente?.total)}</p>
+            <p className="text-sm text-slate-500 mt-1">{enAttente?.count||0} facture{(enAttente?.count||0)>1?'s':''}</p>
+          </div>
+          <div className="stat-card">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Taux de recouvrement</p>
+            <p className="text-xl font-bold text-slate-900">{kpis?.tauxRecouvrement||0}%</p>
+            <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div className="h-full bg-emerald-500 rounded-full" style={{width:`${Math.min(kpis?.tauxRecouvrement||0,100)}%`}}/>
+            </div>
+          </div>
+          <div className="stat-card">
+            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Revenu / consultation</p>
+            <p className="text-xl font-bold text-slate-900">{fmtFCFA(kpis?.revParConsult)}</p>
+            <p className="text-sm text-slate-500 mt-1">ce mois</p>
+          </div>
+        </div>
+
+        {/* Vieillissement créances */}
+        <div className="bg-white rounded-2xl border border-slate-100 p-6">
+          <h3 className="font-semibold text-slate-900 mb-4">Vieillissement des créances</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              {label:'0 – 30 jours',d:vieillissement?.j0_30,c:'emerald'},
+              {label:'30 – 60 jours',d:vieillissement?.j30_60,c:'amber'},
+              {label:'60+ jours',d:vieillissement?.j60plus,c:'red'},
+            ].map(({label,d,c})=>(
+              <div key={label} className={`bg-${c}-50 rounded-xl p-4 border border-${c}-100`}>
+                <p className={`text-xs font-semibold text-${c}-600 uppercase tracking-wide mb-2`}>{label}</p>
+                <p className={`text-lg font-bold text-${c}-700`}>{fmtFCFA(d?.total)}</p>
+                <p className={`text-sm text-${c}-600 mt-0.5`}>{d?.count||0} facture{(d?.count||0)>1?'s':''}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Ventilation par caisse */}
+        {parCaisse?.length>0&&(
+          <div className="bg-white rounded-2xl border border-slate-100 p-6">
+            <h3 className="font-semibold text-slate-900 mb-4">Revenus par caisse — ce mois</h3>
+            <div className="space-y-3">
+              {parCaisse.map(c=>{
+                const maxVal=Math.max(...parCaisse.map(x=>x.total));
+                const pct=maxVal>0?(c.total/maxVal)*100:0;
+                return(<div key={c.caisse} className="flex items-center gap-4">
+                  <div className="w-24 text-sm text-slate-600 font-medium flex-shrink-0">{c.caisse||'Autre'}</div>
+                  <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full" style={{width:`${pct}%`}}/>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-900 w-36 text-right flex-shrink-0">{fmtFCFA(c.total)}</div>
+                  <div className="text-xs text-slate-400 w-16 text-right flex-shrink-0">{c.count} acte{c.count>1?'s':''}</div>
+                </div>);
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Avance sur honoraires */}
+        <div className="rounded-2xl p-6 text-white" style={{background:'linear-gradient(135deg,#1d4ed8 0%,#1e3a5f 100%)'}}>
+          <div className="flex items-start gap-4">
+            <div className="flex-1">
+              <p className="text-blue-300 text-xs font-semibold uppercase tracking-wide mb-1">💳 Avance sur honoraires</p>
+              <h3 className="text-xl font-bold mb-2">Besoin de liquidités rapidement ?</h3>
+              <p className="text-blue-100 text-sm leading-relaxed mb-4">
+                Obtenez jusqu'à <strong>70% de vos créances en attente</strong> en avance, remboursé automatiquement à l'encaissement.
+                Idéal pour gérer votre trésorerie face aux délais de paiement des caisses.
+              </p>
+              <div className="flex gap-6 mb-4">
+                <div><p className="text-blue-300 text-xs">Créances éligibles</p><p className="font-bold text-lg">{fmtFCFA(enAttente?.total)}</p></div>
+                <div><p className="text-blue-300 text-xs">Avance possible (70%)</p><p className="font-bold text-lg">{fmtFCFA((enAttente?.total||0)*0.7)}</p></div>
+              </div>
+              <button className="bg-white text-blue-700 font-semibold px-5 py-2 rounded-xl text-sm hover:bg-blue-50">Simuler mon avance →</button>
+            </div>
+            <div className="text-7xl opacity-10 flex-shrink-0 select-none">💳</div>
+          </div>
+        </div>
+      </div>}
+
+      {/* Tab: Facturation */}
+      {tab==='facturation'&&<div className="space-y-6">
+        {nonFactures?.items?.length>0&&(
+          <div className="bg-white rounded-2xl border border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900">Actes non facturés</h3>
+              <Badge color="amber">{nonFactures.count}</Badge>
+            </div>
+            <div className="divide-y divide-slate-50">
+              {nonFactures.items.map(c=>(
+                <div key={c.id} className="px-6 py-4 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 text-sm">{c.prenom} {c.nom}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 truncate">{c.motif} · {fmtDate(c.date)}</p>
+                    {c.typeAssurance&&<span className="mt-1 inline-block"><Badge color="blue" size="xs">{c.typeAssurance}</Badge></span>}
+                  </div>
+                  <Btn variant="primary" size="sm" onClick={()=>setFactureModal(c)}>Facturer</Btn>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {enAttente?.items?.length>0&&(
+          <div className="bg-white rounded-2xl border border-slate-100">
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900">En attente de paiement</h3>
+              <div className="flex items-center gap-3"><span className="text-sm font-semibold text-amber-600">{fmtFCFA(enAttente.total)}</span><Badge color="amber">{enAttente.count}</Badge></div>
+            </div>
+            <div className="divide-y divide-slate-50">
+              {enAttente.items.map(h=>{
+                const days=Math.floor((Date.now()-new Date(h.dateFacturation||h.createdAt))/86400000);
+                return(<div key={h.id} className="px-6 py-4 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-slate-900 text-sm">{h.prenom} {h.nom}</p>
+                      {days>30&&<Badge color={days>60?'red':'amber'} size="xs">{days}j</Badge>}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-0.5">{h.motif} · {h.caisse||'Caisse non spécifiée'} · {h.typeActe}</p>
+                  </div>
+                  <p className="font-semibold text-slate-900 text-sm flex-shrink-0">{fmtFCFA(h.montant)}</p>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Btn variant="success" size="sm" onClick={()=>updateStatut(h.id,'paye',{datePaiement:new Date().toISOString().slice(0,10)})}>✓ Payé</Btn>
+                    <Btn variant="danger" size="sm" onClick={()=>updateStatut(h.id,'rejete')}>Rejeté</Btn>
+                  </div>
+                </div>);
+              })}
+            </div>
+          </div>
+        )}
+
+        {rejets?.items?.length>0&&(
+          <div className="bg-white rounded-2xl border border-red-100">
+            <div className="px-6 py-4 border-b border-red-100 flex items-center justify-between">
+              <h3 className="font-semibold text-slate-900">Rejets caisse</h3>
+              <div className="flex items-center gap-3"><span className="text-sm font-semibold text-red-600">{fmtFCFA(rejets.total)}</span><Badge color="red">{rejets.count}</Badge></div>
+            </div>
+            <div className="divide-y divide-slate-50">
+              {rejets.items.map(h=>(
+                <div key={h.id} className="px-6 py-4 flex items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-slate-900 text-sm">{h.prenom} {h.nom}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{h.motif} · {fmtDate(h.consultDate)} · {h.caisse} · {h.typeActe}</p>
+                  </div>
+                  <p className="font-semibold text-slate-900 text-sm flex-shrink-0">{fmtFCFA(h.montant)}</p>
+                  <Btn variant="secondary" size="sm" onClick={()=>updateStatut(h.id,'en_attente')}>↩ Relancer</Btn>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {nonFactures?.count===0&&rejets?.count===0&&enAttente?.count===0&&(
+          <div className="text-center py-20 text-slate-400">
+            <p className="text-5xl mb-3">✅</p>
+            <p className="font-semibold text-slate-600">Tout est à jour !</p>
+            <p className="text-sm mt-1">Aucun acte en suspens.</p>
+          </div>
+        )}
+      </div>}
+
+      {/* Tab: Tarifs */}
+      {tab==='tarifs'&&(
+        <div className="bg-white rounded-2xl border border-slate-100">
+          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-slate-900">Grille tarifaire</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Tarifs utilisés par défaut lors de la facturation</p>
+            </div>
+            {!editTarifs
+              ? <Btn variant="secondary" size="sm" onClick={()=>{setEditTarifs(true);setTarifsDraft([...tarifs]);}}>Modifier</Btn>
+              : <div className="flex gap-2">
+                  <Btn variant="secondary" size="sm" onClick={()=>setEditTarifs(false)}>Annuler</Btn>
+                  <Btn variant="primary" size="sm" onClick={saveTarifs} loading={saving}>Enregistrer</Btn>
+                </div>
+            }
+          </div>
+          <div className="divide-y divide-slate-50">
+            {(editTarifs?tarifsDraft:tarifs).map((t,i)=>(
+              <div key={i} className="px-6 py-4 flex items-center gap-4">
+                <div className="flex-1">
+                  {editTarifs
+                    ?<input value={t.typeActe} onChange={e=>{const d=[...tarifsDraft];d[i]={...d[i],typeActe:e.target.value};setTarifsDraft(d);}}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    :<p className="font-medium text-slate-900 text-sm">{t.typeActe}</p>
+                  }
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {editTarifs
+                    ?<><input type="number" value={t.montant} onChange={e=>{const d=[...tarifsDraft];d[i]={...d[i],montant:Number(e.target.value)};setTarifsDraft(d);}}
+                          className="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                        <span className="text-sm text-slate-500">FCFA</span></>
+                    :<p className="font-semibold text-slate-900">{new Intl.NumberFormat('fr-FR').format(t.montant)} FCFA</p>
+                  }
+                </div>
+              </div>
+            ))}
+          </div>
+          {editTarifs&&(
+            <div className="px-6 py-3 border-t border-slate-100">
+              <button onClick={()=>setTarifsDraft([...tarifsDraft,{typeActe:"Nouveau type d'acte",montant:0}])}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
+                <Ic.Plus className="w-4 h-4 inline-block mr-1"/>Ajouter un type d'acte
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </Page>
+  </>);
+}
+
+/* ══════════════════════════════════════════════════════════════
    APP ROOT
 ══════════════════════════════════════════════════════════════ */
 function App(){
@@ -1781,6 +2363,7 @@ function App(){
     if(page==='agenda')return<AgendaPage/>;
     if(page==='profile')return<ProfilePage user={user} onUpdate={u=>setUser(u)}/>;
     if(page==='audit')return<AuditLog/>;
+    if(page==='honoraires')return<HonorairesPage/>;
     return<Dashboard onNav={nav} user={user}/>;
   };
 
@@ -1792,7 +2375,7 @@ function App(){
         {!aiEnabled&&(
         <div className="bg-amber-50 border-b border-amber-100 px-8 py-2 flex items-center gap-2 text-xs text-amber-700">
           <Ic.Warn className="w-3.5 h-3.5 flex-shrink-0"/>
-          <span>Mode démo actif — les données de santé sont chiffrées · ajoutez <code className="font-mono bg-amber-100 px-1 rounded">OPENAI_API_KEY</code> dans <code className="font-mono bg-amber-100 px-1 rounded">.env</code> pour activer l'IA</span>
+          <span>Transcription IA désactivée — ajoutez <code className="font-mono bg-amber-100 px-1 rounded">OPENAI_API_KEY</code> dans <code className="font-mono bg-amber-100 px-1 rounded">.env</code> pour l'activer · les données restent chiffrées</span>
         </div>
         )}
         {renderPage()}

@@ -293,11 +293,11 @@ app.post('/api/consultations/:id/generate-note', auth, async (req, res) => {
 
   let note;
   if (!openai) {
-    note = { motif:"Céphalées", histoire:"Céphalées pulsatiles depuis 3 jours, prédominance matinale, sans fièvre ni nausées. Antécédent de migraines il y a 5 ans.", examen:"TA : 160/95 mmHg. Pas d'autres anomalies.", hypotheses:"1. Céphalée sur poussée hypertensive\n2. Reprise migraineuse", conduite:"1. Bilan NFS, ionogramme, créatinine\n2. ECG\n3. MAPA\n4. Traitement antihypertenseur à discuter", prescriptions:"Paracétamol 1g si douleur, max 3g/j\nAvis cardiologique", conseils_patient:"Reposez-vous. Mesurez votre tension le matin. Revenez en urgence si douleur aggravée, troubles visuels ou faiblesse.", drapeaux_rouges:"Céphalée en coup de tonnerre, fièvre + raideur nuque, déficit neurologique focal, HTA > 180/110" };
+    note = { motif:"Céphalées", histoire:"Céphalées pulsatiles depuis 3 jours, prédominance matinale, sans fièvre ni nausées. Antécédent de migraines il y a 5 ans.", examen:"TA : 160/95 mmHg. Pas d'autres anomalies.", hypotheses:"1. Céphalée sur poussée hypertensive\n2. Reprise migraineuse", conduite:"1. Bilan NFS, ionogramme, créatinine\n2. ECG\n3. MAPA\n4. Traitement antihypertenseur à discuter", prescriptions:"Paracétamol 1g si douleur, max 3g/j\nAvis cardiologique", conseils_patient:"Reposez-vous. Mesurez votre tension le matin. Revenez en urgence si douleur aggravée, troubles visuels ou faiblesse.", drapeaux_rouges:"Céphalée en coup de tonnerre, fièvre + raideur nuque, déficit neurologique focal, HTA > 180/110", cim10:{code:"R51",libelle:"Céphalée"} };
   } else {
     const ctx = p ? `Patient : ${p.prenom} ${p.nom}, né(e) le ${p.dateNaissance}.\nAntécédents : ${p.antecedents||'aucun'}\nAllergies : ${p.allergies||'aucune'}\nTraitements : ${p.traitements||'aucun'}` : '';
     try {
-      const r = await openai.chat.completions.create({ model:'gpt-4o', messages:[{role:'user',content:`Tu es un assistant médical. Génère une note clinique JSON.\n\n${ctx}\n\nTranscription:\n"""\n${transcription}\n"""\n\nRetourne UNIQUEMENT ce JSON:\n{"motif":"","histoire":"","examen":"","hypotheses":"","conduite":"","prescriptions":"","conseils_patient":"","drapeaux_rouges":""}`}], response_format:{type:'json_object'} });
+      const r = await openai.chat.completions.create({ model:'gpt-4o', messages:[{role:'user',content:`Tu es un assistant médical. Génère une note clinique JSON.\n\n${ctx}\n\nTranscription:\n"""\n${transcription}\n"""\n\nRetourne UNIQUEMENT ce JSON (cim10 = code CIM-10 le plus probable + libellé court):\n{"motif":"","histoire":"","examen":"","hypotheses":"","conduite":"","prescriptions":"","conseils_patient":"","drapeaux_rouges":"","cim10":{"code":"","libelle":""}}`}], response_format:{type:'json_object'} });
       note = JSON.parse(r.choices[0].message.content);
     } catch (err) { return res.status(500).json({ error: err.message }); }
   }
@@ -462,7 +462,7 @@ function buildConsultationPDF(doc, c) {
   const dobStr  = p?.dateNaissance ? new Date(p.dateNaissance+'T00:00:00').toLocaleDateString('fr-FR') : '';
 
   doc.rect(0,0,doc.page.width,78).fill('#2563eb');
-  doc.fillColor('white').fontSize(22).font('Helvetica-Bold').text('MédiVoix',50,18);
+  doc.fillColor('white').fontSize(22).font('Helvetica-Bold').text('MedPilot',50,18);
   doc.fontSize(10).font('Helvetica').text('Compte rendu de consultation médicale',50,44);
   doc.fontSize(9).text(dateStr,50,59);
 
@@ -486,7 +486,7 @@ function buildConsultationPDF(doc, c) {
     }
   }
   const fy=doc.page.height-38; doc.rect(0,fy-4,doc.page.width,42).fill('#f8fafc');
-  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MédiVoix — Proposition IA validée par le médecin — Non opposable sans signature',50,fy+2,{align:'center',width:495});
+  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MedPilot — Compte rendu validé par le médecin — Non opposable sans signature',50,fy+2,{align:'center',width:495});
   doc.end();
 }
 
@@ -541,8 +541,275 @@ app.get('/api/consultations/:id/prescription/pdf', auth, (req, res) => {
   doc.fontSize(8).fillColor('#94a3b8').text('Signature et cachet',350,sigY+4,{width:195,align:'center'});
   const fy2=doc.page.height-35;
   doc.rect(0,fy2,doc.page.width,35).fill('#f8fafc');
-  doc.fontSize(7).fillColor('#94a3b8').text('MédiVoix — Valable 3 mois — Signature manuscrite requise',50,fy2+12,{align:'center',width:495});
+  doc.fontSize(7).fillColor('#94a3b8').text('MedPilot — Valable 3 mois — Signature manuscrite requise',50,fy2+12,{align:'center',width:495});
   doc.end();
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// HONORAIRES & TARIFS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/honoraires/dashboard', auth, (req, res) => {
+  const uid = req.user.id;
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+  const d = now.getDay();
+  const weekStart = new Date(now); weekStart.setDate(now.getDate() - (d === 0 ? 6 : d - 1));
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
+  const yearStart = `${now.getFullYear()}-01-01`;
+  const ym = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  const revQ = from => db.prepare(`SELECT COALESCE(SUM(montant),0) as t FROM honoraires WHERE userId=? AND statut='paye' AND datePaiement>=?`).get(uid, from).t;
+  const revJour = revQ(today);
+  const revSemaine = revQ(weekStart.toISOString().slice(0,10));
+  const revMois = revQ(monthStart);
+
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const projectionMois = dayOfMonth > 0 ? Math.round((revMois / dayOfMonth) * daysInMonth) : 0;
+
+  const nonFactures = db.prepare(`
+    SELECT c.id, c.motif, c.date, p.nom, p.prenom, p.typeAssurance, h.id as hId, h.statut
+    FROM consultations c
+    JOIN patients p ON c.patientId = p.id
+    LEFT JOIN honoraires h ON h.consultationId = c.id AND h.userId = ?
+    WHERE c.userId = ? AND c.statut = 'validee' AND (h.id IS NULL OR h.statut = 'non_facture')
+    ORDER BY c.date DESC LIMIT 50
+  `).all(uid, uid);
+
+  const rejets = db.prepare(`
+    SELECT h.*, c.motif, c.date as consultDate, p.nom, p.prenom
+    FROM honoraires h JOIN consultations c ON c.id=h.consultationId JOIN patients p ON p.id=c.patientId
+    WHERE h.userId=? AND h.statut='rejete' ORDER BY h.updatedAt DESC LIMIT 20
+  `).all(uid);
+
+  const enAttente = db.prepare(`
+    SELECT h.*, c.motif, c.date as consultDate, p.nom, p.prenom
+    FROM honoraires h JOIN consultations c ON c.id=h.consultationId JOIN patients p ON p.id=c.patientId
+    WHERE h.userId=? AND h.statut='en_attente' ORDER BY h.dateFacturation ASC
+  `).all(uid);
+
+  const vieillissement = { j0_30:{count:0,total:0}, j30_60:{count:0,total:0}, j60plus:{count:0,total:0} };
+  for (const h of enAttente) {
+    const days = Math.floor((now - new Date(h.dateFacturation || h.createdAt)) / 86400000);
+    const b = days <= 30 ? 'j0_30' : days <= 60 ? 'j30_60' : 'j60plus';
+    vieillissement[b].count++; vieillissement[b].total += h.montant;
+  }
+
+  const parCaisse = db.prepare(`
+    SELECT caisse, COUNT(*) as count, SUM(montant) as total
+    FROM honoraires WHERE userId=? AND statut='paye' AND strftime('%Y-%m',datePaiement)=?
+    GROUP BY caisse ORDER BY total DESC
+  `).all(uid, ym);
+
+  const totalFacture = db.prepare(`SELECT COALESCE(SUM(montant),0) as t FROM honoraires WHERE userId=? AND statut IN ('en_attente','paye') AND strftime('%Y-%m',createdAt)=?`).get(uid, ym).t;
+  const tauxRecouvrement = totalFacture > 0 ? Math.round((revMois / totalFacture) * 100) : 0;
+  const nbPaye = db.prepare(`SELECT COUNT(*) as n FROM honoraires WHERE userId=? AND statut='paye' AND strftime('%Y-%m',datePaiement)=?`).get(uid, ym).n;
+  const revParConsult = nbPaye > 0 ? Math.round(revMois / nbPaye) : 0;
+
+  res.json({
+    revenus: { jour: revJour, semaine: revSemaine, mois: revMois },
+    projection: { mois: projectionMois },
+    nonFactures: { count: nonFactures.length, items: nonFactures },
+    rejets: { count: rejets.length, total: rejets.reduce((a,h)=>a+h.montant,0), items: rejets },
+    enAttente: { count: enAttente.length, total: enAttente.reduce((a,h)=>a+h.montant,0), items: enAttente },
+    vieillissement, parCaisse,
+    kpis: { tauxRecouvrement, revParConsult },
+  });
+});
+
+app.get('/api/honoraires/export', auth, (req, res) => {
+  const rows = db.prepare(`
+    SELECT h.*, c.motif, c.date as consultDate, p.nom, p.prenom
+    FROM honoraires h JOIN consultations c ON c.id=h.consultationId JOIN patients p ON p.id=c.patientId
+    WHERE h.userId=? ORDER BY h.createdAt DESC
+  `).all(req.user.id);
+  const headers = ['Date facture','Patient','Motif','Type acte','Caisse','Montant FCFA','Statut','Date paiement'];
+  const csv = [headers, ...rows.map(r=>[
+    r.dateFacturation||r.createdAt?.slice(0,10)||'', `${r.prenom} ${r.nom}`,
+    r.motif||'', r.typeActe||'', r.caisse||'', r.montant||0, r.statut||'', r.datePaiement||''
+  ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','))].join('\n');
+  res.set({'Content-Type':'text/csv;charset=utf-8','Content-Disposition':'attachment; filename="honoraires.csv"'});
+  res.send(csv);
+});
+
+app.get('/api/honoraires', auth, (req, res) => {
+  const { statut, from, to } = req.query;
+  let sql = `SELECT h.*, c.motif, c.date as consultDate, p.nom, p.prenom
+    FROM honoraires h JOIN consultations c ON c.id=h.consultationId JOIN patients p ON p.id=c.patientId
+    WHERE h.userId=?`;
+  const params = [req.user.id];
+  if (statut) { sql += ' AND h.statut=?'; params.push(statut); }
+  if (from) { sql += ' AND h.createdAt>=?'; params.push(from); }
+  if (to) { sql += ' AND h.createdAt<=?'; params.push(to+'T23:59:59'); }
+  sql += ' ORDER BY h.createdAt DESC LIMIT 100';
+  res.json(db.prepare(sql).all(...params));
+});
+
+app.post('/api/honoraires', auth, (req, res) => {
+  const { consultationId, montant, statut='en_attente', caisse, typeActe, dateFacturation, datePaiement, notes } = req.body;
+  if (!consultationId || montant === undefined) return res.status(400).json({ error: 'consultationId et montant requis' });
+  const existing = db.prepare('SELECT id FROM honoraires WHERE consultationId=? AND userId=?').get(consultationId, req.user.id);
+  if (existing) {
+    db.prepare(`UPDATE honoraires SET montant=?,statut=?,caisse=?,typeActe=?,dateFacturation=?,datePaiement=?,notes=?,updatedAt=datetime('now') WHERE id=?`)
+      .run(montant, statut, caisse||null, typeActe||null, dateFacturation||null, datePaiement||null, notes||null, existing.id);
+    return res.json({ id: existing.id });
+  }
+  const id = randomUUID();
+  db.prepare(`INSERT INTO honoraires (id,consultationId,userId,montant,statut,caisse,typeActe,dateFacturation,datePaiement,notes) VALUES (?,?,?,?,?,?,?,?,?,?)`)
+    .run(id, consultationId, req.user.id, montant, statut, caisse||null, typeActe||null, dateFacturation||null, datePaiement||null, notes||null);
+  res.json({ id });
+});
+
+app.put('/api/honoraires/:id', auth, (req, res) => {
+  const { montant, statut, caisse, typeActe, dateFacturation, datePaiement, notes } = req.body;
+  db.prepare(`UPDATE honoraires SET montant=COALESCE(?,montant),statut=COALESCE(?,statut),caisse=COALESCE(?,caisse),typeActe=COALESCE(?,typeActe),dateFacturation=COALESCE(?,dateFacturation),datePaiement=COALESCE(?,datePaiement),notes=COALESCE(?,notes),updatedAt=datetime('now') WHERE id=? AND userId=?`)
+    .run(montant??null,statut??null,caisse??null,typeActe??null,dateFacturation??null,datePaiement??null,notes??null,req.params.id,req.user.id);
+  res.json({ ok: true });
+});
+
+app.delete('/api/honoraires/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM honoraires WHERE id=? AND userId=?').run(req.params.id, req.user.id);
+  res.json({ ok: true });
+});
+
+app.get('/api/tarifs', auth, (req, res) => {
+  const tarifs = db.prepare('SELECT * FROM tarifs WHERE userId=? ORDER BY typeActe').all(req.user.id);
+  if (tarifs.length === 0) return res.json([
+    { typeActe:'Consultation simple', montant:5000 },
+    { typeActe:'Consultation complexe', montant:10000 },
+    { typeActe:'Visite à domicile', montant:15000 },
+    { typeActe:'Téléconsultation', montant:4000 },
+    { typeActe:'Acte technique', montant:8000 },
+  ]);
+  res.json(tarifs);
+});
+
+app.put('/api/tarifs', auth, (req, res) => {
+  const { tarifs } = req.body;
+  if (!Array.isArray(tarifs)) return res.status(400).json({ error: 'tarifs array required' });
+  db.transaction(()=>{
+    db.prepare('DELETE FROM tarifs WHERE userId=?').run(req.user.id);
+    for (const t of tarifs)
+      db.prepare('INSERT INTO tarifs (id,userId,typeActe,montant) VALUES (?,?,?,?)').run(randomUUID(),req.user.id,t.typeActe,t.montant||0);
+  })();
+  res.json({ ok: true });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DOCUMENTS MÉDICAUX
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function docHeader(doc, u, dateStr) {
+  doc.fontSize(11).font('Helvetica-Bold').fillColor('#1e293b').text(`${u?.prenom||'Dr.'} ${u?.nom||''}`,50,50);
+  doc.fontSize(9).font('Helvetica').fillColor('#475569').text(u?.specialite||'Médecin',50,64);
+  if(u?.rpps) doc.text(`N° RPPS : ${u.rpps}`,50,77);
+  if(u?.adresse) doc.text(u.adresse,50,91);
+  doc.fontSize(9).fillColor('#475569').text(dateStr,0,50,{align:'right',width:545});
+  doc.moveTo(50,112).lineTo(545,112).strokeColor('#e2e8f0').lineWidth(1).stroke();
+}
+function docTitle(doc, title, color) {
+  doc.rect(50,122,495,36).fill(color+'22');
+  doc.fillColor(color).fontSize(14).font('Helvetica-Bold').text(title,0,132,{align:'center',width:595});
+  return 178;
+}
+function docPatient(doc, p, y) {
+  doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text('Patient',50,y);
+  doc.fontSize(10).font('Helvetica').fillColor('#334155').text(`${p?.prenom||''} ${p?.nom||''}`,50,y+14);
+  if(p?.dateNaissance){const dob=new Date(p.dateNaissance+'T00:00:00').toLocaleDateString('fr-FR');doc.fontSize(9).fillColor('#64748b').text(`Né(e) le ${dob}`,50,y+28);return y+50;}
+  return y+36;
+}
+function docFooter(doc) {
+  const fy=doc.page.height-35;
+  doc.rect(0,fy,doc.page.width,35).fill('#f8fafc');
+  doc.fontSize(7).fillColor('#94a3b8').font('Helvetica').text('MedPilot — Document médical officiel',50,fy+12,{align:'center',width:495});
+}
+function docSig(doc, y) {
+  const sigY=Math.max(y+60,620);
+  doc.moveTo(350,sigY).lineTo(545,sigY).strokeColor('#94a3b8').dash(3,{space:3}).stroke().undash();
+  doc.fontSize(8).fillColor('#94a3b8').font('Helvetica').text('Signature et cachet',350,sigY+4,{width:195,align:'center'});
+}
+
+app.post('/api/consultations/:id/arret-maladie/pdf', auth, (req,res)=>{
+  const c=db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
+  if(!c) return res.status(404).json({error:'Non trouvée'});
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(c.patientId);
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(c.userId||req.user.id);
+  const{duree=3,dateDebut,sortie='autorisee'}=req.body;
+  const debut=dateDebut?new Date(dateDebut+'T00:00:00'):new Date();
+  const fin=new Date(debut);fin.setDate(debut.getDate()+Number(duree)-1);
+  const fmt=d=>d.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const sortieLabel={autorisee:'Sorties autorisées',interdite:'Sorties interdites',autorisee_horaires:'Sorties autorisées aux heures habituelles (8h–12h / 14h–18h)'}[sortie]||'Sorties autorisées';
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="arret-maladie-${p?.nom||'patient'}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,"CERTIFICAT D'ARRÊT DE TRAVAIL",'#dc2626');
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  const body=`Je soussigné(e), ${u?.prenom||''} ${u?.nom||''}, ${u?.specialite||'Médecin'}, certifie avoir examiné ce jour le(la) patient(e) susmentionné(e) et lui prescris un arrêt de travail pour raisons médicales.`;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(body,50,y,{width:495});y+=doc.heightOfString(body,{width:495})+20;
+  doc.rect(50,y,495,96).fill('#fef2f2').stroke('#fecaca');
+  doc.fillColor('#991b1b').fontSize(10).font('Helvetica-Bold').text("Durée de l'arrêt de travail",70,y+12);
+  doc.fillColor('#1e293b').fontSize(11).font('Helvetica-Bold').text(`Du ${fmt(debut)} au ${fmt(fin)}`,70,y+30);
+  doc.fontSize(10).font('Helvetica').fillColor('#334155').text(`Soit ${duree} jour(s) consécutif(s)`,70,y+48);
+  doc.fillColor('#374151').fontSize(10).font('Helvetica-Bold').text(sortieLabel,70,y+66);y+=116;
+  doc.fillColor('#64748b').fontSize(9).font('Helvetica').text("Cet arrêt est susceptible de prolongation selon l'évolution clinique.",50,y,{width:495});
+  docSig(doc,y);docFooter(doc);doc.end();
+});
+
+app.post('/api/consultations/:id/certificat/pdf', auth, (req,res)=>{
+  const c=db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
+  if(!c) return res.status(404).json({error:'Non trouvée'});
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(c.patientId);
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(c.userId||req.user.id);
+  const{objet='',observations=''}=req.body;
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="certificat-${p?.nom||'patient'}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,'CERTIFICAT MÉDICAL','#0369a1');
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  const certText=`Je soussigné(e), ${u?.prenom||''} ${u?.nom||''}, ${u?.specialite||'Médecin'}, certifie avoir examiné ce jour ${p?.prenom||''} ${p?.nom||''} et établis le présent certificat médical${objet?` pour : ${objet}`:''}.`;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(certText,50,y,{width:495});y+=doc.heightOfString(certText,{width:495})+20;
+  if(observations){doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text('Observations :',50,y);y+=16;doc.fillColor('#334155').fontSize(10).font('Helvetica').text(observations,50,y,{width:495});y+=doc.heightOfString(observations,{width:495})+20;}
+  doc.fillColor('#64748b').fontSize(9).font('Helvetica').text("Certificat établi à la demande de l'intéressé(e) et remis en main propre.",50,y,{width:495});
+  docSig(doc,y+16);docFooter(doc);doc.end();
+});
+
+app.post('/api/consultations/:id/adressage/pdf', auth, (req,res)=>{
+  const c=db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
+  if(!c) return res.status(404).json({error:'Non trouvée'});
+  const p=db.prepare('SELECT * FROM patients WHERE id=?').get(c.patientId);
+  const u=db.prepare('SELECT * FROM users WHERE id=?').get(c.userId||req.user.id);
+  const{specialiste='',specialite='',motif=''}=req.body;
+  const dateStr=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const note=parseNote(c);
+  const doc=new PDFDocument({margin:50,size:'A4'});
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="adressage-${p?.nom||'patient'}.pdf"`});
+  doc.pipe(res);
+  docHeader(doc,u,dateStr);
+  let y=docTitle(doc,"LETTRE D'ADRESSAGE",'#059669');
+  if(specialiste||specialite){
+    doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text(`À l'attention de ${specialiste||'Cher(e) Confrère(sse)'}`,50,y);
+    if(specialite){doc.fontSize(9).font('Helvetica').fillColor('#475569').text(specialite,50,y+14);y+=36;}else y+=22;
+  }
+  y=docPatient(doc,p,y);
+  doc.moveTo(50,y).lineTo(545,y).strokeColor('#f1f5f9').lineWidth(1).stroke();y+=16;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text('Cher(e) Confrère(sse),',50,y);y+=20;
+  const age=p?.dateNaissance?Math.floor((Date.now()-new Date(p.dateNaissance+'T00:00:00'))/(365.25*24*3600*1000))+' an(s)':'';
+  const intro=`Je vous adresse ${p?.prenom||''} ${p?.nom||''}${age?', '+age:''}${specialite?', pour avis et prise en charge en '+specialite:', pour avis spécialisé'}.`;
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(intro,50,y,{width:495});y+=doc.heightOfString(intro,{width:495})+12;
+  if(note?.histoire){doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text('Contexte clinique :',50,y);y+=14;const h=note.histoire.slice(0,400)+(note.histoire.length>400?'...':'');doc.fillColor('#334155').fontSize(10).font('Helvetica').text(h,50,y,{width:495});y+=doc.heightOfString(h,{width:495})+12;}
+  if(motif){doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text("Motif d'adressage :",50,y);y+=14;doc.fillColor('#334155').fontSize(10).font('Helvetica').text(motif,50,y,{width:495});y+=doc.heightOfString(motif,{width:495})+12;}
+  if(p?.traitements&&p.traitements!=='Aucun'){doc.fillColor('#1e293b').fontSize(10).font('Helvetica-Bold').text('Traitement en cours :',50,y);y+=14;doc.fillColor('#334155').fontSize(10).font('Helvetica').text(p.traitements,50,y,{width:495});y+=doc.heightOfString(p.traitements,{width:495})+12;}
+  const conclu="En vous remerciant de votre confraternelle collaboration, je reste à votre disposition pour tout renseignement complémentaire.\n\nCordialement,";
+  doc.fillColor('#334155').fontSize(10).font('Helvetica').text(conclu,50,y,{width:495});y+=doc.heightOfString(conclu,{width:495})+10;
+  doc.fillColor('#1e293b').font('Helvetica-Bold').text(`${u?.prenom||''} ${u?.nom||''}`,50,y);
+  docSig(doc,y+30);docFooter(doc);doc.end();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
