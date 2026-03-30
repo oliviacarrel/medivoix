@@ -813,6 +813,71 @@ app.post('/api/consultations/:id/adressage/pdf', auth, (req,res)=>{
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// UTILISATEURS (liste pour invitations)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/users', auth, (req, res) => {
+  res.json(db.prepare('SELECT id,nom,prenom,specialite FROM users WHERE id != ? ORDER BY nom').all(req.user.id));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DISCUSSIONS & CHAT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/patients/:id/discussions', auth, (req, res) => {
+  const list = db.prepare(`
+    SELECT d.*, u.nom as creatorNom, u.prenom as creatorPrenom,
+      (SELECT COUNT(*) FROM messages m WHERE m.discussionId=d.id) as msgCount,
+      (SELECT MAX(m.createdAt) FROM messages m WHERE m.discussionId=d.id) as lastAt,
+      (SELECT m.contenu FROM messages m WHERE m.discussionId=d.id ORDER BY m.createdAt DESC LIMIT 1) as lastMsg
+    FROM discussions d JOIN users u ON u.id=d.createdBy
+    WHERE d.patientId=?
+    ORDER BY COALESCE(lastAt,d.createdAt) DESC
+  `).all(req.params.id);
+  const result = list.map(d => {
+    const participants = db.prepare(`SELECT u.id,u.nom,u.prenom,u.specialite FROM discussion_participants dp JOIN users u ON u.id=dp.userId WHERE dp.discussionId=?`).all(d.id);
+    return { ...d, participants };
+  });
+  res.json(result);
+});
+
+app.post('/api/patients/:id/discussions', auth, (req, res) => {
+  const { titre } = req.body;
+  const id = randomUUID();
+  db.prepare('INSERT INTO discussions (id,patientId,titre,createdBy) VALUES (?,?,?,?)').run(id, req.params.id, titre?.trim()||'Discussion de cas', req.user.id);
+  db.prepare('INSERT INTO discussion_participants (discussionId,userId) VALUES (?,?)').run(id, req.user.id);
+  res.json({ id });
+});
+
+app.get('/api/discussions/:id/messages', auth, (req, res) => {
+  const part = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(req.params.id, req.user.id);
+  if (!part) return res.status(403).json({ error: 'Non participant à cette discussion' });
+  const messages = db.prepare(`SELECT m.*,u.nom,u.prenom,u.specialite FROM messages m JOIN users u ON u.id=m.userId WHERE m.discussionId=? ORDER BY m.createdAt ASC`).all(req.params.id);
+  const participants = db.prepare(`SELECT u.id,u.nom,u.prenom,u.specialite FROM discussion_participants dp JOIN users u ON u.id=dp.userId WHERE dp.discussionId=?`).all(req.params.id);
+  res.json({ messages, participants });
+});
+
+app.post('/api/discussions/:id/messages', auth, (req, res) => {
+  const part = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(req.params.id, req.user.id);
+  if (!part) return res.status(403).json({ error: 'Non participant' });
+  const { contenu } = req.body;
+  if (!contenu?.trim()) return res.status(400).json({ error: 'Message vide' });
+  const id = randomUUID();
+  db.prepare('INSERT INTO messages (id,discussionId,userId,contenu) VALUES (?,?,?,?)').run(id, req.params.id, req.user.id, contenu.trim());
+  res.json(db.prepare(`SELECT m.*,u.nom,u.prenom,u.specialite FROM messages m JOIN users u ON u.id=m.userId WHERE m.id=?`).get(id));
+});
+
+app.post('/api/discussions/:id/invite', auth, (req, res) => {
+  const part = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(req.params.id, req.user.id);
+  if (!part) return res.status(403).json({ error: 'Non participant' });
+  const { userId } = req.body;
+  if (!userId) return res.status(400).json({ error: 'userId requis' });
+  const already = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(req.params.id, userId);
+  if (!already) db.prepare('INSERT INTO discussion_participants (discussionId,userId) VALUES (?,?)').run(req.params.id, userId);
+  res.json({ ok: true });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════════════
 
