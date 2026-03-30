@@ -98,6 +98,8 @@ try { db.exec("ALTER TABLE consultations ADD COLUMN heureFin TEXT"); } catch(e) 
 try { db.exec("ALTER TABLE consultations ADD COLUMN dureeMinutes INTEGER"); } catch(e) {}
 try { db.exec("ALTER TABLE patients ADD COLUMN telephone2 TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE appointments ADD COLUMN notes TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE messages ADD COLUMN fichier TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE messages ADD COLUMN fichierNom TEXT"); } catch(e) {}
 
 // Honoraires & Tarifs
 db.exec(`

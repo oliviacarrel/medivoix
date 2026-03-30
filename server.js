@@ -4,7 +4,7 @@ import cors from 'cors';
 import multer from 'multer';
 import { OpenAI } from 'openai';
 import { createReadStream, unlinkSync, existsSync, mkdirSync } from 'fs';
-import { dirname } from 'path';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { randomUUID } from 'crypto';
 import jwt from 'jsonwebtoken';
@@ -865,6 +865,28 @@ app.post('/api/discussions/:id/messages', auth, (req, res) => {
   const id = randomUUID();
   db.prepare('INSERT INTO messages (id,discussionId,userId,contenu) VALUES (?,?,?,?)').run(id, req.params.id, req.user.id, contenu.trim());
   res.json(db.prepare(`SELECT m.*,u.nom,u.prenom,u.specialite FROM messages m JOIN users u ON u.id=m.userId WHERE m.id=?`).get(id));
+});
+
+app.post('/api/discussions/:id/upload', auth, upload.single('fichier'), (req, res) => {
+  const part = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(req.params.id, req.user.id);
+  if (!part) { if(req.file) unlinkSync(req.file.path); return res.status(403).json({ error: 'Non participant' }); }
+  if (!req.file) return res.status(400).json({ error: 'Aucun fichier reçu' });
+  if (req.file.mimetype !== 'application/pdf') {
+    unlinkSync(req.file.path);
+    return res.status(400).json({ error: 'Seuls les fichiers PDF sont acceptés' });
+  }
+  const id = randomUUID();
+  const contenu = req.body.contenu?.trim() || '';
+  db.prepare('INSERT INTO messages (id,discussionId,userId,contenu,fichier,fichierNom) VALUES (?,?,?,?,?,?)').run(id, req.params.id, req.user.id, contenu, req.file.filename, req.file.originalname);
+  res.json(db.prepare('SELECT m.*,u.nom,u.prenom,u.specialite FROM messages m JOIN users u ON u.id=m.userId WHERE m.id=?').get(id));
+});
+
+app.get('/api/discussions/files/:filename', auth, (req, res) => {
+  const msg = db.prepare('SELECT discussionId FROM messages WHERE fichier=?').get(req.params.filename);
+  if (!msg) return res.status(404).json({ error: 'Fichier introuvable' });
+  const part = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(msg.discussionId, req.user.id);
+  if (!part) return res.status(403).json({ error: 'Accès refusé' });
+  res.sendFile(resolve(__dirname, 'uploads', req.params.filename));
 });
 
 app.post('/api/discussions/:id/invite', auth, (req, res) => {
