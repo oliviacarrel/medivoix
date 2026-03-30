@@ -100,6 +100,11 @@ try { db.exec("ALTER TABLE patients ADD COLUMN telephone2 TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE appointments ADD COLUMN notes TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE messages ADD COLUMN fichier TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE messages ADD COLUMN fichierNom TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN antecedents_familiaux TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN antecedents_chirurgicaux TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN vaccinations TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN facteurs_risque TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN intolerances TEXT"); } catch(e) {}
 
 // Honoraires & Tarifs
 db.exec(`
@@ -147,6 +152,19 @@ db.exec(`
     userId       TEXT NOT NULL REFERENCES users(id),
     contenu      TEXT NOT NULL,
     createdAt    TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+// Secretary alerts
+db.exec(`
+  CREATE TABLE IF NOT EXISTS secretary_alerts (
+    id        TEXT PRIMARY KEY,
+    userId    TEXT NOT NULL REFERENCES users(id),
+    fromName  TEXT NOT NULL DEFAULT 'Secrétariat',
+    message   TEXT NOT NULL,
+    type      TEXT DEFAULT 'info',
+    isRead    INTEGER DEFAULT 0,
+    createdAt TEXT DEFAULT (datetime('now'))
   );
 `);
 
@@ -252,6 +270,16 @@ if (db.prepare('SELECT COUNT(*) as n FROM discussions').get().n === 0) {
   insMsg.run('m3','d1','u1','Parfait, je lui prescris l\'ECG + lipides complets + créatininémie dès aujourd\'hui. Je lui fixe le RDV au 9 avril chez toi. Je t\'envoie le compte-rendu de consultation dès qu\'il est validé.','2026-03-21 09:10:00');
   insMsg.run('m4','d1','u2','Super. N\'hésite pas à me contacter si la situation évolue défavorablement. À bientôt.','2026-03-21 09:15:00');
   console.log('Discussion de démo créée');
+}
+
+// Seed secretary alerts
+if (db.prepare('SELECT COUNT(*) as n FROM secretary_alerts').get().n === 0) {
+  const insA = db.prepare(`INSERT INTO secretary_alerts (id,userId,fromName,message,type,isRead,createdAt) VALUES (?,?,?,?,?,?,?)`);
+  insA.run('a1','u1','Marie-Claire (Secrétariat)','M. Nguema a appelé : il demande un renouvellement d\'ordonnance urgent (Metformine). Il ne peut pas se déplacer cette semaine.','urgent','0','2026-03-30 07:45:00');
+  insA.run('a2','u1','Marie-Claire (Secrétariat)','Rappel : la patiente Mme Obame a un rendez-vous de contrôle asthme demain à 10h. Elle confirme sa présence.','rdv','0','2026-03-29 16:30:00');
+  insA.run('a3','u1','Marie-Claire (Secrétariat)','Le laboratoire Biomédical a transmis les résultats de Mme Ondo (TSH, T4L). Résultats disponibles en pièce jointe.','info','0','2026-03-28 14:00:00');
+  insA.run('a4','u1','Marie-Claire (Secrétariat)','CNAMGS a retourné 2 feuilles de soins pour complément de dossier (Nguema et Mintsa). À régulariser avant le 5 avril.','admin','0','2026-03-27 09:00:00');
+  console.log('Alertes secrétaire de démo créées');
 }
 
 export default db;

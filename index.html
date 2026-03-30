@@ -101,6 +101,10 @@ const Ic={
   Brain:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.663 17h4.673M12 3a4 4 0 014 4c0 .37-.048.728-.138 1.07A4 4 0 0119 12a4.002 4.002 0 01-2.637 3.765A4 4 0 0112 21a4 4 0 01-4.363-5.235A4 4 0 015 12a4 4 0 013.138-3.93A4.002 4.002 0 018 4c0-2.21 1.79-4 4-4z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 7v4m0 0l-1.5-1.5M12 11l1.5-1.5"/></svg>,
   TrendUp:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>,
   AlertTri:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>,
+  Bell:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>,
+  Pill:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>,
+  Rx:         p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>,
+  Refresh:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>,
 };
 
 /* ── Badge ── */
@@ -353,9 +357,15 @@ function Dashboard({onNav,user}){
   const [agenda,setAgenda]=useState(null);
   const [search,setSearch]=useState('');
   const [searchRes,setSearchRes]=useState(null);
+  const [alerts,setAlerts]=useState([]);
+  const [alertsUnread,setAlertsUnread]=useState(0);
+  const [showAlerts,setShowAlerts]=useState(false);
   const searchTimer=useRef(null);
+  const alertsPollRef=useRef(null);
 
   const today=new Date().toISOString().slice(0,10);
+
+  const loadAlerts=()=>api.get('/alerts').then(d=>{setAlerts(d.alerts||[]);setAlertsUnread(d.unread||0);});
 
   useEffect(()=>{
     Promise.all([
@@ -363,7 +373,22 @@ function Dashboard({onNav,user}){
       api.get('/honoraires/dashboard'),
       api.get(`/agenda?from=${today}&to=${today}`),
     ]).then(([s,h,ag])=>{setStats(s);setHon(h);setAgenda(ag);});
+    loadAlerts();
+    alertsPollRef.current=setInterval(loadAlerts,30000);
+    return()=>clearInterval(alertsPollRef.current);
   },[]);
+
+  const markRead=async(id)=>{
+    await fetch(`${API}/alerts/${id}/read`,{method:'PATCH',headers:{Authorization:`Bearer ${getToken()}`,'Content-Type':'application/json'}});
+    setAlerts(a=>a.map(x=>x.id===id?{...x,isRead:1}:x));
+    setAlertsUnread(n=>Math.max(0,n-1));
+  };
+
+  const markAllRead=async()=>{
+    await fetch(`${API}/alerts/read-all`,{method:'POST',headers:{Authorization:`Bearer ${getToken()}`,'Content-Type':'application/json'}});
+    setAlerts(a=>a.map(x=>({...x,isRead:1})));
+    setAlertsUnread(0);
+  };
 
   useEffect(()=>{
     clearTimeout(searchTimer.current);
@@ -431,6 +456,47 @@ function Dashboard({onNav,user}){
           </div>
         )}
       </div>
+
+      {/* ── Secretary Alerts ── */}
+      {(alertsUnread>0||showAlerts)&&(
+        <div className={`rounded-2xl border shadow-sm mb-6 overflow-hidden ${alertsUnread>0?'border-amber-200 bg-amber-50':'border-slate-100 bg-white'}`}>
+          <div className="px-5 py-3.5 flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${alertsUnread>0?'bg-amber-100':'bg-slate-100'}`}>
+              <Ic.Bell className={`w-4 h-4 ${alertsUnread>0?'text-amber-600':'text-slate-400'}`}/>
+            </div>
+            <div className="flex-1">
+              <span className="text-sm font-semibold text-slate-800">Messages du secrétariat</span>
+              {alertsUnread>0&&<span className="ml-2 text-xs font-bold bg-amber-500 text-white rounded-full px-2 py-0.5">{alertsUnread} nouveau{alertsUnread>1?'x':''}</span>}
+            </div>
+            {alertsUnread>0&&<button onClick={markAllRead} className="text-xs text-amber-700 hover:text-amber-900 font-medium">Tout marquer lu</button>}
+            <button onClick={()=>setShowAlerts(s=>!s)} className="text-xs text-slate-400 hover:text-slate-600 font-medium">{showAlerts?'Réduire':'Voir tout'}</button>
+          </div>
+          {/* Always show unread; show all when expanded */}
+          <div className="divide-y divide-amber-100">
+            {alerts.filter(a=>showAlerts||!a.isRead).map(al=>{
+              const typeColor={urgent:'bg-red-100 text-red-700',rdv:'bg-blue-100 text-blue-700',admin:'bg-violet-100 text-violet-700',info:'bg-slate-100 text-slate-600'}[al.type]||'bg-slate-100 text-slate-600';
+              const typeLabel={urgent:'Urgent',rdv:'RDV',admin:'Administratif',info:'Info'}[al.type]||'Info';
+              return(
+                <div key={al.id} className={`px-5 py-3.5 flex items-start gap-3 ${al.isRead?'opacity-60':''}`}>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${typeColor}`}>{typeLabel}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-800">{al.message}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{al.fromName} · {new Date(al.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
+                  </div>
+                  {!al.isRead&&<button onClick={()=>markRead(al.id)} className="text-xs text-slate-400 hover:text-slate-600 flex-shrink-0 mt-0.5">✓ Lu</button>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {!alertsUnread&&!showAlerts&&alerts.length>0&&(
+        <div className="flex justify-end mb-2">
+          <button onClick={()=>setShowAlerts(true)} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600">
+            <Ic.Bell className="w-3.5 h-3.5"/>{alerts.length} message{alerts.length>1?'s':''} secrétariat
+          </button>
+        </div>
+      )}
 
       {/* ── Main grid: left (2/3) + right agenda (1/3) ── */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -721,7 +787,7 @@ function PatientList({onSelect,onNew}){
    PATIENT FORM
 ══════════════════════════════════════════════════════════════ */
 function PatientForm({patientId,onSave,onBack}){
-  const empty={nom:'',prenom:'',dateNaissance:'',sexe:'M',telephone:'',telephone2:'',email:'',adresse:'',typeAssurance:'',numAssurance:'',antecedents:'',allergies:'',traitements:''};
+  const empty={nom:'',prenom:'',dateNaissance:'',sexe:'M',telephone:'',telephone2:'',email:'',adresse:'',typeAssurance:'',numAssurance:'',antecedents:'',allergies:'',traitements:'',antecedents_familiaux:'',antecedents_chirurgicaux:'',vaccinations:'',facteurs_risque:'',intolerances:''};
   const [form,setForm]=useState(empty);
   const [saving,setSaving]=useState(false);
   useEffect(()=>{if(patientId)api.get(`/patients/${patientId}`).then(p=>setForm(p));},[patientId]);
@@ -771,9 +837,16 @@ function PatientForm({patientId,onSave,onBack}){
           <div className="border-t border-slate-100 pt-5">
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Informations médicales</p>
             <div className="space-y-4">
-              <Input label="Antécédents médicaux" value={form.antecedents} onChange={set('antecedents')} textarea rows={3}/>
-              <Input label="Allergies" value={form.allergies} onChange={set('allergies')} textarea rows={2}/>
-              <Input label="Traitements en cours" value={form.traitements} onChange={set('traitements')} textarea rows={3}/>
+              <Input label="Antécédents médicaux personnels" value={form.antecedents} onChange={set('antecedents')} textarea rows={2} placeholder="Ex: HTA depuis 2018, hypothyroïdie…"/>
+              <Input label="Antécédents familiaux" value={form.antecedents_familiaux||''} onChange={set('antecedents_familiaux')} textarea rows={2} placeholder="Ex: père — IDM à 55 ans, mère — diabète type 2…"/>
+              <Input label="Antécédents chirurgicaux" value={form.antecedents_chirurgicaux||''} onChange={set('antecedents_chirurgicaux')} textarea rows={2} placeholder="Ex: appendicectomie 2005, cholécystectomie 2015…"/>
+              <div className="grid grid-cols-2 gap-4">
+                <Input label="Allergies médicamenteuses" value={form.allergies} onChange={set('allergies')} textarea rows={2} placeholder="Ex: Pénicilline, Aspirine…"/>
+                <Input label="Intolérances médicamenteuses" value={form.intolerances||''} onChange={set('intolerances')} textarea rows={2} placeholder="Ex: AINS (gastrite), Codéine (nausées)…"/>
+              </div>
+              <Input label="Vaccinations" value={form.vaccinations||''} onChange={set('vaccinations')} textarea rows={2} placeholder="Ex: Fièvre jaune 2023, Hépatite B (complet), Tétanos 2020…"/>
+              <Input label="Facteurs de risque" value={form.facteurs_risque||''} onChange={set('facteurs_risque')} textarea rows={2} placeholder="Ex: tabagisme, obésité, sédentarité, alcool, exposition professionnelle…"/>
+              <Input label="Traitements chroniques en cours" value={form.traitements} onChange={set('traitements')} textarea rows={3} placeholder="Ex: Lévothyrox 75µg 1cp/j, Ramipril 5mg 1cp/j…"/>
             </div>
           </div>
         </div>
@@ -1471,7 +1544,24 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
   const [starting,setStarting]=useState(false);
   const [showForm,setShowForm]=useState(false);
   const [noteModal,setNoteModal]=useState(null);
-  useEffect(()=>{api.get(`/patients/${patientId}`).then(setPatient);},[patientId]);
+  const [prescriptions,setPrescriptions]=useState([]);
+  const [rxExpanded,setRxExpanded]=useState(null);
+  const [dossDlLoading,setDossDlLoading]=useState(false);
+
+  useEffect(()=>{
+    api.get(`/patients/${patientId}`).then(setPatient);
+    api.get(`/patients/${patientId}/prescriptions`).then(setPrescriptions);
+  },[patientId]);
+
+  const downloadDossier=async()=>{
+    setDossDlLoading(true);
+    const r=await fetch(`${API}/patients/${patientId}/dossier/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const blob=await r.blob();
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=`dossier-${patient?.nom||patientId}.pdf`;a.click();
+    URL.revokeObjectURL(url);
+    setDossDlLoading(false);
+  };
 
   const start=async()=>{if(!motif.trim())return;setStarting(true);const c=await api.post('/consultations',{patientId,motif});setStarting(false);onConsultation(c.id,patientId);};
   if(!patient)return<div className="flex justify-center py-20"><Ic.Spin className="w-6 h-6 text-slate-400"/></div>;
@@ -1524,18 +1614,92 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
             )}
           </div>
 
-          {[{label:'Antécédents',val:patient.antecedents,color:'bg-amber-50 border-amber-100',dot:'bg-amber-400'},
+          {/* Informations médicales étendues */}
+          {[
+            {label:'Antécédents médicaux',val:patient.antecedents,color:'bg-amber-50 border-amber-100',dot:'bg-amber-400'},
+            {label:'Antécédents familiaux',val:patient.antecedents_familiaux,color:'bg-orange-50 border-orange-100',dot:'bg-orange-400'},
+            {label:'Antécédents chirurgicaux',val:patient.antecedents_chirurgicaux,color:'bg-yellow-50 border-yellow-100',dot:'bg-yellow-400'},
             {label:'Allergies',val:patient.allergies,color:'bg-rose-50 border-rose-100',dot:'bg-rose-400'},
-            {label:'Traitements',val:patient.traitements,color:'bg-blue-50 border-blue-100',dot:'bg-blue-400'}]
-          .map(({label,val,color,dot})=>(
+            {label:'Intolérances médicamenteuses',val:patient.intolerances,color:'bg-pink-50 border-pink-100',dot:'bg-pink-400'},
+            {label:'Facteurs de risque',val:patient.facteurs_risque,color:'bg-red-50 border-red-100',dot:'bg-red-400'},
+            {label:'Vaccinations',val:patient.vaccinations,color:'bg-teal-50 border-teal-100',dot:'bg-teal-400'},
+          ].filter(({val})=>val).map(({label,val,color,dot})=>(
             <div key={label} className={`border rounded-2xl p-4 ${color}`}>
               <div className="flex items-center gap-2 mb-2">
                 <div className={`w-2 h-2 rounded-full ${dot}`}/>
                 <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">{label}</p>
               </div>
-              <p className="text-sm text-slate-700 leading-relaxed">{val||<span className="text-slate-400 italic">Non renseigné</span>}</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{val}</p>
             </div>
           ))}
+
+          {/* Traitements chroniques en cours */}
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Ic.Pill className="w-4 h-4 text-blue-600"/>
+              <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">Traitements chroniques</p>
+            </div>
+            {patient.traitements?(
+              <div className="space-y-1.5">
+                {patient.traitements.split(/[,;\n]+/).filter(t=>t.trim()).map((t,i)=>(
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"/>
+                    <span className="text-sm text-slate-700 leading-snug">{t.trim()}</span>
+                  </div>
+                ))}
+              </div>
+            ):<span className="text-slate-400 italic text-sm">Non renseigné</span>}
+          </div>
+
+          {/* 3 dernières ordonnances */}
+          <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
+              <Ic.Rx className="w-4 h-4 text-violet-600"/>
+              <p className="text-xs font-bold text-slate-600 uppercase tracking-wide flex-1">Dernières ordonnances</p>
+              {prescriptions.length>0&&<span className="text-xs text-slate-400">{prescriptions.length} au total</span>}
+            </div>
+            {prescriptions.length===0?(
+              <div className="px-4 py-5 text-center"><p className="text-xs text-slate-400 italic">Aucune ordonnance validée</p></div>
+            ):(
+              <div className="divide-y divide-slate-50">
+                {prescriptions.slice(0,3).map((rx,idx)=>(
+                  <div key={rx.id}>
+                    <button onClick={()=>setRxExpanded(rxExpanded===idx?null:idx)}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 text-left">
+                      <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                        <Ic.Rx className="w-4 h-4 text-violet-600"/>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{rx.motif}</p>
+                        <p className="text-xs text-slate-400">{new Date(rx.date).toLocaleDateString('fr-FR')}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Badge color="green" size="xs">Validée</Badge>
+                        <svg className={`w-3.5 h-3.5 text-slate-300 transition-transform ${rxExpanded===idx?'rotate-90':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                      </div>
+                    </button>
+                    {rxExpanded===idx&&(
+                      <div className="px-4 pb-3 pt-1 bg-violet-50/50 space-y-1.5">
+                        {rx.lignes.map((l,j)=>(
+                          <div key={j} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0"/>
+                            <div>
+                              <span className="text-xs font-semibold text-slate-700">{l.medicament}</span>
+                              {l.posologie&&<span className="text-xs text-slate-500 ml-1">— {l.posologie}</span>}
+                              {l.duree&&<span className="text-xs text-slate-400"> ({l.duree})</span>}
+                            </div>
+                          </div>
+                        ))}
+                        <div className="pt-1 flex gap-2">
+                          <button onClick={async()=>{const r=await fetch(`${API}/consultations/${rx.consultationId}/prescription/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='ordonnance.pdf';a.click();URL.revokeObjectURL(url);}} className="text-xs text-blue-600 hover:underline font-medium">Télécharger PDF</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right */}
@@ -1604,6 +1768,15 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
               </div>
             )}
           </div>
+          {/* Dossier complet */}
+          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Dossier médical complet</p>
+              <p className="text-xs text-slate-400 mt-0.5">Identité, antécédents, ordonnances, consultations — tout en un PDF</p>
+            </div>
+            <Btn variant="secondary" icon={Ic.Download} onClick={downloadDossier} loading={dossDlLoading} size="sm">Télécharger</Btn>
+          </div>
+
           {/* Discussions */}
           {userId&&<DiscussionPanel patientId={patientId} userId={userId}/>}
         </div>
@@ -1611,6 +1784,53 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
     </Page>
     {noteModal&&<NoteModal consultationId={noteModal.id} motif={noteModal.motif} onClose={()=>setNoteModal(null)}/>}
   </>);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DRUG DATABASE (BDPM France — top 200 médicaments courants)
+══════════════════════════════════════════════════════════════ */
+const DRUGS=[
+  'Amoxicilline 500mg','Amoxicilline 1g','Augmentin 1g (amoxicilline/acide clavulanique)','Azithromycine 500mg','Ciprofloxacine 500mg','Doxycycline 100mg','Metronidazole 500mg','Ceftriaxone 1g (injectable)','Clarithromycine 500mg','Cotrimoxazole 960mg',
+  'Paracétamol 500mg','Paracétamol 1g','Ibuprofène 200mg','Ibuprofène 400mg','Kétoprofène 100mg','Diclofénac 50mg','Célécoxib 200mg','Tramadol 50mg','Codéine/Paracétamol','Néfopam 20mg','Morphine LP 10mg','Prégabaline 75mg',
+  'Metformine 500mg','Metformine 850mg','Metformine 1000mg','Glibenclamide 5mg','Gliclazide 80mg','Sitagliptine 100mg','Empagliflozine 10mg','Insuline Glargine','Insuline Lispro','Insuline NPH',
+  'Ramipril 2.5mg','Ramipril 5mg','Ramipril 10mg','Amlodipine 5mg','Amlodipine 10mg','Perindopril 5mg','Losartan 50mg','Valsartan 80mg','Bisoprolol 2.5mg','Bisoprolol 5mg','Bisoprolol 10mg','Métoprolol 25mg','Métoprolol 50mg','Atenolol 50mg','Furosémide 40mg','Hydrochlorothiazide 25mg','Spironolactone 25mg',
+  'Atorvastatine 10mg','Atorvastatine 20mg','Atorvastatine 40mg','Simvastatine 20mg','Rosuvastatine 10mg','Ezétimibe 10mg',
+  'Lévothyrox 25µg','Lévothyrox 50µg','Lévothyrox 75µg','Lévothyrox 100µg','Lévothyrox 125µg','Lévothyrox 150µg','Carbimazole 5mg',
+  'Oméprazole 20mg','Pantoprazole 20mg','Pantoprazole 40mg','Esoméprazole 20mg','Ranitidine 150mg','Dompéridone 10mg','Métoclopramide 10mg','Loperamide 2mg','Trimébutine 100mg','Charbon activé 250mg',
+  'Salbutamol (Ventoline) 100µg spray','Budésonide/formotérol inhalé','Béclométasone spray','Tiotropium 18µg','Montelukast 10mg','Théophylline 200mg','Prednisone 5mg','Prednisolone 20mg','Methylprednisolone 16mg','Dexaméthasone 4mg',
+  'Sertraline 50mg','Sertraline 100mg','Escitalopram 10mg','Fluoxétine 20mg','Amitriptyline 25mg','Clonazépam 0.5mg','Diazépam 5mg','Alprazolam 0.25mg','Zopiclone 7.5mg','Zolpidem 10mg','Mélatonine 2mg','Hydroxyzine 25mg',
+  'Amlodipine 5mg','Nitroglycérine spray sublinguale','Clopidogrel 75mg','Aspirine 75mg','Aspirine 100mg','Rivaroxaban 20mg','Apixaban 5mg','Warfarine 5mg','Dabigatran 110mg','Digoxine 0.25mg','Amiodarone 200mg',
+  'Ibuprofen 400mg pédiatrique','Dexaméthasone 0.1% collyre','Azitromycine 250mg','Artemether/Luméfantrine (Coartem)','Quinine 300mg','Albendazole 400mg','Mébendazole 100mg','Métronidazole 250mg sirop',
+  'Fer sulfate 80mg','Acide folique 5mg','Vitamine B12 1000µg','Vitamine D3 1000 UI','Calcium + Vitamine D','Magnésium 300mg','Zinc 15mg','Vitamine C 500mg','Omega-3 1g',
+  'Cetirizine 10mg','Loratadine 10mg','Desloratadine 5mg','Fexofénadine 120mg','Chlorphénamine 4mg',
+  'Dexaméthasone 4mg injection','Tramadol 100mg LP','Paracétamol injectable 1g','Ceftriaxone 2g','Amoxicilline IV 1g','Métronidazole IV 500mg',
+  'Contraceptif oral combiné (Microgynon)','Progestérone 200mg','Utrogestan 200mg','Mifépristone','Oxytocine (Syntocinon)','Misoprostol 200µg',
+].sort();
+
+function DrugSearch({value,onChange}){
+  const [open,setOpen]=useState(false);
+  const [q,setQ]=useState(value||'');
+  const suggestions=q.length>1?DRUGS.filter(d=>d.toLowerCase().includes(q.toLowerCase())).slice(0,8):[];
+  const pick=d=>{setQ(d);onChange(d);setOpen(false);};
+  React.useEffect(()=>{setQ(value||'');},[value]);
+  return(
+    <div className="relative col-span-2">
+      <input value={q}
+        onChange={e=>{setQ(e.target.value);onChange(e.target.value);setOpen(true);}}
+        onFocus={()=>setOpen(true)}
+        onBlur={()=>setTimeout(()=>setOpen(false),200)}
+        placeholder="Médicament / DCI (ex: Amoxicilline 500mg)"
+        className="w-full border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      {open&&suggestions.length>0&&(
+        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 overflow-hidden">
+          {suggestions.map(d=>(
+            <button key={d} onMouseDown={()=>pick(d)}
+              className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700 text-slate-700">{d}</button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1622,6 +1842,7 @@ function PrescriptionPanel({consultationId}){
   const [validee,setValidee]=useState(false);
   const [saving,setSaving]=useState(false);
   const [pdfLoading,setPdfLoading]=useState(false);
+  const [renewModal,setRenewModal]=useState(false);
 
   useEffect(()=>{api.get(`/consultations/${consultationId}/prescription`).then(d=>{if(d.lignes){setLignes(d.lignes);setValidee(!!d.validee);}});},[consultationId]);
 
@@ -1633,10 +1854,11 @@ function PrescriptionPanel({consultationId}){
 
   return(
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         {validee&&<Badge color="green">Ordonnance validée</Badge>}
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2 ml-auto flex-wrap">
           {!validee&&<Btn variant="secondary" onClick={()=>save(false)} loading={saving} size="sm">Sauvegarder</Btn>}
+          {validee&&lignes.length>0&&<Btn variant="secondary" icon={Ic.Refresh} size="sm" onClick={()=>{setValidee(false);}}>Renouveler</Btn>}
           <Btn variant="secondary" icon={Ic.Download} onClick={dlPdf} loading={pdfLoading} size="sm">Ordonnance PDF</Btn>
           {!validee&&lignes.length>0&&<Btn variant="success" icon={Ic.Check} onClick={()=>save(true)} size="sm">Valider</Btn>}
         </div>
@@ -1651,8 +1873,7 @@ function PrescriptionPanel({consultationId}){
                 <button onClick={()=>del(i)} className="w-6 h-6 rounded-lg hover:bg-rose-100 flex items-center justify-center text-slate-400 hover:text-rose-500"><Ic.Trash className="w-3.5 h-3.5"/></button>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
-                <input value={l.medicament} onChange={e=>upd(i,'medicament',e.target.value)} placeholder="Médicament / DCI"
-                  className="col-span-2 border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                <DrugSearch value={l.medicament} onChange={v=>upd(i,'medicament',v)}/>
                 <input value={l.posologie} onChange={e=>upd(i,'posologie',e.target.value)} placeholder="Posologie"
                   className="col-span-2 border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                 <input value={l.duree} onChange={e=>upd(i,'duree',e.target.value)} placeholder="Durée"

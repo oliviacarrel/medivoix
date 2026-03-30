@@ -225,23 +225,37 @@ app.get('/api/patients/:id', auth, (req, res) => {
 });
 
 app.post('/api/patients', auth, (req, res) => {
-  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements } = req.body;
+  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux, antecedents_chirurgicaux, vaccinations, facteurs_risque, intolerances } = req.body;
   const id = randomUUID();
-  db.prepare(`INSERT INTO patients (id,nom,prenom,dateNaissance,sexe,telephone,telephone2,email,adresse,typeAssurance,numAssurance,antecedents,allergies,traitements)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-    .run(id, nom, prenom, dateNaissance, sexe||'M', telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements);
+  db.prepare(`INSERT INTO patients (id,nom,prenom,dateNaissance,sexe,telephone,telephone2,email,adresse,typeAssurance,numAssurance,antecedents,allergies,traitements,antecedents_familiaux,antecedents_chirurgicaux,vaccinations,facteurs_risque,intolerances)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    .run(id, nom, prenom, dateNaissance, sexe||'M', telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux||'', antecedents_chirurgicaux||'', vaccinations||'', facteurs_risque||'', intolerances||'');
   audit(req, 'CREATE_PATIENT', 'patient', id, `${prenom} ${nom}`);
   res.json(db.prepare('SELECT * FROM patients WHERE id=?').get(id));
 });
 
 app.put('/api/patients/:id', auth, (req, res) => {
-  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements } = req.body;
+  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux, antecedents_chirurgicaux, vaccinations, facteurs_risque, intolerances } = req.body;
   const info = db.prepare(`UPDATE patients SET nom=?,prenom=?,dateNaissance=?,sexe=?,telephone=?,telephone2=?,email=?,
-    adresse=?,typeAssurance=?,numAssurance=?,antecedents=?,allergies=?,traitements=?,updatedAt=datetime('now') WHERE id=?`)
-    .run(nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, req.params.id);
+    adresse=?,typeAssurance=?,numAssurance=?,antecedents=?,allergies=?,traitements=?,
+    antecedents_familiaux=?,antecedents_chirurgicaux=?,vaccinations=?,facteurs_risque=?,intolerances=?,
+    updatedAt=datetime('now') WHERE id=?`)
+    .run(nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux||'', antecedents_chirurgicaux||'', vaccinations||'', facteurs_risque||'', intolerances||'', req.params.id);
   if (!info.changes) return res.status(404).json({ error: 'Patient non trouvé' });
   audit(req, 'UPDATE_PATIENT', 'patient', req.params.id, `${prenom} ${nom}`);
   res.json(db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id));
+});
+
+app.get('/api/patients/:id/prescriptions', auth, (req, res) => {
+  const rows = db.prepare(`
+    SELECT p.id, p.lignes, p.validee, p.createdAt, c.motif, c.date, c.id as consultationId
+    FROM prescriptions p
+    JOIN consultations c ON c.id = p.consultationId
+    WHERE c.patientId = ?
+    ORDER BY c.date DESC
+    LIMIT 10
+  `).all(req.params.id);
+  res.json(rows.map(r => ({ ...r, lignes: (() => { try { return JSON.parse(r.lignes); } catch { return []; } })() })));
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -446,6 +460,34 @@ app.get('/api/analytics', auth, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SECRETARY ALERTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/alerts', auth, (req, res) => {
+  const alerts = db.prepare('SELECT * FROM secretary_alerts WHERE userId=? ORDER BY createdAt DESC LIMIT 20').all(req.user.id);
+  const unread = db.prepare('SELECT COUNT(*) as n FROM secretary_alerts WHERE userId=? AND isRead=0').get(req.user.id).n;
+  res.json({ alerts, unread });
+});
+
+app.post('/api/alerts', auth, (req, res) => {
+  const { message, type='info', fromName='Secrétariat', userId } = req.body;
+  const targetId = userId || req.user.id;
+  const id = randomUUID();
+  db.prepare('INSERT INTO secretary_alerts (id,userId,fromName,message,type) VALUES (?,?,?,?,?)').run(id, targetId, fromName, message, type);
+  res.json({ id });
+});
+
+app.patch('/api/alerts/:id/read', auth, (req, res) => {
+  db.prepare('UPDATE secretary_alerts SET isRead=1 WHERE id=? AND userId=?').run(req.params.id, req.user.id);
+  res.json({ ok: true });
+});
+
+app.post('/api/alerts/read-all', auth, (req, res) => {
+  db.prepare('UPDATE secretary_alerts SET isRead=1 WHERE userId=?').run(req.user.id);
+  res.json({ ok: true });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // AUDIT LOG
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -494,6 +536,95 @@ function buildConsultationPDF(doc, c) {
   doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MedPilot — Compte rendu validé par le médecin — Non opposable sans signature',50,fy+2,{align:'center',width:495});
   doc.end();
 }
+
+app.get('/api/patients/:id/dossier/pdf', auth, (req, res) => {
+  const p = db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Patient non trouvé' });
+  const u = db.prepare('SELECT * FROM users WHERE id=?').get(req.user.id);
+  const consultations = db.prepare(`SELECT c.*, u.nom as dNom, u.prenom as dPrenom, u.specialite as dSpec
+    FROM consultations c LEFT JOIN users u ON u.id=c.userId WHERE c.patientId=? ORDER BY c.date DESC`).all(p.id);
+  const prescriptions = db.prepare(`SELECT pr.lignes, c.date, c.motif FROM prescriptions pr
+    JOIN consultations c ON c.id=pr.consultationId WHERE c.patientId=? AND pr.validee=1 ORDER BY c.date DESC LIMIT 5`).all(p.id);
+  const age = p.dateNaissance ? new Date().getFullYear() - new Date(p.dateNaissance+'T00:00:00').getFullYear() : null;
+  const dateStr = new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+  const dobStr = p.dateNaissance ? new Date(p.dateNaissance+'T00:00:00').toLocaleDateString('fr-FR') : '';
+  const doc = new PDFDocument({ margin:50, size:'A4' });
+  res.set({'Content-Type':'application/pdf','Content-Disposition':`attachment; filename="dossier-${p.nom}-${p.prenom}.pdf"`});
+  doc.pipe(res);
+
+  // Cover header
+  doc.rect(0,0,doc.page.width,90).fill('#1e293b');
+  doc.fillColor('white').fontSize(24).font('Helvetica-Bold').text('MedPilot',50,22);
+  doc.fontSize(11).font('Helvetica').text('Dossier médical complet',50,50);
+  doc.fontSize(9).text(`Généré le ${dateStr} — Dr. ${u?.prenom||''} ${u?.nom||''}`,50,65);
+
+  let y=108;
+  const section=(title,color='#1e293b')=>{
+    if(y>700){doc.addPage();y=50;}
+    doc.fillColor(color).fontSize(11).font('Helvetica-Bold').text(title.toUpperCase(),50,y); y+=14;
+    doc.rect(50,y,495,1).fill('#e2e8f0'); y+=10;
+  };
+  const row=(label,val,indent=60)=>{
+    if(!val?.trim()) return;
+    if(y>710){doc.addPage();y=50;}
+    const text=`${label} : ${val}`;
+    const h=doc.heightOfString(text,{width:475});
+    doc.fillColor('#334155').fontSize(9.5).font('Helvetica').text(text,indent,y,{width:475}); y+=h+6;
+  };
+
+  section('IDENTITÉ');
+  row('Patient',`${p.prenom} ${p.nom}`);
+  if(dobStr) row('Date de naissance',`${dobStr}${age?` (${age} ans)`:''}`);
+  row('Sexe',p.sexe==='F'?'Féminin':'Masculin');
+  if(p.telephone) row('Téléphone',p.telephone);
+  if(p.email) row('Email',p.email);
+  if(p.adresse) row('Adresse',p.adresse);
+  if(p.typeAssurance) row('Assurance',`${p.typeAssurance}${p.numAssurance?' — '+p.numAssurance:''}`);
+  y+=6;
+
+  section('INFORMATIONS MÉDICALES','#1d4ed8');
+  if(p.antecedents) row('Antécédents médicaux',p.antecedents);
+  if(p.antecedents_familiaux) row('Antécédents familiaux',p.antecedents_familiaux);
+  if(p.antecedents_chirurgicaux) row('Antécédents chirurgicaux',p.antecedents_chirurgicaux);
+  if(p.allergies) row('Allergies',p.allergies);
+  if(p.intolerances) row('Intolérances médicamenteuses',p.intolerances);
+  if(p.facteurs_risque) row('Facteurs de risque',p.facteurs_risque);
+  if(p.vaccinations) row('Vaccinations',p.vaccinations);
+  if(p.traitements) row('Traitements chroniques en cours',p.traitements);
+  y+=6;
+
+  section('ORDONNANCES ACTIVES','#059669');
+  if(prescriptions.length===0){doc.fillColor('#94a3b8').fontSize(9).font('Helvetica').text('Aucune ordonnance validée.',60,y);y+=16;}
+  for(const rx of prescriptions){
+    const lines=(() => { try { return JSON.parse(rx.lignes); } catch { return []; } })();
+    if(y>700){doc.addPage();y=50;}
+    doc.fillColor('#475569').fontSize(9).font('Helvetica-Bold').text(`Ordonnance du ${new Date(rx.date).toLocaleDateString('fr-FR')} — ${rx.motif}`,60,y); y+=13;
+    for(const l of lines){
+      if(!l.medicament) continue;
+      if(y>720){doc.addPage();y=50;}
+      doc.fillColor('#334155').fontSize(9).font('Helvetica').text(`• ${l.medicament}${l.posologie?' — '+l.posologie:''}${l.duree?' ('+l.duree+')':''}`,70,y); y+=12;
+    }
+    y+=4;
+  }
+  y+=6;
+
+  section('HISTORIQUE DES CONSULTATIONS','#7c3aed');
+  if(consultations.length===0){doc.fillColor('#94a3b8').fontSize(9).font('Helvetica').text('Aucune consultation enregistrée.',60,y);y+=16;}
+  for(const c of consultations){
+    if(y>700){doc.addPage();y=50;}
+    const note=(() => { try { return JSON.parse(decrypt(c.noteJson)||c.noteJson||'{}'); } catch { return null; } })();
+    const dStr=new Date(c.date).toLocaleDateString('fr-FR');
+    doc.fillColor('#1e293b').fontSize(9.5).font('Helvetica-Bold').text(`${dStr} — ${c.motif}`,60,y); y+=13;
+    if(c.dNom) { doc.fillColor('#7c3aed').fontSize(8.5).font('Helvetica').text(`Dr. ${c.dPrenom} ${c.dNom}${c.dSpec?' ('+c.dSpec+')':''}`,60,y); y+=12; }
+    if(note?.conduite){ const h=doc.heightOfString(note.conduite,{width:455}); if(y+h<720){doc.fillColor('#475569').fontSize(8.5).font('Helvetica').text(note.conduite,70,y,{width:455});y+=h+4;} }
+    y+=4;
+  }
+
+  const fy=doc.page.height-35;
+  doc.rect(0,fy-2,doc.page.width,37).fill('#f8fafc');
+  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MedPilot — Dossier médical confidentiel — Généré électroniquement — Non opposable sans signature',50,fy+8,{align:'center',width:495});
+  doc.end();
+});
 
 app.get('/api/consultations/:id/pdf', auth, (req, res) => {
   const c = db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
