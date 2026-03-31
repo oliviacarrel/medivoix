@@ -17,8 +17,8 @@
   --white:#FAFAF8;
   --cream:#F5F3EE;
   --cream2:#EDE9E0;
-  --navy:#1A2332;
-  --navy-mid:#243347;
+  --navy:#00725f;
+  --navy-mid:#00866f;
   --gold:#B8935A;
   --gold-light:#D4AC78;
   --gold-pale:#F0E8D8;
@@ -236,8 +236,8 @@ button:active:not(:disabled){opacity:0.85;}
 </style>
 <script>
 tailwind.config={theme:{extend:{colors:{
-  navy:'#1A2332',
-  'navy-mid':'#243347',
+  navy:'#00725f',
+  'navy-mid':'#00866f',
   gold:'#B8935A',
   'gold-light':'#D4AC78',
   'gold-pale':'#F0E8D8',
@@ -2441,17 +2441,17 @@ function AgePyramideChart({groups}){
   const scale=v=>(midX-labelW-16)*v/maxVal;
   return(
     <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
-      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#1A2332" fontWeight="400">Hommes</text>
+      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#00725f" fontWeight="400">Hommes</text>
       <text x={midX+(midX-labelW)/2+labelW} y={14} textAnchor="middle" fontSize={11} fill="#B8935A" fontWeight="400">Femmes</text>
       {groups.map((g,i)=>{
         const y=20+i*(barH+gap);
         const hw=scale(g.h), fw=scale(g.f);
         return(
           <g key={g.label}>
-            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={0} fill="#1A2332" opacity={0.85}/>
+            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={0} fill="#00725f" opacity={0.85}/>
             <rect x={midX+labelW} y={y} width={fw} height={barH} rx={0} fill="#B8935A" opacity={0.85}/>
             <text x={midX} y={y+barH/2+4} textAnchor="middle" fontSize={10} fill="#8A8A8A">{g.label}</text>
-            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#1A2332">{g.h}</text>
+            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#00725f">{g.h}</text>
             <text x={midX+labelW+fw+4} y={y+barH/2+4} textAnchor="start" fontSize={9} fill="#B8935A">{g.f}</text>
           </g>
         );
@@ -2536,11 +2536,11 @@ function SaisonnaliteChart({data}){
         return<g key={f}><line x1={pad.l} y1={y} x2={W-pad.r} y2={y} stroke="#f1f5f9" strokeWidth={1}/><text x={pad.l-4} y={y+4} textAnchor="end" fontSize={8} fill="#94a3b8">{Math.round(maxV*f)}</text></g>;
       })}
       {months.map((m,i)=><text key={m} x={px(i)} y={H-6} textAnchor="middle" fontSize={8} fill="#94a3b8">{m}</text>)}
-      {line('resp','#1A2332')}
+      {line('resp','#00725f')}
       {line('card','#B8935A')}
       {line('inf','#4A7C6B')}
       <g transform={`translate(${W-120},${pad.t})`}>
-        {[['#1A2332','Respiratoire'],['#B8935A','Cardiaque'],['#4A7C6B','Infectieux']].map(([c,l],i)=>(
+        {[['#00725f','Respiratoire'],['#B8935A','Cardiaque'],['#4A7C6B','Infectieux']].map(([c,l],i)=>(
           <g key={l} transform={`translate(0,${i*16})`}>
             <rect width={10} height={2} y={2} fill={c}/>
             <text x={14} y={7} fontSize={8} fill="#8A8A8A">{l}</text>
@@ -2956,7 +2956,7 @@ function AnalyticsPage(){
             {/* Daily activity */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
               <h3 className="font-semibold text-slate-900 mb-4">Activité quotidienne</h3>
-              <BarChartSVG data={data.daily} color="#1A2332"/>
+              <BarChartSVG data={data.daily} color="#00725f"/>
             </div>
 
             {/* Top motifs */}
