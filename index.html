@@ -14,52 +14,101 @@
 <style>
 /* ── BASE ── */
 *,*::before,*::after{box-sizing:border-box;}
-body{font-family:'Inter',system-ui,sans-serif!important;background:#F0F4F8!important;color:#111827!important;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+body{font-family:'Inter',system-ui,sans-serif!important;background:#F0F2F5!important;color:#0F172A!important;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
 
 /* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar{width:4px;height:4px}
 ::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:99px}
-::-webkit-scrollbar-thumb:hover{background:#9CA3AF}
+::-webkit-scrollbar-thumb{background:#CBD5E1;border-radius:99px}
+::-webkit-scrollbar-thumb:hover{background:#94A3B8}
 
 /* ── ANIMATIONS ── */
 .pulse-ring{animation:pulseRing 2s cubic-bezier(.215,.61,.355,1) infinite;}
 @keyframes pulseRing{0%{transform:scale(.97);box-shadow:0 0 0 0 rgba(239,68,68,.4)}70%{transform:scale(1);box-shadow:0 0 0 12px rgba(239,68,68,0)}100%{transform:scale(.97);box-shadow:0 0 0 0 rgba(239,68,68,0)}}
-.fade-in{animation:fadeIn .25s cubic-bezier(0.4,0,0.2,1);}
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.slide-in{animation:slideIn .2s cubic-bezier(0.4,0,0.2,1);}
-@keyframes slideIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:translateX(0)}}
-.interim{color:#9CA3AF;font-style:italic;}
+.fade-in{animation:fadeIn .2s cubic-bezier(0.16,1,0.3,1);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.slide-in{animation:slideIn .18s cubic-bezier(0.16,1,0.3,1);}
+@keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:translateX(0)}}
+.interim{color:#94A3B8;font-style:italic;}
 
 /* ── SIDEBAR ── */
-.sidebar-item{transition:background .15s ease,color .15s ease;border-radius:10px;margin-bottom:2px;}
-.sidebar-item.active{background:rgba(59,130,246,0.08);color:#3B82F6!important;}
+.sidebar-item{
+  transition:background .12s ease,color .12s ease;
+  border-radius:12px;
+  margin-bottom:1px;
+  position:relative;
+}
+.sidebar-item:not(.active):hover{background:rgba(15,23,42,0.04);}
+.sidebar-item.active{
+  background:linear-gradient(135deg,#3B82F6,#6366F1);
+  color:#FFFFFF!important;
+  box-shadow:0 4px 14px rgba(59,130,246,0.35);
+}
+.sidebar-item.active svg{opacity:1!important;}
 
 /* ── CARD ── */
-.card{background:#fff;border-radius:16px;border:1px solid #E5E7EB;box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.02);}
-.card-hover{transition:box-shadow .2s ease,transform .15s ease;}
-.card-hover:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08)!important;transform:translateY(-1px);}
+.card{
+  background:#FFFFFF;
+  border-radius:20px;
+  border:1px solid rgba(0,0,0,0.05);
+  box-shadow:0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.04);
+}
+.card-hover{transition:box-shadow .2s ease,transform .18s cubic-bezier(0.16,1,0.3,1);}
+.card-hover:hover{
+  box-shadow:0 4px 8px rgba(0,0,0,0.04),0 16px 40px rgba(0,0,0,0.08)!important;
+  transform:translateY(-2px);
+}
 
 /* ── FOCUS OVERRIDES ── */
 input:focus,select:focus,textarea:focus{
   border-color:#3B82F6!important;
-  box-shadow:0 0 0 3px rgba(59,130,246,0.12)!important;
+  box-shadow:0 0 0 3px rgba(59,130,246,0.15)!important;
   outline:none!important;
 }
 
 /* ── SMOOTH TRANSITIONS ── */
-button{transition:background .15s ease,box-shadow .15s ease,transform .1s ease;}
-button:active{transform:scale(0.97);}
+button{transition:background .12s ease,box-shadow .15s ease,transform .1s ease,opacity .1s ease;}
+button:active:not(:disabled){transform:scale(0.96);}
 
 /* ── FLOATING ACTION ── */
-.fab{box-shadow:0 4px 20px rgba(59,130,246,0.35);}
-.fab:hover{box-shadow:0 8px 28px rgba(59,130,246,0.45);transform:translateY(-2px);}
+.fab{box-shadow:0 4px 20px rgba(59,130,246,0.4),0 1px 4px rgba(59,130,246,0.2);}
+.fab:hover{box-shadow:0 8px 32px rgba(59,130,246,0.5),0 2px 8px rgba(59,130,246,0.3);transform:translateY(-2px);}
 
 /* ── STATUS INDICATOR ── */
-.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
-.status-online{background:#10B981;}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+.status-online{background:#10B981;box-shadow:0 0 0 2px rgba(16,185,129,0.2);}
 .status-busy{background:#F59E0B;}
-.status-offline{background:#9CA3AF;}
+.status-offline{background:#94A3B8;}
+
+/* ── STAT CARD TOP ACCENT ── */
+.stat-accent-blue::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3B82F6,#6366F1);border-radius:20px 20px 0 0;}
+.stat-accent-green::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#10B981,#06B6D4);border-radius:20px 20px 0 0;}
+.stat-accent-violet::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#8B5CF6,#EC4899);border-radius:20px 20px 0 0;}
+.stat-accent-amber::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#F59E0B,#EF4444);border-radius:20px 20px 0 0;}
+
+/* ── PAGE HEADER GLASSMORPHISM ── */
+.page-header{
+  background:rgba(255,255,255,0.85);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(0,0,0,0.05);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+/* ── SEARCH INPUT ── */
+.search-premium{
+  background:rgba(255,255,255,0.9);
+  border:1.5px solid rgba(0,0,0,0.08);
+  border-radius:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.03);
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.search-premium:focus{
+  border-color:#3B82F6!important;
+  box-shadow:0 0 0 3px rgba(59,130,246,0.12),0 4px 12px rgba(0,0,0,0.05)!important;
+}
 </style>
 <script>
 tailwind.config={theme:{extend:{colors:{
@@ -83,7 +132,7 @@ tailwind.config={theme:{extend:{colors:{
 }}}}
 </script>
 </head>
-<body class="antialiased" style="background:#F0F4F8;color:#111827;">
+<body class="antialiased" style="background:#F0F2F5;color:#0F172A;">
 <div id="root"></div>
 <script type="text/babel">
 const {useState,useEffect,useRef,useCallback,useMemo}=React;
@@ -189,55 +238,52 @@ function Sidebar({page,onNav,user,onLogout}){
     {id:'audit',label:'Journal d\'audit',Icon:Ic.Shield},
   ];
   return(
-    <aside className="fixed left-0 top-0 h-screen w-60 flex flex-col z-20" style={{background:'#FFFFFF',borderRight:'1px solid #E5E7EB'}}>
+    <aside className="fixed left-0 top-0 h-screen flex flex-col z-20" style={{width:'240px',background:'#FFFFFF',borderRight:'1px solid rgba(0,0,0,0.06)',boxShadow:'2px 0 24px rgba(0,0,0,0.04)'}}>
       {/* Logo */}
-      <div className="px-5 pt-6 pb-5 flex items-center gap-3" style={{borderBottom:'1px solid #F3F4F6'}}>
-        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)',borderRadius:'10px',boxShadow:'0 4px 12px rgba(59,130,246,0.3)'}}>
-          <Ic.Steth className="w-4.5 h-4.5 text-white" style={{width:'18px',height:'18px'}}/>
+      <div className="px-5 pt-7 pb-6 flex items-center gap-3">
+        <div className="flex items-center justify-center flex-shrink-0" style={{width:'38px',height:'38px',background:'linear-gradient(135deg,#3B82F6 0%,#6366F1 100%)',borderRadius:'12px',boxShadow:'0 4px 14px rgba(99,102,241,0.4)'}}>
+          <Ic.Steth style={{width:'18px',height:'18px',color:'#FFFFFF'}}/>
         </div>
         <div>
-          <p style={{fontSize:'15px',fontWeight:700,color:'#111827',letterSpacing:'-0.01em'}}>MedPilot</p>
-          <p style={{fontSize:'10px',fontWeight:500,color:'#9CA3AF',letterSpacing:'0.05em',textTransform:'uppercase'}}>Espace médecin</p>
+          <p style={{fontSize:'16px',fontWeight:700,color:'#0F172A',letterSpacing:'-0.02em',lineHeight:1.2}}>MedPilot</p>
+          <p style={{fontSize:'10px',fontWeight:500,color:'#94A3B8',letterSpacing:'0.06em',textTransform:'uppercase',marginTop:'1px'}}>Espace médecin</p>
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <p style={{fontSize:'10px',fontWeight:600,color:'#9CA3AF',letterSpacing:'0.08em',textTransform:'uppercase',padding:'0 8px',marginBottom:'8px'}}>Navigation</p>
+      <nav className="flex-1 overflow-y-auto" style={{padding:'0 12px'}}>
         {nav.map(({id,label,Icon})=>{
           const active=page===id||page.startsWith(id+'/');
           return(
             <button key={id} onClick={()=>onNav(id)}
-              className={`sidebar-item w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left ${active?'active':''}`}
-              style={{color:active?'#3B82F6':'#374151',fontWeight:active?600:400}}>
-              <Icon className="w-4 h-4 flex-shrink-0" style={{opacity:active?1:0.6}}/>
-              <span>{label}</span>
-              {active&&<div className="ml-auto w-1.5 h-1.5 rounded-full flex-shrink-0" style={{background:'#3B82F6'}}/>}
+              className={`sidebar-item w-full flex items-center gap-3 text-sm text-left ${active?'active':''}`}
+              style={{padding:'10px 14px',color:active?'#FFFFFF':'#475569',fontWeight:active?600:450}}>
+              <Icon style={{width:'17px',height:'17px',flexShrink:0,opacity:active?1:0.65}}/>
+              <span style={{letterSpacing:'-0.01em'}}>{label}</span>
             </button>
           );
         })}
       </nav>
 
       {/* User */}
-      <div className="px-3 pb-4 pt-3" style={{borderTop:'1px solid #F3F4F6'}}>
-        <div className="flex items-center gap-3 px-2 py-2.5 rounded-xl cursor-default" style={{background:'#F9FAFB'}}>
+      <div style={{padding:'12px',borderTop:'1px solid rgba(0,0,0,0.05)'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',padding:'10px 12px',borderRadius:'14px',background:'#F8FAFC',cursor:'default'}}>
           {user?.photo
-            ? <img src={encodeURI(user.photo)} alt="" className="w-8 h-8 rounded-full object-cover flex-shrink-0"/>
-            : <div className="w-8 h-8 flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)',borderRadius:'8px',fontSize:'12px'}}>{initials(user?.prenom,user?.nom)}</div>
+            ? <img src={encodeURI(user.photo)} alt="" style={{width:'34px',height:'34px',borderRadius:'10px',objectFit:'cover',flexShrink:0}}/>
+            : <div style={{width:'34px',height:'34px',background:'linear-gradient(135deg,#3B82F6,#6366F1)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',fontSize:'12px',fontWeight:700,flexShrink:0}}>{initials(user?.prenom,user?.nom)}</div>
           }
-          <div className="flex-1 min-w-0">
-            <p style={{fontSize:'13px',fontWeight:600,color:'#111827',lineHeight:'1.3'}} className="truncate">{user?.prenom} {user?.nom}</p>
-            <p style={{fontSize:'11px',color:'#9CA3AF'}} className="truncate">{user?.specialite||user?.email}</p>
+          <div style={{flex:1,minWidth:0}}>
+            <p style={{fontSize:'13px',fontWeight:600,color:'#0F172A',lineHeight:'1.3',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.prenom} {user?.nom}</p>
+            <div style={{display:'flex',alignItems:'center',gap:'5px',marginTop:'2px'}}>
+              <span className="status-dot status-online"></span>
+              <span style={{fontSize:'11px',color:'#10B981',fontWeight:500,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{user?.specialite||'En ligne'}</span>
+            </div>
           </div>
-          <button onClick={onLogout} className="p-1.5 rounded-lg flex-shrink-0" style={{color:'#9CA3AF'}} title="Déconnexion"
+          <button onClick={onLogout} style={{padding:'6px',borderRadius:'8px',color:'#CBD5E1',flexShrink:0,background:'transparent',border:'none'}} title="Déconnexion"
             onMouseEnter={e=>{e.currentTarget.style.color='#EF4444';e.currentTarget.style.background='#FEF2F2';}}
-            onMouseLeave={e=>{e.currentTarget.style.color='#9CA3AF';e.currentTarget.style.background='transparent';}}>
-            <Ic.Logout className="w-4 h-4"/>
+            onMouseLeave={e=>{e.currentTarget.style.color='#CBD5E1';e.currentTarget.style.background='transparent';}}>
+            <Ic.Logout style={{width:'15px',height:'15px'}}/>
           </button>
-        </div>
-        <div className="mt-2 flex items-center gap-1.5 px-3">
-          <span className="status-dot status-online"></span>
-          <span style={{fontSize:'11px',color:'#10B981',fontWeight:500}}>En ligne</span>
         </div>
       </div>
     </aside>
@@ -248,17 +294,17 @@ function Sidebar({page,onNav,user,onLogout}){
 function Page({title,subtitle,actions,children,breadcrumb}){
   return(
     <div className="min-h-screen">
-      <div className="px-8 pt-7 pb-5" style={{borderBottom:'1px solid #E5E7EB',background:'#FFFFFF'}}>
-        {breadcrumb&&<p className="mb-2 flex items-center gap-1.5" style={{fontSize:'12px',color:'#9CA3AF',fontWeight:400}}>{breadcrumb}</p>}
+      <div className="page-header px-8 pt-6 pb-5">
+        {breadcrumb&&<p className="mb-2 flex items-center gap-1.5" style={{fontSize:'12px',color:'#94A3B8',fontWeight:400}}>{breadcrumb}</p>}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 style={{fontSize:'clamp(20px,2vw,26px)',fontWeight:700,color:'#111827',lineHeight:1.2,letterSpacing:'-0.02em'}}>{title}</h1>
-            {subtitle&&<p className="mt-1" style={{fontSize:'13px',color:'#6B7280',fontWeight:400}}>{subtitle}</p>}
+            <h1 style={{fontSize:'clamp(22px,2vw,28px)',fontWeight:700,color:'#0F172A',lineHeight:1.15,letterSpacing:'-0.03em'}}>{title}</h1>
+            {subtitle&&<p className="mt-1" style={{fontSize:'13px',color:'#64748B',fontWeight:400}}>{subtitle}</p>}
           </div>
           {actions&&<div className="flex items-center gap-3 flex-shrink-0">{actions}</div>}
         </div>
       </div>
-      <div className="px-8 py-7">{children}</div>
+      <div style={{padding:'28px 32px'}}>{children}</div>
     </div>
   );
 }
@@ -267,11 +313,11 @@ function Page({title,subtitle,actions,children,breadcrumb}){
 function Btn({children,onClick,variant='primary',size='md',disabled,icon:Icon,loading}){
   const base='inline-flex items-center gap-2 font-medium focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed';
   const variants={
-    primary:{style:{background:'#3B82F6',color:'#FFFFFF',border:'1px solid #3B82F6',fontSize:'13px',fontWeight:600,borderRadius:'10px',boxShadow:'0 1px 3px rgba(59,130,246,0.3)'},hover:{background:'#2563EB',borderColor:'#2563EB',boxShadow:'0 4px 12px rgba(59,130,246,0.35)'}},
-    secondary:{style:{background:'#FFFFFF',color:'#374151',border:'1px solid #E5E7EB',fontSize:'13px',fontWeight:500,borderRadius:'10px'},hover:{background:'#F9FAFB',borderColor:'#D1D5DB'}},
-    danger:{style:{background:'#EF4444',color:'#FFFFFF',border:'1px solid #EF4444',fontSize:'13px',fontWeight:600,borderRadius:'10px'},hover:{background:'#DC2626',borderColor:'#DC2626'}},
-    ghost:{style:{background:'transparent',color:'#6B7280',border:'1px solid transparent',fontSize:'13px',fontWeight:500,borderRadius:'10px'},hover:{background:'#F3F4F6'}},
-    success:{style:{background:'#10B981',color:'#FFFFFF',border:'1px solid #10B981',fontSize:'13px',fontWeight:600,borderRadius:'10px'},hover:{background:'#059669',borderColor:'#059669'}},
+    primary:{style:{background:'linear-gradient(135deg,#3B82F6,#6366F1)',color:'#FFFFFF',border:'1px solid transparent',fontSize:'13px',fontWeight:600,borderRadius:'12px',boxShadow:'0 2px 8px rgba(59,130,246,0.35),0 1px 2px rgba(59,130,246,0.2)',letterSpacing:'-0.01em'},hover:{background:'linear-gradient(135deg,#2563EB,#4F46E5)',boxShadow:'0 6px 20px rgba(59,130,246,0.45),0 2px 6px rgba(59,130,246,0.25)'}},
+    secondary:{style:{background:'#FFFFFF',color:'#374151',border:'1px solid rgba(0,0,0,0.08)',fontSize:'13px',fontWeight:500,borderRadius:'12px',boxShadow:'0 1px 3px rgba(0,0,0,0.04)',letterSpacing:'-0.01em'},hover:{background:'#F8FAFC',borderColor:'rgba(0,0,0,0.12)',boxShadow:'0 2px 8px rgba(0,0,0,0.06)'}},
+    danger:{style:{background:'linear-gradient(135deg,#EF4444,#DC2626)',color:'#FFFFFF',border:'1px solid transparent',fontSize:'13px',fontWeight:600,borderRadius:'12px',boxShadow:'0 2px 8px rgba(239,68,68,0.3)'},hover:{boxShadow:'0 6px 16px rgba(239,68,68,0.4)'}},
+    ghost:{style:{background:'transparent',color:'#64748B',border:'1px solid transparent',fontSize:'13px',fontWeight:500,borderRadius:'12px'},hover:{background:'rgba(0,0,0,0.04)',color:'#0F172A'}},
+    success:{style:{background:'linear-gradient(135deg,#10B981,#059669)',color:'#FFFFFF',border:'1px solid transparent',fontSize:'13px',fontWeight:600,borderRadius:'12px',boxShadow:'0 2px 8px rgba(16,185,129,0.3)'},hover:{boxShadow:'0 6px 16px rgba(16,185,129,0.4)'}},
   };
   const sizes={sm:'px-3 py-1.5',md:'px-4 py-2.5',lg:'px-5 py-3'};
   const v=variants[variant]||variants.secondary;
@@ -514,10 +560,11 @@ function Dashboard({onNav,user}){
     >
       {/* ── Search bar ── */}
       <div className="relative mb-7">
-        <Ic.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+        <Ic.Search style={{position:'absolute',left:'16px',top:'50%',transform:'translateY(-50%)',width:'16px',height:'16px',color:'#94A3B8',pointerEvents:'none'}}/>
         <input value={search} onChange={e=>setSearch(e.target.value)}
           placeholder="Rechercher un patient, un motif…"
-          className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm shadow-xs focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+          className="search-premium w-full text-sm"
+          style={{paddingLeft:'44px',paddingRight:'16px',paddingTop:'12px',paddingBottom:'12px',fontSize:'14px',color:'#0F172A',outline:'none',width:'100%'}}/>
         {searchRes&&(
           <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl z-10 overflow-hidden fade-in">
             {searchRes.patients?.length>0&&<>
@@ -600,20 +647,20 @@ function Dashboard({onNav,user}){
           {/* Stat cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              {label:'Patients',     val:stats?.totalPatients??'—', sub:'dans la base',   icon:Ic.Users,   color:'#3B82F6', bg:'#EFF6FF'},
-              {label:'Aujourd\'hui', val:stats?.consultToday??'—',  sub:'consultations',  icon:Ic.Steth,   color:'#10B981', bg:'#ECFDF5'},
-              {label:'Cette semaine',val:stats?.consultWeek??'—',   sub:'consultations',  icon:Ic.Chart,   color:'#8B5CF6', bg:'#F5F3FF'},
-              {label:'Notes validées',val:stats?.notesValidated??'—',sub:'comptes rendus',icon:Ic.Check,  color:'#F59E0B', bg:'#FFFBEB'},
-            ].map(({label,val,sub,icon:Icon,color,bg})=>(
-              <div key={label} className="card-hover" style={{background:'#FFFFFF',borderRadius:'16px',border:'1px solid #E5E7EB',padding:'20px',boxShadow:'0 1px 3px rgba(0,0,0,0.04)'}}>
-                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
-                  <div style={{width:'36px',height:'36px',borderRadius:'10px',background:bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                    <Icon className="w-4 h-4" style={{color}}/>
+              {label:'Patients',      val:stats?.totalPatients??'—', sub:'dans la base',   Icon:Ic.Users,   color:'#3B82F6', iconBg:'#EFF6FF', accent:'stat-accent-blue'},
+              {label:'Aujourd\'hui',  val:stats?.consultToday??'—',  sub:'consultations',  Icon:Ic.Steth,   color:'#10B981', iconBg:'#ECFDF5', accent:'stat-accent-green'},
+              {label:'Cette semaine', val:stats?.consultWeek??'—',   sub:'consultations',  Icon:Ic.Chart,   color:'#8B5CF6', iconBg:'#F5F3FF', accent:'stat-accent-violet'},
+              {label:'Notes validées',val:stats?.notesValidated??'—',sub:'comptes rendus', Icon:Ic.Check,   color:'#F59E0B', iconBg:'#FFFBEB', accent:'stat-accent-amber'},
+            ].map(({label,val,sub,Icon,color,iconBg,accent})=>(
+              <div key={label} className={`card-hover ${accent}`} style={{background:'#FFFFFF',borderRadius:'20px',border:'1px solid rgba(0,0,0,0.05)',padding:'22px 20px 20px',boxShadow:'0 1px 2px rgba(0,0,0,0.04),0 8px 24px rgba(0,0,0,0.04)',position:'relative',overflow:'hidden'}}>
+                <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:'20px'}}>
+                  <div style={{width:'40px',height:'40px',borderRadius:'12px',background:iconBg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <Icon style={{width:'18px',height:'18px',color}}/>
                   </div>
-                  <span style={{fontSize:'11px',fontWeight:500,color:'#9CA3AF'}}>{sub}</span>
+                  <span style={{fontSize:'11px',fontWeight:500,color:'#94A3B8',textAlign:'right',lineHeight:1.4}}>{sub}</span>
                 </div>
-                <p style={{fontSize:'32px',fontWeight:700,color:'#111827',lineHeight:1,letterSpacing:'-0.02em'}}>{val}</p>
-                <p style={{fontSize:'12px',color:'#6B7280',marginTop:'6px',fontWeight:500}}>{label}</p>
+                <p style={{fontSize:'36px',fontWeight:700,color:'#0F172A',lineHeight:1,letterSpacing:'-0.04em'}}>{val}</p>
+                <p style={{fontSize:'12px',color:'#64748B',marginTop:'8px',fontWeight:500,letterSpacing:'-0.01em'}}>{label}</p>
               </div>
             ))}
           </div>
@@ -3768,9 +3815,9 @@ function App(){
   };
 
   return(
-    <div className="flex min-h-screen" style={{background:'#F0F4F8'}}>
+    <div className="flex min-h-screen" style={{background:'#F0F2F5'}}>
       <Sidebar page={page} onNav={nav} user={user} onLogout={logout}/>
-      <div className="ml-60 flex-1 min-w-0 overflow-x-hidden">
+      <div className="flex-1 min-w-0 overflow-x-hidden" style={{marginLeft:'240px'}}>
         {/* Demo banner — only shown when AI is not configured */}
         {!aiEnabled&&(
         <div className="bg-amber-50 border-b border-amber-100 px-8 py-2 flex items-center gap-2 text-xs text-amber-700">
