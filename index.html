@@ -555,14 +555,14 @@ function LoginPage({onLogin}){
       <div style={{flex:1,flexDirection:'column',justifyContent:'space-between',padding:'56px 72px',position:'relative',overflow:'hidden'}} className="hidden lg:flex">
 
         {/* Vidéo de fond */}
-        <video autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none'}} src="/assets/login-bg.mp4"/>
+        <video autoPlay muted loop playsInline style={{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',pointerEvents:'none',zIndex:0}} src="/assets/login-bg.mp4"/>
         {/* Overlay sombre pour lisibilité */}
-        <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg, rgba(0,30,22,0.72) 0%, rgba(0,50,38,0.60) 100%)',pointerEvents:'none'}}/>
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg, rgba(0,30,22,0.72) 0%, rgba(0,50,38,0.60) 100%)',pointerEvents:'none',zIndex:1}}/>
         {/* Ligne dorée verticale décorative */}
-        <div style={{position:'absolute',left:'72px',top:'56px',bottom:'56px',width:'1px',background:'linear-gradient(to bottom,transparent,var(--gold) 20%,var(--gold) 80%,transparent)',opacity:0.25}}/>
+        <div style={{position:'absolute',left:'72px',top:'56px',bottom:'56px',width:'1px',background:'linear-gradient(to bottom,transparent,var(--gold) 20%,var(--gold) 80%,transparent)',opacity:0.25,zIndex:2}}/>
 
         {/* Logo */}
-        <div style={{paddingLeft:'24px'}}>
+        <div style={{paddingLeft:'24px',position:'relative',zIndex:2}}>
           <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:400,color:'var(--white)',letterSpacing:'-0.01em',marginBottom:'4px'}}>
             Med<em style={{fontStyle:'italic',color:'var(--gold-light)'}}>Pilot</em>
           </p>
@@ -570,7 +570,7 @@ function LoginPage({onLogin}){
         </div>
 
         {/* Citation statique */}
-        <div style={{paddingLeft:'24px',maxWidth:'480px'}}>
+        <div style={{paddingLeft:'24px',maxWidth:'480px',position:'relative',zIndex:2}}>
           <div style={{width:'40px',height:'1px',background:'var(--gold)',marginBottom:'36px',opacity:0.6}}/>
           <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(30px,2.8vw,44px)',fontWeight:300,color:'var(--white)',lineHeight:1.2,marginBottom:'24px',letterSpacing:'-0.01em'}}>
             Votre mémoire clinique<br/>ne dort <em style={{fontStyle:'italic',color:'var(--gold-light)'}}>jamais.</em>
@@ -581,7 +581,7 @@ function LoginPage({onLogin}){
         </div>
 
         {/* Feature cards bas */}
-        <div style={{paddingLeft:'24px',display:'flex',flexDirection:'column',gap:'0'}}>
+        <div style={{paddingLeft:'24px',display:'flex',flexDirection:'column',gap:'0',position:'relative',zIndex:2}}>
           {FEATURES.map((f,i)=>(
             <div key={f.title} style={{display:'flex',alignItems:'flex-start',gap:'16px',padding:'16px 0',borderTop:i>0?'1px solid rgba(250,250,248,0.06)':undefined}}>
               <span style={{fontSize:'16px',flexShrink:0,marginTop:'1px'}}>{f.icon}</span>
