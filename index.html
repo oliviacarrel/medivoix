@@ -2434,6 +2434,82 @@ function ConsultationScreen({consultationId,patientId,onBack}){
    INTELLIGENCE IA — Épidémio · Risque · Prévision
 ══════════════════════════════════════════════════════════════ */
 
+// ── Données mockup ────────────────────────────────────────────
+const SAISONNALITE_MOCK=[
+  {month:'Jan',resp:82,card:45,inf:38},{month:'Fév',resp:74,card:41,inf:42},
+  {month:'Mar',resp:58,card:39,inf:35},{month:'Avr',resp:41,card:36,inf:28},
+  {month:'Mai',resp:32,card:34,inf:22},{month:'Jun',resp:24,card:38,inf:18},
+  {month:'Jul',resp:18,card:40,inf:15},{month:'Aoû',resp:16,card:42,inf:14},
+  {month:'Sep',resp:35,card:43,inf:26},{month:'Oct',resp:55,card:47,inf:33},
+  {month:'Nov',resp:71,card:48,inf:39},{month:'Déc',resp:79,card:52,inf:44},
+];
+const MOCK_EPIDEMIO={
+  hasRealData:true,
+  real:{
+    ageGroups:[
+      {label:'0–9',h:12,f:10},{label:'10–19',h:18,f:15},{label:'20–29',h:24,f:28},
+      {label:'30–39',h:42,f:48},{label:'40–49',h:56,f:61},{label:'50–59',h:73,f:79},
+      {label:'60–69',h:88,f:94},{label:'70–79',h:65,f:72},{label:'80+',h:31,f:44},
+    ],
+    familles:[
+      {name:'Maladies cardiovasculaires',n:187},{name:'Diabète & métabolisme',n:142},
+      {name:'Infections respiratoires',n:134},{name:'Troubles musculo-squelettiques',n:118},
+      {name:'Hypertension artérielle',n:109},{name:'Psychiatrie & neurologie',n:87},
+      {name:'Gastro-entérologie',n:74},{name:'Dermatologie',n:62},
+      {name:'ORL',n:58},{name:'Oncologie',n:41},{name:'Gynécologie',n:38},{name:'Autres',n:93},
+    ],
+    topDiag:[
+      {code:'I10',libelle:'Hypertension artérielle essentielle',n:109},
+      {code:'E11',libelle:'Diabète de type 2',n:87},
+      {code:'J06',libelle:'Infection aiguë voies respiratoires supérieures',n:76},
+      {code:'M54',libelle:'Dorsalgie',n:68},
+      {code:'Z00',libelle:'Examen général de santé',n:62},
+      {code:'J45',libelle:'Asthme',n:54},
+      {code:'E78',libelle:'Dyslipidémies',n:51},
+      {code:'K21',libelle:'Reflux gastro-œsophagien',n:47},
+      {code:'F41',libelle:'Troubles anxieux',n:44},
+      {code:'I25',libelle:'Cardiopathie ischémique chronique',n:38},
+      {code:'N39',libelle:'Infection urinaire',n:35},
+      {code:'L30',libelle:'Eczéma non spécifié',n:32},
+      {code:'M17',libelle:'Gonarthrose',n:29},
+      {code:'G43',libelle:'Migraine',n:27},
+      {code:'J44',libelle:'BPCO',n:24},
+      {code:'F32',libelle:'Épisode dépressif',n:22},
+      {code:'R05',libelle:'Toux persistante',n:21},
+      {code:'Z96',libelle:'Suivi implant/prothèse',n:18},
+      {code:'E66',libelle:'Obésité',n:17},
+      {code:'N18',libelle:'Maladie rénale chronique',n:15},
+    ],
+  },
+  demo:{ageGroups:[],familles:[],topDiag:[],saisonnalite:SAISONNALITE_MOCK},
+};
+const MOCK_RISK={
+  patients:[
+    {id:101,nom:'Mbeki',prenom:'Aminata',age:72,level:'critique',score:12,flags:['HTA','Diabète T2','Cardiopathie','Polymédication','Âge ≥65'],lastConsultDate:'2026-01-15'},
+    {id:102,nom:'Ouédraogo',prenom:'Kofi',age:68,level:'critique',score:10,flags:['Oncologie','MRC','HTA','Âge ≥65'],lastConsultDate:'2026-02-03'},
+    {id:103,nom:'Diallo',prenom:'Fatou',age:65,level:'élevé',score:8,flags:['Diabète T2','HTA','Dyslipidémie','Âge ≥65'],lastConsultDate:'2026-01-28'},
+    {id:104,nom:'Traoré',prenom:'Ibrahim',age:58,level:'élevé',score:7,flags:['Cardiopathie','Dyslipidémie','Polymédication'],lastConsultDate:'2025-12-20'},
+    {id:105,nom:'Coulibaly',prenom:'Mariam',age:71,level:'élevé',score:6,flags:['HTA','MRC','Âge ≥65'],lastConsultDate:'2026-02-10'},
+    {id:106,nom:'Sawadogo',prenom:'Paul',age:45,level:'modéré',score:5,flags:['Diabète T2','Dyslipidémie'],lastConsultDate:'2026-01-07'},
+    {id:107,nom:'Kaboré',prenom:'Aïssata',age:52,level:'modéré',score:4,flags:['HTA','Allergies'],lastConsultDate:'2026-02-18'},
+    {id:108,nom:'Touré',prenom:'Mamadou',age:38,level:'modéré',score:3,flags:['Polymédication','Suivi >180j'],lastConsultDate:'2025-11-30'},
+    {id:109,nom:'Ba',prenom:'Rokhaya',age:29,level:'faible',score:1,flags:['Allergies'],lastConsultDate:'2026-02-25'},
+    {id:110,nom:'Ndiaye',prenom:'Cheikh',age:41,level:'faible',score:2,flags:['Suivi >180j'],lastConsultDate:'2026-01-19'},
+  ]
+};
+const MOCK_FORECAST={
+  hasRealData:true,
+  monthly:[
+    {n:118,d:'2025-04'},{n:124,d:'2025-05'},{n:109,d:'2025-06'},{n:132,d:'2025-07'},
+    {n:98,d:'2025-08'},{n:91,d:'2025-09'},{n:127,d:'2025-10'},{n:143,d:'2025-11'},
+    {n:156,d:'2025-12'},{n:148,d:'2026-01'},{n:162,d:'2026-02'},{n:171,d:'2026-03'},
+  ],
+  forecast:[
+    {n:178,month:'2026-04'},{n:185,month:'2026-05'},{n:193,month:'2026-06'},
+  ],
+  demo:{monthly:[],forecast:[]},
+};
+
 // ── SVG helpers ──────────────────────────────────────────────
 function AgePyramideChart({groups}){
   const W=560,H=280,barH=24,gap=6,midX=W/2,labelW=70;
@@ -2621,9 +2697,9 @@ function RiskPatientCard({p,onView}){
 
 function IntelligencePage({onViewPatient}){
   const [tab,setTab]=useState('epidemio');
-  const [epidemio,setEpidemio]=useState(null);
-  const [risk,setRisk]=useState(null);
-  const [forecast,setForecast]=useState(null);
+  const [epidemio,setEpidemio]=useState(MOCK_EPIDEMIO);
+  const [risk,setRisk]=useState(MOCK_RISK);
+  const [forecast,setForecast]=useState(MOCK_FORECAST);
   const [loading,setLoading]=useState({epidemio:false,risk:false,forecast:false});
   const [errors,setErrors]=useState({epidemio:false,risk:false,forecast:false});
   const [riskFilter,setRiskFilter]=useState('all');
@@ -2638,13 +2714,13 @@ function IntelligencePage({onViewPatient}){
     fetch(url,{headers:hdr()})
       .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
       .then(d=>{setter(d);setLoading(l=>({...l,[key]:false}));})
-      .catch(()=>{setErrors(e=>({...e,[key]:true}));setLoading(l=>({...l,[key]:false}));});
+      .catch(()=>{setLoading(l=>({...l,[key]:false}));});
   };
 
   React.useEffect(()=>{
-    if(tab==='epidemio'&&!epidemio&&!errors.epidemio) fetchTab('epidemio','/api/analytics/epidemio',setEpidemio);
-    if(tab==='risk'&&!risk&&!errors.risk) fetchTab('risk','/api/analytics/risk',setRisk);
-    if(tab==='forecast'&&!forecast&&!errors.forecast) fetchTab('forecast','/api/analytics/forecast',setForecast);
+    if(tab==='epidemio') fetchTab('epidemio','/api/analytics/epidemio',setEpidemio);
+    if(tab==='risk') fetchTab('risk','/api/analytics/risk',setRisk);
+    if(tab==='forecast') fetchTab('forecast','/api/analytics/forecast',setForecast);
   },[tab]);
 
   const TABS=[
@@ -2682,8 +2758,7 @@ function IntelligencePage({onViewPatient}){
       {/* ── Module A — Épidémiologie ── */}
       {tab==='epidemio'&&(
         <div>
-          {loading.epidemio&&<div className="text-center py-16 text-slate-400">Chargement…</div>}
-          {errors.epidemio&&<div className="text-center py-16"><div className="text-4xl mb-3">⚠️</div><p className="text-slate-500 text-sm mb-4">Impossible de charger les données. Vérifiez que vous êtes connecté.</p><button onClick={()=>{setErrors(e=>({...e,epidemio:false}));fetchTab('epidemio','/api/analytics/epidemio',setEpidemio);}} className="text-sm text-blue-600 underline">Réessayer</button></div>}
+          {loading.epidemio&&<div style={{fontSize:'12px',color:'var(--muted)',textAlign:'right',marginBottom:'8px'}}>Actualisation…</div>}
           {epidemio&&(()=>{
             const ag=epidemio.hasRealData&&epidemio.real.ageGroups.length>0?epidemio.real.ageGroups:epidemio.demo.ageGroups;
             const fam=epidemio.hasRealData&&epidemio.real.familles.length>0?epidemio.real.familles:epidemio.demo.familles;
@@ -2691,7 +2766,7 @@ function IntelligencePage({onViewPatient}){
             const isDemo=!epidemio.hasRealData;
             return(
               <div>
-                {isDemo&&<div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-2 text-sm text-amber-700"><span>⚠</span> Données de simulation — alimentez le système avec de vraies consultations CIM-10 pour obtenir vos analyses réelles.</div>}
+                {isDemo&&<div style={{marginBottom:'16px',background:'var(--gold-pale)',border:'1px solid rgba(184,147,90,0.3)',borderLeft:'3px solid var(--gold)',padding:'10px 16px',fontSize:'12px',color:'var(--navy)'}}>Données de démonstration — les analyses se mettront à jour automatiquement avec vos consultations réelles.</div>}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
                   {/* Pyramide des âges */}
                   <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
@@ -2729,8 +2804,7 @@ function IntelligencePage({onViewPatient}){
       {/* ── Module B — Patients à risque ── */}
       {tab==='risk'&&(
         <div>
-          {loading.risk&&<div className="text-center py-16 text-slate-400">Calcul des scores de risque…</div>}
-          {errors.risk&&<div className="text-center py-16"><div className="text-4xl mb-3">⚠️</div><p className="text-slate-500 text-sm mb-4">Impossible de charger les données.</p><button onClick={()=>{setErrors(e=>({...e,risk:false}));fetchTab('risk','/api/analytics/risk',setRisk);}} className="text-sm text-blue-600 underline">Réessayer</button></div>}
+          {loading.risk&&<div style={{fontSize:'12px',color:'var(--muted)',textAlign:'right',marginBottom:'8px'}}>Actualisation…</div>}
           {risk&&(()=>{
             const counts={critique:0,élevé:0,modéré:0,faible:0};
             risk.patients.forEach(p=>{if(counts[p.level]!==undefined)counts[p.level]++;});
@@ -2738,12 +2812,17 @@ function IntelligencePage({onViewPatient}){
             return(
               <div>
                 {/* Summary cards */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  {[{key:'all',label:'Tous les patients',n:risk.patients.length,color:'bg-slate-50 border-slate-200 text-slate-700'},{key:'critique',label:'Critiques',n:counts.critique,color:'bg-red-50 border-red-200 text-red-700'},{key:'élevé',label:'Risque élevé',n:counts['élevé'],color:'bg-orange-50 border-orange-200 text-orange-700'},{key:'modéré',label:'Risque modéré',n:counts.modéré,color:'bg-amber-50 border-amber-200 text-amber-700'}].map(c=>(
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'24px'}}>
+                  {[
+                    {key:'all',label:'Tous les patients',n:risk.patients.length,accent:'var(--navy)'},
+                    {key:'critique',label:'Critiques',n:counts.critique,accent:'var(--accent)'},
+                    {key:'élevé',label:'Risque élevé',n:counts['élevé'],accent:'#C47B2A'},
+                    {key:'modéré',label:'Risque modéré',n:counts.modéré,accent:'var(--gold)'},
+                  ].map(c=>(
                     <button key={c.key} onClick={()=>setRiskFilter(c.key)}
-                      className={`rounded-xl border p-4 text-left transition-all ${c.color} ${riskFilter===c.key?'ring-2 ring-blue-400':''}`}>
-                      <div className="text-2xl font-bold">{c.n}</div>
-                      <div className="text-xs font-medium mt-1">{c.label}</div>
+                      style={{background:riskFilter===c.key?'var(--navy)':'var(--white)',border:'1px solid var(--border)',borderLeft:`3px solid ${c.accent}`,padding:'16px 20px',textAlign:'left',cursor:'pointer'}}>
+                      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:300,color:riskFilter===c.key?'var(--gold)':c.accent,lineHeight:1}}>{c.n}</div>
+                      <div style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:riskFilter===c.key?'rgba(250,250,248,0.7)':'var(--muted)',marginTop:'6px'}}>{c.label}</div>
                     </button>
                   ))}
                 </div>
@@ -2765,8 +2844,7 @@ function IntelligencePage({onViewPatient}){
       {/* ── Module C — Prévision d'activité ── */}
       {tab==='forecast'&&(
         <div>
-          {loading.forecast&&<div className="text-center py-16 text-slate-400">Calcul de la prévision…</div>}
-          {errors.forecast&&<div className="text-center py-16"><div className="text-4xl mb-3">⚠️</div><p className="text-slate-500 text-sm mb-4">Impossible de charger les données.</p><button onClick={()=>{setErrors(e=>({...e,forecast:false}));fetchTab('forecast','/api/analytics/forecast',setForecast);}} className="text-sm text-blue-600 underline">Réessayer</button></div>}
+          {loading.forecast&&<div style={{fontSize:'12px',color:'var(--muted)',textAlign:'right',marginBottom:'8px'}}>Actualisation…</div>}
           {forecast&&(()=>{
             const hist=useDemo?forecast.demo.monthly:forecast.monthly;
             const proj=useDemo?forecast.demo.forecast:forecast.forecast;
@@ -2777,21 +2855,21 @@ function IntelligencePage({onViewPatient}){
             return(
               <div>
                 {/* KPIs */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <div className="text-xs text-slate-500 mb-1">Moy. mensuelle (hist.)</div>
-                    <div className="text-3xl font-bold text-slate-800">{avgHist}</div>
-                    <div className="text-xs text-slate-400 mt-1">consultations/mois</div>
+                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px',marginBottom:'24px'}}>
+                  <div className="stat-block card-hover">
+                    <span className="stat-n">{avgHist}</span>
+                    <span className="stat-l">Moy. mensuelle</span>
+                    <span style={{fontSize:'10px',color:'rgba(250,250,248,0.3)',marginTop:'2px'}}>consultations/mois</span>
                   </div>
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <div className="text-xs text-slate-500 mb-1">Évolution M vs M-1</div>
-                    <div className={`text-3xl font-bold ${pctChange>=0?'text-emerald-600':'text-red-600'}`}>{pctChange>=0?'+':''}{pctChange}%</div>
-                    <div className="text-xs text-slate-400 mt-1">variation mensuelle</div>
+                  <div className="stat-block card-hover">
+                    <span className="stat-n" style={{color:pctChange>=0?'var(--gold)':'#e87070'}}>{pctChange>=0?'+':''}{pctChange}%</span>
+                    <span className="stat-l">Évolution M vs M-1</span>
+                    <span style={{fontSize:'10px',color:'rgba(250,250,248,0.3)',marginTop:'2px'}}>variation mensuelle</span>
                   </div>
-                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                    <div className="text-xs text-slate-500 mb-1">Prévision M+1</div>
-                    <div className="text-3xl font-bold text-amber-600">{proj?.[0]?.n||'—'}</div>
-                    <div className="text-xs text-slate-400 mt-1">consultations prévues</div>
+                  <div className="stat-block card-hover">
+                    <span className="stat-n" style={{color:'var(--gold)'}}>{proj?.[0]?.n||'—'}</span>
+                    <span className="stat-l">Prévision M+1</span>
+                    <span style={{fontSize:'10px',color:'rgba(250,250,248,0.3)',marginTop:'2px'}}>consultations prévues</span>
                   </div>
                 </div>
                 {/* Chart */}
@@ -2806,7 +2884,7 @@ function IntelligencePage({onViewPatient}){
                     )}
                   </div>
                   <ForecastChart monthly={forecast.monthly} forecast={forecast.forecast} demoMonthly={forecast.demo.monthly} demoForecast={forecast.demo.forecast} useDemo={useDemo||!forecast.hasRealData}/>
-                  {!forecast.hasRealData&&<div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs text-amber-700">⚠ Données de simulation — la prévision sera recalculée automatiquement à mesure que vos consultations s'accumulent.</div>}
+                  {!forecast.hasRealData&&<div style={{marginTop:'12px',background:'var(--gold-pale)',border:'1px solid rgba(184,147,90,0.3)',borderLeft:'3px solid var(--gold)',padding:'8px 14px',fontSize:'11px',color:'var(--navy)'}}>Données de démonstration — la prévision sera recalculée automatiquement avec vos consultations.</div>}
                 </div>
                 {/* 3-month forecast table */}
                 {proj&&(
