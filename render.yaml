@@ -12,7 +12,3 @@ services:
         generateValue: true
       - key: OPENAI_API_KEY
         sync: false
-    disk:
-      name: medivoix-data
-      mountPath: /data
-      sizeGB: 1
