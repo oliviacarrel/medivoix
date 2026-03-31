@@ -3069,13 +3069,14 @@ function AnalyticsPage(){
   };
 
   const STAT_PALETTES={
-    blue:    {bg:'#e8eef8',  num:'#2a4a8a',           label:'rgba(42,74,138,0.55)', sub:'rgba(42,74,138,0.35)', border:'#7a9ad0'},
-    emerald: {bg:'#e8f5ee',  num:'#1a6b3a',           label:'rgba(26,107,58,0.55)', sub:'rgba(26,107,58,0.35)', border:'#5aaa7a'},
-    violet:  {bg:'#f0eaf8',  num:'#6a3a9a',           label:'rgba(106,58,154,0.55)',sub:'rgba(106,58,154,0.35)',border:'#aa82cc'},
-    rose:    {bg:'#f7e2ea',  num:'#8a3a55',           label:'rgba(138,58,85,0.55)', sub:'rgba(138,58,85,0.35)', border:'#d48a9a'},
-    sky:     {bg:'#deeaf7',  num:'#2a5a8a',           label:'rgba(42,90,138,0.55)', sub:'rgba(42,90,138,0.35)', border:'#7aa8d0'},
-    amber:   {bg:'#fdf6ee',  num:'#8a5220',           label:'rgba(138,82,32,0.55)', sub:'rgba(138,82,32,0.35)', border:'#c89050'},
-    teal:    {bg:'#eef7f3',  num:'#1d5c42',           label:'rgba(29,92,66,0.55)',  sub:'rgba(29,92,66,0.35)',  border:'#4a9a6a'},
+    blue:    {bg:'#e8eef8',  num:'#2a4a8a',           sub:'rgba(42,74,138,0.35)',   border:'#7a9ad0'},
+    emerald: {bg:'#e8f5ee',  num:'#1a6b3a',           sub:'rgba(26,107,58,0.35)',   border:'#5aaa7a'},
+    violet:  {bg:'#f0eaf8',  num:'#6a3a9a',           sub:'rgba(106,58,154,0.35)',  border:'#aa82cc'},
+    rose:    {bg:'#f7e2ea',  num:'#8a3a55',           sub:'rgba(138,58,85,0.35)',   border:'#d48a9a'},
+    sky:     {bg:'#deeaf7',  num:'#2a5a8a',           sub:'rgba(42,90,138,0.35)',   border:'#7aa8d0'},
+    amber:   {bg:'#fdf6ee',  num:'#8a5220',           sub:'rgba(138,82,32,0.35)',   border:'#c89050'},
+    teal:    {bg:'#eef7f3',  num:'#1d5c42',           sub:'rgba(29,92,66,0.35)',    border:'#4a9a6a'},
+    indigo:  {bg:'#edeaf8',  num:'#3a2a7a',           sub:'rgba(58,42,122,0.35)',   border:'#9080cc'},
   };
   const StatCard=({label,value,sub,color='blue'})=>{
     const p=STAT_PALETTES[color]||STAT_PALETTES.blue;
@@ -3138,14 +3139,14 @@ function AnalyticsPage(){
             <StatCard label="Consultations" value={data.totalConsults} sub={`${data.period.from} → ${data.period.to}`} color="blue"/>
             <StatCard label="Taux de validation" value={`${data.validationRate}%`} sub={`${data.validated} notes validées`} color="emerald"/>
             <StatCard label="Taux d'ordonnances" value={`${data.prescriptionRate}%`} sub={`${data.withPrescription} prescriptions`} color="violet"/>
-            <StatCard label="Durée moyenne" value={data.avgDuration?`${data.avgDuration} min`:'—'} sub="par consultation" color="teal"/>
+            <StatCard label="Durée moyenne" value={data.avgDuration?`${data.avgDuration} min`:'—'} sub="par consultation" color="amber"/>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard label="Total patients" value={data.totalPatients} color="blue"/>
+            <StatCard label="Total patients" value={data.totalPatients} color="sky"/>
             <StatCard label="Femmes" value={`${data.pctFemmes}%`} sub={`${data.femmes} patientes`} color="rose"/>
             <StatCard label="Hommes" value={`${data.pctHommes}%`} sub={`${data.hommes} patients`} color="teal"/>
-            <StatCard label="Âge moyen" value={data.avgAge?`${data.avgAge} ans`:'—'} sub="des patients" color="amber"/>
+            <StatCard label="Âge moyen" value={data.avgAge?`${data.avgAge} ans`:'—'} sub="des patients" color="indigo"/>
           </div>
 
           {/* Charts row */}
