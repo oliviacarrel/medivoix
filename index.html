@@ -3069,15 +3069,17 @@ function AnalyticsPage(){
   };
 
   const STAT_PALETTES={
-    blue:  {bg:'var(--navy)',  num:'var(--gold-light)',label:'rgba(250,250,248,0.5)',sub:'rgba(250,250,248,0.3)',border:'var(--navy)'},
-    rose:  {bg:'#f7e2ea',     num:'#8a3a55',           label:'rgba(138,58,85,0.55)',sub:'rgba(138,58,85,0.35)',border:'#d48a9a'},
-    sky:   {bg:'#deeaf7',     num:'#2a5a8a',           label:'rgba(42,90,138,0.55)',sub:'rgba(42,90,138,0.35)',border:'#7aa8d0'},
-    amber: {bg:'#fdf6ee',     num:'#8a5220',           label:'rgba(138,82,32,0.55)',sub:'rgba(138,82,32,0.35)',border:'#c89050'},
-    teal:  {bg:'#eef7f3',     num:'#1d5c42',           label:'rgba(29,92,66,0.55)', sub:'rgba(29,92,66,0.35)', border:'#4a9a6a'},
+    blue:    {bg:'#e8eef8',  num:'#2a4a8a',           label:'rgba(42,74,138,0.55)', sub:'rgba(42,74,138,0.35)', border:'#7a9ad0'},
+    emerald: {bg:'#e8f5ee',  num:'#1a6b3a',           label:'rgba(26,107,58,0.55)', sub:'rgba(26,107,58,0.35)', border:'#5aaa7a'},
+    violet:  {bg:'#f0eaf8',  num:'#6a3a9a',           label:'rgba(106,58,154,0.55)',sub:'rgba(106,58,154,0.35)',border:'#aa82cc'},
+    rose:    {bg:'#f7e2ea',  num:'#8a3a55',           label:'rgba(138,58,85,0.55)', sub:'rgba(138,58,85,0.35)', border:'#d48a9a'},
+    sky:     {bg:'#deeaf7',  num:'#2a5a8a',           label:'rgba(42,90,138,0.55)', sub:'rgba(42,90,138,0.35)', border:'#7aa8d0'},
+    amber:   {bg:'#fdf6ee',  num:'#8a5220',           label:'rgba(138,82,32,0.55)', sub:'rgba(138,82,32,0.35)', border:'#c89050'},
+    teal:    {bg:'#eef7f3',  num:'#1d5c42',           label:'rgba(29,92,66,0.55)',  sub:'rgba(29,92,66,0.35)',  border:'#4a9a6a'},
   };
   const StatCard=({label,value,sub,color='blue'})=>{
     const p=STAT_PALETTES[color]||STAT_PALETTES.blue;
-    const isNavy=color==='blue';
+    const isNavy=false;
     return(
       <div className="card-hover" style={{background:p.bg,padding:'22px 20px',position:'relative',border:`1px solid ${p.border}22`,overflow:'hidden'}}>
         <div style={{position:'absolute',bottom:0,left:0,width:'36px',height:'2px',background:p.border}}/>
