@@ -539,57 +539,140 @@ function LoginPage({onLogin}){
     setLoading(false);
     if(r.token){setToken(r.token);onLogin(r.user);}else setError(r.error||'Erreur');
   };
+  const TAGLINES=[
+    {quote:'Votre mémoire clinique ne dort jamais.',sub:'Chaque dossier, chaque note, chaque ordonnance — toujours là quand vous en avez besoin.'},
+    {quote:'Consacrez-vous à soigner. Le reste, on s\'en occupe.',sub:'Moins de paperasse. Plus de présence. MedPilot automatise ce que vous faites à la main.'},
+    {quote:'L\'intelligence au service de votre art.',sub:'Notes générées par IA, alertes prédictives, analyses épidémiologiques de votre patientèle.'},
+    {quote:'De la salle d\'attente à l\'ordonnance, tout est là.',sub:'Un espace unifié pour voir, comprendre et agir — à chaque consultation.'},
+    {quote:'Chaque patient mérite votre pleine attention.',sub:'MedPilot prend en charge le reste pour que vous puissiez être entièrement présent.'},
+  ];
+  const [tIdx,setTIdx]=React.useState(0);
+  const [fade,setFade]=React.useState(true);
+  React.useEffect(()=>{
+    const id=setInterval(()=>{
+      setFade(false);
+      setTimeout(()=>{setTIdx(i=>(i+1)%TAGLINES.length);setFade(true);},400);
+    },5000);
+    return()=>clearInterval(id);
+  },[]);
+
+  const FEATURES=[
+    {icon:'🩺',title:'Dossiers patients',desc:'Historique complet, allergies, traitements — en un coup d\'œil'},
+    {icon:'🎙',title:'Notes IA en temps réel',desc:'Dictez votre consultation. MedPilot rédige la note clinique.'},
+    {icon:'📊',title:'Pilotez votre activité',desc:'Honoraires, agenda, analytiques — tout sur un seul tableau.'},
+  ];
+
   return(
-    <div style={{minHeight:'100vh',display:'flex',background:'var(--white)'}}>
-      {/* Left panel — navy */}
-      <div style={{flex:1,display:'none',flexDirection:'column',justifyContent:'space-between',padding:'64px 80px',background:'var(--navy)',position:'relative',overflow:'hidden'}} className="lg:flex">
-        <div style={{position:'absolute',bottom:0,left:0,right:0,height:'3px',background:`linear-gradient(90deg,var(--gold),var(--gold-light),transparent)`}}/>
-        <div>
-          <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'26px',fontWeight:400,color:'var(--white)',letterSpacing:'-0.01em',marginBottom:'4px'}}>Med<em style={{fontStyle:'italic',color:'var(--gold-light)'}}>Pilot</em></p>
-          <p style={{fontSize:'9px',letterSpacing:'0.3em',textTransform:'uppercase',color:'rgba(250,250,248,0.35)',fontWeight:500}}>Plateforme médicale</p>
-        </div>
-        <div>
-          <p style={{fontSize:'10px',letterSpacing:'0.28em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'24px'}}>Espace praticien</p>
-          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(36px,3.5vw,52px)',fontWeight:300,color:'var(--white)',lineHeight:1.1,marginBottom:'28px',letterSpacing:'-0.01em'}}>
-            Tout ce dont<br/>vous avez besoin,<br/><em style={{fontStyle:'italic',color:'var(--gold-light)'}}>exactement là où il faut.</em>
-          </h1>
-          <p style={{fontSize:'14px',color:'rgba(250,250,248,0.5)',fontWeight:300,lineHeight:1.8,maxWidth:'400px',borderLeft:'2px solid var(--gold)',paddingLeft:'20px',marginBottom:'52px'}}>
-            MedPilot vous donne une vision complète de votre activité — patients, agenda, notes cliniques et honoraires.
+    <div style={{minHeight:'100vh',display:'flex',background:'var(--navy)'}}>
+
+      {/* ── Panneau gauche — éditorial ── */}
+      <div style={{flex:1,display:'none',flexDirection:'column',justifyContent:'space-between',padding:'56px 72px',position:'relative',overflow:'hidden'}} className="lg:flex">
+
+        {/* Texture subtile */}
+        <div style={{position:'absolute',inset:0,backgroundImage:'radial-gradient(circle at 20% 80%, rgba(184,147,90,0.06) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(184,147,90,0.04) 0%, transparent 50%)',pointerEvents:'none'}}/>
+        {/* Ligne dorée verticale décorative */}
+        <div style={{position:'absolute',left:'72px',top:'56px',bottom:'56px',width:'1px',background:'linear-gradient(to bottom,transparent,var(--gold) 20%,var(--gold) 80%,transparent)',opacity:0.25}}/>
+
+        {/* Logo */}
+        <div style={{paddingLeft:'24px'}}>
+          <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:400,color:'var(--white)',letterSpacing:'-0.01em',marginBottom:'4px'}}>
+            Med<em style={{fontStyle:'italic',color:'var(--gold-light)'}}>Pilot</em>
           </p>
-          <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
-            {[{t:'Dossiers patients organisés et accessibles'},{t:'Agenda, consultations et prescriptions en temps réel'},{t:'Honoraires et revenus sous contrôle'}].map(({t})=>(
-              <div key={t} style={{display:'flex',alignItems:'center',gap:'16px'}}>
-                <div style={{width:'5px',height:'1px',background:'var(--gold)',flexShrink:0}}/>
-                <span style={{fontSize:'13px',fontWeight:300,color:'rgba(250,250,248,0.65)'}}>{t}</span>
-              </div>
+          <p style={{fontSize:'9px',letterSpacing:'0.32em',textTransform:'uppercase',color:'rgba(250,250,248,0.3)',fontWeight:400}}>Plateforme médicale intelligente</p>
+        </div>
+
+        {/* Citation centrale animée */}
+        <div style={{paddingLeft:'24px',maxWidth:'480px'}}>
+          <div style={{width:'40px',height:'1px',background:'var(--gold)',marginBottom:'36px',opacity:0.6}}/>
+          <div style={{transition:'opacity 0.4s',opacity:fade?1:0}}>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(30px,2.8vw,44px)',fontWeight:300,color:'var(--white)',lineHeight:1.15,marginBottom:'24px',letterSpacing:'-0.01em'}}>
+              {TAGLINES[tIdx].quote.split('.').map((s,i,a)=>
+                i===a.length-2
+                  ?<span key={i}><em style={{fontStyle:'italic',color:'var(--gold-light)'}}>{s}.</em></span>
+                  :s?<span key={i}>{s}{i<a.length-1&&a[i+1]?'.':''}<br/></span>:null
+              )}
+            </h1>
+            <p style={{fontSize:'13px',color:'rgba(250,250,248,0.5)',fontWeight:300,lineHeight:1.8,maxWidth:'380px'}}>
+              {TAGLINES[tIdx].sub}
+            </p>
+          </div>
+
+          {/* Indicateurs de slide */}
+          <div style={{display:'flex',gap:'8px',marginTop:'36px'}}>
+            {TAGLINES.map((_,i)=>(
+              <button key={i} onClick={()=>{setFade(false);setTimeout(()=>{setTIdx(i);setFade(true);},200);}}
+                style={{width:i===tIdx?'24px':'6px',height:'2px',background:i===tIdx?'var(--gold)':'rgba(250,250,248,0.2)',border:'none',cursor:'pointer',padding:0,transition:'all 0.3s'}}/>
             ))}
           </div>
         </div>
-        <p style={{fontSize:'9px',letterSpacing:'0.25em',color:'rgba(250,250,248,0.25)',textTransform:'uppercase'}}>Centre Diagnostic de Libreville · Gabon</p>
+
+        {/* Feature cards bas */}
+        <div style={{paddingLeft:'24px',display:'flex',flexDirection:'column',gap:'0'}}>
+          {FEATURES.map((f,i)=>(
+            <div key={f.title} style={{display:'flex',alignItems:'flex-start',gap:'16px',padding:'16px 0',borderTop:i>0?'1px solid rgba(250,250,248,0.06)':undefined}}>
+              <span style={{fontSize:'16px',flexShrink:0,marginTop:'1px'}}>{f.icon}</span>
+              <div>
+                <p style={{fontSize:'12px',fontWeight:500,color:'rgba(250,250,248,0.85)',marginBottom:'2px'}}>{f.title}</p>
+                <p style={{fontSize:'11px',color:'rgba(250,250,248,0.35)',fontWeight:300,lineHeight:1.5}}>{f.desc}</p>
+              </div>
+            </div>
+          ))}
+          <p style={{fontSize:'9px',letterSpacing:'0.25em',color:'rgba(250,250,248,0.2)',textTransform:'uppercase',marginTop:'20px'}}>Centre Diagnostic de Libreville · Gabon</p>
+        </div>
       </div>
 
-      {/* Right panel */}
-      <div style={{width:'100%',maxWidth:'480px',display:'flex',alignItems:'center',justifyContent:'center',padding:'64px 48px',background:'var(--white)',borderLeft:'1px solid var(--border)'}}>
+      {/* ── Panneau droit — formulaire ── */}
+      <div style={{width:'100%',maxWidth:'460px',display:'flex',alignItems:'center',justifyContent:'center',padding:'64px 48px',background:'var(--cream)',position:'relative',flexShrink:0}}>
+        {/* Accent doré haut */}
+        <div style={{position:'absolute',top:0,left:0,right:0,height:'3px',background:'linear-gradient(90deg,var(--gold),var(--gold-light),transparent)'}}/>
+
         <div style={{width:'100%',maxWidth:'340px'}}>
-          <div style={{marginBottom:'12px'}} className="hidden lg:block">
-            <div style={{width:'32px',height:'2px',background:'var(--gold)',marginBottom:'32px'}}/>
+
+          {/* Mobile logo */}
+          <div className="lg:hidden" style={{marginBottom:'40px',textAlign:'center'}}>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:400,color:'var(--navy)'}}>
+              Med<em style={{fontStyle:'italic',color:'var(--gold)'}}>Pilot</em>
+            </p>
           </div>
-          <p className="eyebrow" style={{marginBottom:'16px'}}>Authentification</p>
-          <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--navy)',marginBottom:'6px',letterSpacing:'-0.01em'}}>Connexion</h2>
-          <p style={{fontSize:'13px',color:'var(--muted)',marginBottom:'36px',fontWeight:300}}>Accédez à votre espace médecin</p>
+
+          <p className="eyebrow" style={{marginBottom:'12px',color:'var(--gold)'}}>Espace praticien</p>
+          <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'40px',fontWeight:300,color:'var(--navy)',marginBottom:'6px',letterSpacing:'-0.02em',lineHeight:1}}>
+            Bon retour,
+          </h2>
+          <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'40px',fontWeight:300,fontStyle:'italic',color:'var(--navy)',marginBottom:'32px',letterSpacing:'-0.02em',lineHeight:1}}>
+            Docteur.
+          </p>
+          <p style={{fontSize:'13px',color:'var(--muted)',marginBottom:'36px',fontWeight:300,lineHeight:1.6,borderLeft:'2px solid var(--gold)',paddingLeft:'14px'}}>
+            Vos patients vous attendent. Connectez-vous pour accéder à votre tableau de bord médical.
+          </p>
+
           <form onSubmit={submit} style={{display:'flex',flexDirection:'column',gap:'20px'}}>
             {error&&<div style={{background:'#fdf5f3',border:'1px solid rgba(197,71,42,0.2)',borderLeft:'3px solid var(--accent)',color:'var(--accent)',fontSize:'12px',padding:'12px 16px',fontWeight:300}}>{error}</div>}
             <Input label="Email professionnel" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/>
             <Input label="Mot de passe" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/>
-            <button type="submit" disabled={loading} style={{background:'var(--navy)',color:'var(--white)',border:'none',padding:'14px 24px',fontSize:'11px',fontWeight:500,letterSpacing:'0.18em',textTransform:'uppercase',cursor:loading?'wait':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginTop:'4px',width:'100%'}}>
-              {loading?<Ic.Spin style={{width:'14px',height:'14px'}}/>:null} Se connecter
+            <button type="submit" disabled={loading}
+              style={{background:'var(--navy)',color:'var(--white)',border:'none',padding:'16px 24px',fontSize:'11px',fontWeight:500,letterSpacing:'0.2em',textTransform:'uppercase',cursor:loading?'wait':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',width:'100%',marginTop:'4px'}}>
+              {loading?<Ic.Spin style={{width:'14px',height:'14px'}}/>:<span style={{fontSize:'14px',marginRight:'2px'}}>→</span>} Accéder à mon espace
             </button>
           </form>
-          <div style={{marginTop:'28px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 18px'}}>
-            <p className="eyebrow" style={{marginBottom:'8px'}}>Accès démo</p>
-            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,fontFamily:'monospace'}}>dr.maiga@medivoix.fr · demo1234</p>
+
+          {/* Accès démo */}
+          <div style={{marginTop:'24px',background:'var(--white)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'14px 18px',display:'flex',alignItems:'center',gap:'14px'}}>
+            <span style={{fontSize:'18px',flexShrink:0}}>🔑</span>
+            <div>
+              <p className="eyebrow" style={{marginBottom:'4px'}}>Accès démo</p>
+              <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,fontFamily:'monospace',lineHeight:1.6}}>dr.maiga@medivoix.fr<br/>demo1234</p>
+            </div>
           </div>
-          <p style={{marginTop:'24px',textAlign:'center',fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Nouveau praticien ? <button onClick={()=>setShowRegister(true)} style={{color:'var(--gold)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontSize:'12px'}}>Créer un accès</button></p>
+
+          <div style={{marginTop:'28px',textAlign:'center'}}>
+            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>
+              Nouveau praticien ?{' '}
+              <button onClick={()=>setShowRegister(true)} style={{color:'var(--navy)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontSize:'12px',textDecoration:'underline',textDecorationColor:'var(--gold)',textUnderlineOffset:'3px'}}>
+                Rejoindre MedPilot
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>
