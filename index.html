@@ -553,8 +553,8 @@ function LoginPage({onLogin}){
   React.useEffect(()=>{
     const id=setInterval(()=>{
       setFade(false);
-      setTimeout(()=>{setTIdx(i=>(i+1)%TAGLINES.length);setFade(true);},400);
-    },5000);
+      setTimeout(()=>{setTIdx(i=>(i+1)%TAGLINES.length);setFade(true);},600);
+    },9000);
     return()=>clearInterval(id);
   },[]);
 
@@ -588,7 +588,7 @@ function LoginPage({onLogin}){
         {/* Citation centrale animée */}
         <div style={{paddingLeft:'24px',maxWidth:'480px'}}>
           <div style={{width:'40px',height:'1px',background:'var(--gold)',marginBottom:'36px',opacity:0.6}}/>
-          <div style={{transition:'opacity 0.4s',opacity:fade?1:0}}>
+          <div style={{transition:'opacity 0.6s ease',opacity:fade?1:0}}>
             <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(30px,2.8vw,44px)',fontWeight:300,color:'var(--white)',lineHeight:1.15,marginBottom:'24px',letterSpacing:'-0.01em'}}>
               {TAGLINES[tIdx].quote.split('.').map((s,i,a)=>
                 i===a.length-2
