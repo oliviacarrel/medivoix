@@ -142,6 +142,97 @@ button:active:not(:disabled){opacity:0.85;}
 /* ── TABLE / LIST ── */
 .data-row{border-bottom:1px solid var(--border);transition:background .15s ease;}
 .data-row:hover{background:var(--cream);}
+
+/* ══════════════════════════════════════
+   GLOBAL OVERRIDES — kill all Tailwind blue/slate/rounded
+══════════════════════════════════════ */
+/* Backgrounds */
+.bg-white,.bg-slate-50,.bg-slate-100,.bg-gray-50,.bg-gray-100{background:var(--white)!important;}
+.bg-slate-800,.bg-slate-900,.bg-gray-800,.bg-gray-900{background:var(--navy)!important;}
+/* Borders */
+.border-slate-100,.border-slate-200,.border-gray-100,.border-gray-200,.border-slate-50{border-color:var(--border)!important;}
+/* Text */
+.text-slate-900,.text-gray-900,.text-slate-800,.text-gray-800{color:var(--navy)!important;}
+.text-slate-700,.text-gray-700,.text-slate-600,.text-gray-600{color:var(--charcoal)!important;}
+.text-slate-500,.text-gray-500,.text-slate-400,.text-gray-400,.text-muted{color:var(--muted)!important;}
+.text-blue-500,.text-blue-600,.text-blue-700,.text-indigo-500,.text-indigo-600{color:var(--gold)!important;}
+.text-green-500,.text-green-600,.text-emerald-500,.text-emerald-600{color:var(--green)!important;}
+.text-red-500,.text-red-600{color:var(--accent)!important;}
+/* Remove ALL border-radius */
+.rounded,.rounded-sm,.rounded-md,.rounded-lg,.rounded-xl,.rounded-2xl,.rounded-3xl,.rounded-full{border-radius:0!important;}
+/* Remove blue focus rings */
+.focus\:ring-blue-500:focus,.focus\:ring-2:focus{box-shadow:none!important;border-color:var(--gold)!important;}
+.focus\:border-transparent:focus{border-color:var(--gold)!important;}
+/* Shadows */
+.shadow-sm,.shadow,.shadow-md,.shadow-lg,.shadow-xl,.shadow-2xl{box-shadow:none!important;}
+/* Divide lines */
+.divide-y>*+*{border-top:1px solid var(--border)!important;}
+.divide-slate-50>*+*,.divide-slate-100>*+*{border-top-color:var(--border)!important;}
+/* Hover backgrounds */
+.hover\:bg-slate-50:hover,.hover\:bg-gray-50:hover{background:var(--cream)!important;}
+/* Blue accent elements */
+.bg-blue-50,.bg-blue-100,.bg-indigo-50{background:var(--gold-pale)!important;}
+.bg-blue-500,.bg-blue-600,.bg-blue-700,.bg-indigo-500,.bg-indigo-600{background:var(--navy)!important;}
+.text-blue-50{color:var(--white)!important;}
+.border-blue-200,.border-indigo-200{border-color:rgba(184,147,90,0.3)!important;}
+/* Green */
+.bg-green-50,.bg-emerald-50,.bg-teal-50{background:#f0f7f4!important;}
+.bg-green-500,.bg-emerald-500,.bg-teal-500{background:var(--green)!important;}
+/* Red/amber */
+.bg-amber-50{background:var(--cream)!important;} .border-amber-200{border-color:var(--border)!important;}
+.bg-red-50{background:#fdf5f3!important;} .border-red-200{border-color:rgba(197,71,42,0.2)!important;}
+.text-amber-700,.text-amber-800,.text-amber-600,.text-amber-900{color:var(--gold)!important;}
+.bg-amber-500,.bg-yellow-500{background:var(--gold)!important;}
+/* Avatar colors - neutralize */
+.bg-blue-400,.bg-cyan-500,.bg-teal-500,.bg-indigo-500,.bg-violet-500,.bg-pink-500,.bg-rose-500,.bg-purple-500,.bg-sky-500,.bg-orange-500{background:var(--navy)!important;}
+/* Violet/purple */
+.bg-violet-50,.bg-purple-50,.bg-violet-100,.bg-violet-50\/40,.bg-violet-50\/50{background:var(--gold-pale)!important;}
+.text-violet-600,.text-purple-600,.text-violet-700,.text-violet-800{color:var(--gold)!important;}
+.text-violet-400,.text-violet-500{color:var(--gold-light)!important;}
+.border-violet-200,.border-purple-200,.border-violet-400{border-color:rgba(184,147,90,0.3)!important;}
+.bg-violet-600,.bg-violet-700{background:var(--navy)!important;}
+.hover\:bg-violet-700:hover{background:var(--navy-mid)!important;}
+.focus\:ring-violet-400:focus{box-shadow:0 0 0 3px rgba(184,147,90,0.12)!important;border-color:var(--gold)!important;}
+/* Rose/pink */
+.bg-rose-50,.bg-rose-100,.bg-pink-50,.bg-pink-100{background:#fdf5f3!important;}
+.bg-rose-500,.bg-rose-600{background:var(--accent)!important;}
+.text-rose-500,.text-rose-600,.text-rose-700{color:var(--accent)!important;}
+.border-rose-100,.border-rose-200{border-color:rgba(197,71,42,0.2)!important;}
+.hover\:bg-rose-100:hover{background:rgba(197,71,42,0.08)!important;}
+/* Emerald */
+.bg-emerald-50,.bg-emerald-100,.bg-teal-50,.bg-teal-100{background:#f0f7f4!important;}
+.text-emerald-600,.text-emerald-700,.text-emerald-800{color:var(--green)!important;}
+.border-emerald-200{border-color:rgba(74,124,107,0.3)!important;}
+.bg-emerald-600,.bg-emerald-700{background:var(--green)!important;}
+/* Orange/amber extended */
+.bg-amber-100{background:var(--gold-pale)!important;}
+.bg-orange-50,.bg-orange-100{background:var(--gold-pale)!important;}
+.text-orange-600,.text-orange-700{color:var(--gold)!important;}
+.border-orange-100,.border-orange-200{border-color:rgba(184,147,90,0.3)!important;}
+/* Gradient overrides → navy */
+.bg-gradient-to-br,.bg-gradient-to-r{background:var(--navy)!important;background-image:none!important;}
+/* Hover states */
+.hover\:bg-blue-50:hover,.hover\:bg-blue-50\/30:hover,.hover\:bg-blue-50\/40:hover,.hover\:bg-blue-50\/50:hover{background:var(--cream)!important;}
+.hover\:bg-blue-50\/20:hover{background:var(--cream)!important;}
+.hover\:border-blue-300:hover,.hover\:border-blue-400:hover{border-color:var(--gold)!important;}
+.hover\:border-blue-200:hover{border-color:var(--border)!important;}
+/* Dashed borders */
+.border-dashed.border-blue-200{border-color:var(--border)!important;}
+.border-dashed.hover\:border-blue-300{border-color:var(--border)!important;}
+.border-dashed.hover\:border-blue-400{border-color:var(--border)!important;}
+/* Focus ring */
+.focus\:ring-2:focus,.focus\:ring-blue-500:focus,.ring-2{box-shadow:0 0 0 2px rgba(184,147,90,0.25)!important;}
+.ring-inset{box-shadow:inset 0 0 0 1px rgba(184,147,90,0.3)!important;}
+/* Blue color text extended */
+.text-blue-700{color:var(--navy)!important;}
+.bg-blue-100{background:var(--gold-pale)!important;}
+
+/* ── STAT CARD (honoraires) ── */
+.stat-card{background:var(--white);border:1px solid var(--border);padding:20px 24px;}
+/* ── CH-INPUT (flat input) ── */
+.ch-input{width:100%;border:1px solid var(--border);background:var(--white);padding:10px 12px;font-size:13px;font-family:'DM Sans',sans-serif;outline:none;border-radius:0 !important;}
+/* ── CALENDAR CELL ── */
+.hover\:bg-blue-50\/50:hover{background:var(--cream)!important;}
 </style>
 <script>
 tailwind.config={theme:{extend:{colors:{
@@ -243,18 +334,18 @@ const Ic={
 /* ── Badge ── */
 function Badge({color,children,size='sm'}){
   const c={
-    blue:  {bg:'#EFF6FF',text:'#2563EB',border:'#DBEAFE'},
-    green: {bg:'#ECFDF5',text:'#059669',border:'#A7F3D0'},
-    red:   {bg:'#FEF2F2',text:'#DC2626',border:'#FECACA'},
-    slate: {bg:'#F9FAFB',text:'#6B7280',border:'#E5E7EB'},
-    amber: {bg:'#FFFBEB',text:'#D97706',border:'#FDE68A'},
-    violet:{bg:'#F5F3FF',text:'#7C3AED',border:'#DDD6FE'},
-    teal:  {bg:'#F0FDFA',text:'#0D9488',border:'#99F6E4'},
-    gray:  {bg:'#F9FAFB',text:'#6B7280',border:'#E5E7EB'},
+    blue:  {bg:'var(--navy)',text:'var(--white)'},
+    green: {bg:'var(--green)',text:'var(--white)'},
+    red:   {bg:'var(--accent)',text:'var(--white)'},
+    slate: {bg:'var(--cream2)',text:'var(--charcoal)'},
+    amber: {bg:'var(--gold)',text:'var(--white)'},
+    violet:{bg:'var(--navy-mid)',text:'var(--white)'},
+    teal:  {bg:'var(--green)',text:'var(--white)'},
+    gray:  {bg:'var(--cream2)',text:'var(--muted)'},
   };
   const s=c[color]||c.slate;
-  const pad=size==='xs'?'3px 8px':'4px 10px';
-  return<span style={{display:'inline-flex',alignItems:'center',fontWeight:500,fontSize:'11px',letterSpacing:'0.02em',padding:pad,background:s.bg,color:s.text,border:`1px solid ${s.border}`,borderRadius:'6px'}}>{children}</span>;
+  const pad=size==='xs'?'2px 8px':'3px 10px';
+  return<span style={{display:'inline-flex',alignItems:'center',fontWeight:500,fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',padding:pad,background:s.bg,color:s.text}}>{children}</span>;
 }
 
 /* ── Sidebar ── */
@@ -360,12 +451,11 @@ function Btn({children,onClick,variant='primary',size='md',disabled,icon:Icon,lo
 
 /* ── Input ── */
 function Input({label,value,onChange,type='text',placeholder,textarea,rows=3,required}){
-  const cls="w-full px-3.5 py-2.5 text-sm resize-none";
-  const istyle={background:'#FFFFFF',border:'1px solid #E5E7EB',color:'#111827',fontFamily:'Inter,sans-serif',outline:'none',borderRadius:'10px',fontSize:'13px',transition:'border-color .15s,box-shadow .15s'};
+  const istyle={background:'var(--white)',border:'1px solid var(--border)',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",outline:'none',fontSize:'13px',fontWeight:300,padding:'10px 14px',width:'100%',resize:'none',transition:'border-color .15s'};
   return<div>
-    {label&&<label style={{display:'block',fontSize:'12px',fontWeight:600,color:'#374151',marginBottom:'6px'}}>{label}</label>}
-    {textarea?<textarea value={value||''} onChange={onChange} rows={rows} placeholder={placeholder} className={cls} style={istyle}/>
-             :<input type={type} value={value||''} onChange={onChange} placeholder={placeholder} required={required} className={cls} style={istyle}/>}
+    {label&&<label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>{label}</label>}
+    {textarea?<textarea value={value||''} onChange={onChange} rows={rows} placeholder={placeholder} style={istyle}/>
+             :<input type={type} value={value||''} onChange={onChange} placeholder={placeholder} required={required} style={istyle}/>}
   </div>;
 }
 
@@ -387,22 +477,23 @@ function RegisterPage({onLogin, onBack}){
   };
   return (
     <div className="min-h-screen flex" style={{background:'#F0F4F8'}}>
-      <div className="flex-1 hidden lg:flex flex-col justify-center px-16" style={{background:'linear-gradient(145deg,#1E40AF 0%,#3B82F6 50%,#6366F1 100%)'}}>
+      <div className="flex-1 hidden lg:flex flex-col justify-center px-16" style={{background:'var(--navy)'}}>
         <div className="max-w-md">
-          <div className="w-12 h-12 flex items-center justify-center mb-8" style={{background:'rgba(255,255,255,0.2)',borderRadius:'14px',backdropFilter:'blur(8px)'}}>
-            <Ic.Steth className="w-6 h-6 text-white"/>
+          <div style={{width:'48px',height:'48px',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'32px',background:'rgba(184,147,90,0.15)',border:'1px solid rgba(184,147,90,0.3)'}}>
+            <Ic.Steth style={{width:'22px',height:'22px',color:'var(--gold)'}}/>
           </div>
-          <h1 style={{fontSize:'40px',fontWeight:700,color:'#FFFFFF',letterSpacing:'-0.02em',lineHeight:1.15,marginBottom:'12px'}}>Rejoignez<br/>MedPilot.</h1>
-          <p style={{fontSize:'15px',color:'rgba(255,255,255,0.65)',lineHeight:1.7}}>Créez votre accès praticien en moins d'une minute.</p>
+          <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'16px'}}>MedPilot</p>
+          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(32px,3vw,44px)',fontWeight:300,color:'var(--white)',letterSpacing:'-0.01em',lineHeight:1.15,marginBottom:'16px'}}>Rejoignez<br/><em style={{fontStyle:'italic',color:'var(--gold-light)'}}>MedPilot.</em></h1>
+          <p style={{fontSize:'14px',color:'rgba(250,250,248,0.5)',lineHeight:1.8,fontWeight:300}}>Créez votre accès praticien en moins d'une minute.</p>
         </div>
       </div>
-      <div className="w-full lg:w-[520px] flex items-center justify-center p-8 overflow-y-auto" style={{background:'#FFFFFF'}}>
+      <div className="w-full lg:w-[520px] flex items-center justify-center p-8 overflow-y-auto" style={{background:'var(--white)'}}>
         <div className="w-full max-w-sm py-4">
-          <button onClick={onBack} className="flex items-center gap-1.5 text-sm mb-8" style={{color:'#6B7280',background:'none',border:'none',cursor:'pointer',padding:0}}><Ic.Back className="w-4 h-4"/> Retour à la connexion</button>
-          <h2 style={{fontSize:'24px',fontWeight:700,color:'#111827',letterSpacing:'-0.02em',marginBottom:'4px'}}>Créer un accès</h2>
-          <p style={{fontSize:'14px',color:'#6B7280',marginBottom:'28px'}}>Praticien de l'établissement</p>
+          <button onClick={onBack} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'10px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',padding:0,marginBottom:'32px',fontWeight:500}}><Ic.Back style={{width:'14px',height:'14px'}}/> Retour</button>
+          <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'12px'}}>Inscription</p>
+          <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:300,color:'var(--navy)',letterSpacing:'-0.01em',marginBottom:'28px',lineHeight:1.2}}>Créer un accès</h2>
           <form onSubmit={submit} className="space-y-4">
-            {error&&<div style={{background:'#FEF2F2',border:'1px solid #FECACA',color:'#DC2626',fontSize:'13px',padding:'12px 14px',borderRadius:'10px',display:'flex',alignItems:'center',gap:'8px'}}><Ic.Warn className="w-4 h-4 flex-shrink-0"/>{error}</div>}
+            {error&&<div style={{background:'#fdf5f3',border:'1px solid rgba(197,71,42,0.2)',color:'var(--accent)',fontSize:'12px',padding:'12px 14px',display:'flex',alignItems:'center',gap:'8px'}}><Ic.Warn style={{width:'14px',height:'14px',flexShrink:0}}/>{error}</div>}
             <div className="grid grid-cols-2 gap-3">
               <Input label="Prénom *" value={form.prenom} onChange={set('prenom')} required/>
               <Input label="Nom *" value={form.nom} onChange={set('nom')} required/>
@@ -413,15 +504,15 @@ function RegisterPage({onLogin, onBack}){
             <div className="grid grid-cols-2 gap-3">
               <Input label="N° RPPS" value={form.rpps} onChange={set('rpps')} placeholder="Optionnel"/>
               <div>
-                <label style={{display:'block',fontSize:'12px',fontWeight:600,color:'#374151',marginBottom:'6px'}}>Spécialité</label>
-                <select value={form.specialite} onChange={set('specialite')} style={{width:'100%',border:'1px solid #E5E7EB',borderRadius:'10px',padding:'10px 12px',fontSize:'13px',color:'#111827',background:'#FFFFFF',outline:'none'}}>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Spécialité</label>
+                <select value={form.specialite} onChange={set('specialite')} style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',background:'var(--white)',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}>
                   <option value="">Choisir...</option>
                   {['Médecine générale','Cardiologie','Dermatologie','Gynécologie','Neurologie','Ophtalmologie','ORL','Pédiatrie','Psychiatrie','Radiologie','Rhumatologie','Urologie','Autre'].map(s=><option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
-            <button type="submit" disabled={loading} style={{width:'100%',background:'#3B82F6',color:'#FFFFFF',border:'none',padding:'13px',fontSize:'14px',fontWeight:600,borderRadius:'10px',cursor:loading?'wait':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginTop:'8px',boxShadow:'0 4px 14px rgba(59,130,246,0.35)'}}>
-              {loading?<Ic.Spin className="w-4 h-4"/>:null} Créer mon compte
+            <button type="submit" disabled={loading} style={{width:'100%',background:'var(--navy)',color:'var(--white)',border:'1px solid var(--navy)',padding:'13px',fontSize:'11px',fontWeight:500,letterSpacing:'0.15em',textTransform:'uppercase',cursor:loading?'wait':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginTop:'8px'}}>
+              {loading?<Ic.Spin style={{width:'14px',height:'14px'}}/>:null} Créer mon compte
             </button>
           </form>
         </div>
@@ -449,66 +540,56 @@ function LoginPage({onLogin}){
     if(r.token){setToken(r.token);onLogin(r.user);}else setError(r.error||'Erreur');
   };
   return(
-    <div className="min-h-screen flex" style={{background:'#F0F4F8'}}>
-      {/* Left panel */}
-      <div className="flex-1 hidden lg:flex flex-col justify-between px-16 py-16" style={{background:'linear-gradient(145deg,#1E40AF 0%,#3B82F6 50%,#6366F1 100%)',position:'relative',overflow:'hidden'}}>
-        {/* Decorative circles */}
-        <div style={{position:'absolute',top:'-80px',right:'-80px',width:'320px',height:'320px',borderRadius:'50%',background:'rgba(255,255,255,0.06)'}}/>
-        <div style={{position:'absolute',bottom:'-60px',left:'-40px',width:'240px',height:'240px',borderRadius:'50%',background:'rgba(255,255,255,0.04)'}}/>
-        <div className="relative">
-          <div className="flex items-center gap-3 mb-16">
-            <div style={{width:'40px',height:'40px',background:'rgba(255,255,255,0.2)',borderRadius:'12px',backdropFilter:'blur(8px)',display:'flex',alignItems:'center',justifyContent:'center',border:'1px solid rgba(255,255,255,0.3)'}}>
-              <Ic.Steth className="w-5 h-5 text-white"/>
-            </div>
-            <span style={{fontSize:'20px',fontWeight:700,color:'#FFFFFF',letterSpacing:'-0.02em'}}>MedPilot</span>
-          </div>
-          <p style={{fontSize:'12px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'rgba(255,255,255,0.6)',marginBottom:'16px'}}>Plateforme médicale</p>
-          <h1 style={{fontSize:'clamp(32px,3vw,46px)',fontWeight:700,color:'#FFFFFF',lineHeight:1.15,marginBottom:'24px',letterSpacing:'-0.02em'}}>
-            Tout ce dont vous avez<br/>besoin, <span style={{color:'rgba(196,234,255,0.9)'}}>exactement</span><br/>là où il faut.
+    <div style={{minHeight:'100vh',display:'flex',background:'var(--white)'}}>
+      {/* Left panel — navy */}
+      <div style={{flex:1,display:'none',flexDirection:'column',justifyContent:'space-between',padding:'64px 80px',background:'var(--navy)',position:'relative',overflow:'hidden'}} className="lg:flex">
+        <div style={{position:'absolute',bottom:0,left:0,right:0,height:'3px',background:`linear-gradient(90deg,var(--gold),var(--gold-light),transparent)`}}/>
+        <div>
+          <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'26px',fontWeight:400,color:'var(--white)',letterSpacing:'-0.01em',marginBottom:'4px'}}>Med<em style={{fontStyle:'italic',color:'var(--gold-light)'}}>Pilot</em></p>
+          <p style={{fontSize:'9px',letterSpacing:'0.3em',textTransform:'uppercase',color:'rgba(250,250,248,0.35)',fontWeight:500}}>Plateforme médicale</p>
+        </div>
+        <div>
+          <p style={{fontSize:'10px',letterSpacing:'0.28em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'24px'}}>Espace praticien</p>
+          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(36px,3.5vw,52px)',fontWeight:300,color:'var(--white)',lineHeight:1.1,marginBottom:'28px',letterSpacing:'-0.01em'}}>
+            Tout ce dont<br/>vous avez besoin,<br/><em style={{fontStyle:'italic',color:'var(--gold-light)'}}>exactement là où il faut.</em>
           </h1>
-          <p style={{color:'rgba(255,255,255,0.65)',fontWeight:400,lineHeight:1.7,maxWidth:'400px',fontSize:'15px',paddingLeft:'16px',borderLeft:'2px solid rgba(255,255,255,0.3)'}}>
-            MedPilot vous donne une vision complète de votre activité — patients, agenda, notes cliniques et honoraires — en un seul endroit.
+          <p style={{fontSize:'14px',color:'rgba(250,250,248,0.5)',fontWeight:300,lineHeight:1.8,maxWidth:'400px',borderLeft:'2px solid var(--gold)',paddingLeft:'20px',marginBottom:'52px'}}>
+            MedPilot vous donne une vision complète de votre activité — patients, agenda, notes cliniques et honoraires.
           </p>
-          <div className="mt-12 space-y-4">
-            {[{icon:Ic.Users,t:'Dossiers patients organisés et accessibles'},{icon:Ic.Calendar,t:'Agenda, consultations et prescriptions en temps réel'},{icon:Ic.Money,t:'Honoraires et revenus sous contrôle'}].map(({icon:I,t})=>(
-              <div key={t} className="flex items-center gap-4">
-                <div style={{width:'32px',height:'32px',borderRadius:'8px',background:'rgba(255,255,255,0.15)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  <I className="w-4 h-4 text-white"/>
-                </div>
-                <span style={{fontSize:'14px',fontWeight:400,color:'rgba(255,255,255,0.8)'}}>{t}</span>
+          <div style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+            {[{t:'Dossiers patients organisés et accessibles'},{t:'Agenda, consultations et prescriptions en temps réel'},{t:'Honoraires et revenus sous contrôle'}].map(({t})=>(
+              <div key={t} style={{display:'flex',alignItems:'center',gap:'16px'}}>
+                <div style={{width:'5px',height:'1px',background:'var(--gold)',flexShrink:0}}/>
+                <span style={{fontSize:'13px',fontWeight:300,color:'rgba(250,250,248,0.65)'}}>{t}</span>
               </div>
             ))}
           </div>
         </div>
-        <p style={{fontSize:'11px',letterSpacing:'0.1em',color:'rgba(255,255,255,0.35)',textTransform:'uppercase',position:'relative'}}>Centre Diagnostic de Libreville · Gabon</p>
+        <p style={{fontSize:'9px',letterSpacing:'0.25em',color:'rgba(250,250,248,0.25)',textTransform:'uppercase'}}>Centre Diagnostic de Libreville · Gabon</p>
       </div>
 
       {/* Right panel */}
-      <div className="w-full lg:w-[480px] flex items-center justify-center p-10" style={{background:'#FFFFFF'}}>
-        <div className="w-full max-w-sm">
-          <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div style={{width:'36px',height:'36px',background:'linear-gradient(135deg,#3B82F6,#6366F1)',borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center'}}>
-              <Ic.Steth className="w-4 h-4 text-white"/>
-            </div>
-            <span style={{fontSize:'18px',fontWeight:700,color:'#111827',letterSpacing:'-0.01em'}}>MedPilot</span>
+      <div style={{width:'100%',maxWidth:'480px',display:'flex',alignItems:'center',justifyContent:'center',padding:'64px 48px',background:'var(--white)',borderLeft:'1px solid var(--border)'}}>
+        <div style={{width:'100%',maxWidth:'340px'}}>
+          <div style={{marginBottom:'12px'}} className="hidden lg:block">
+            <div style={{width:'32px',height:'2px',background:'var(--gold)',marginBottom:'32px'}}/>
           </div>
-          <p style={{fontSize:'12px',fontWeight:600,letterSpacing:'0.08em',textTransform:'uppercase',color:'#3B82F6',marginBottom:'10px'}}>Authentification</p>
-          <h2 style={{fontSize:'28px',fontWeight:700,color:'#111827',marginBottom:'8px',letterSpacing:'-0.02em'}}>Connexion</h2>
-          <p style={{fontSize:'14px',color:'#6B7280',marginBottom:'32px'}}>Accédez à votre espace médecin</p>
-          <form onSubmit={submit} className="space-y-5">
-            {error&&<div style={{background:'#FEF2F2',border:'1px solid #FECACA',color:'#DC2626',fontSize:'13px',padding:'12px 16px',borderRadius:'10px',display:'flex',alignItems:'center',gap:'8px'}}><Ic.Warn className="w-4 h-4 flex-shrink-0"/>{error}</div>}
+          <p className="eyebrow" style={{marginBottom:'16px'}}>Authentification</p>
+          <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--navy)',marginBottom:'6px',letterSpacing:'-0.01em'}}>Connexion</h2>
+          <p style={{fontSize:'13px',color:'var(--muted)',marginBottom:'36px',fontWeight:300}}>Accédez à votre espace médecin</p>
+          <form onSubmit={submit} style={{display:'flex',flexDirection:'column',gap:'20px'}}>
+            {error&&<div style={{background:'#fdf5f3',border:'1px solid rgba(197,71,42,0.2)',borderLeft:'3px solid var(--accent)',color:'var(--accent)',fontSize:'12px',padding:'12px 16px',fontWeight:300}}>{error}</div>}
             <Input label="Email professionnel" type="email" value={email} onChange={e=>setEmail(e.target.value)} required/>
             <Input label="Mot de passe" type="password" value={password} onChange={e=>setPassword(e.target.value)} required/>
-            <button type="submit" disabled={loading}
-              style={{width:'100%',background:loading?'#2563EB':'#3B82F6',color:'#FFFFFF',border:'none',padding:'13px 24px',fontSize:'14px',fontWeight:600,borderRadius:'10px',cursor:loading?'wait':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginTop:'8px',boxShadow:'0 4px 14px rgba(59,130,246,0.35)',letterSpacing:'-0.01em'}}>
-              {loading?<Ic.Spin className="w-4 h-4"/>:null} Se connecter
+            <button type="submit" disabled={loading} style={{background:'var(--navy)',color:'var(--white)',border:'none',padding:'14px 24px',fontSize:'11px',fontWeight:500,letterSpacing:'0.18em',textTransform:'uppercase',cursor:loading?'wait':'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginTop:'4px',width:'100%'}}>
+              {loading?<Ic.Spin style={{width:'14px',height:'14px'}}/>:null} Se connecter
             </button>
           </form>
-          <div className="mt-7" style={{background:'#F0F4F8',border:'1px solid #E5E7EB',borderRadius:'12px',padding:'14px 16px'}}>
-            <p style={{fontSize:'11px',fontWeight:600,textTransform:'uppercase',letterSpacing:'0.06em',color:'#3B82F6',marginBottom:'6px'}}>Accès démo</p>
-            <p style={{fontSize:'12px',fontFamily:'monospace',color:'#6B7280'}}>dr.maiga@medivoix.fr · demo1234</p>
+          <div style={{marginTop:'28px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 18px'}}>
+            <p className="eyebrow" style={{marginBottom:'8px'}}>Accès démo</p>
+            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,fontFamily:'monospace'}}>dr.maiga@medivoix.fr · demo1234</p>
           </div>
-          <p className="mt-6 text-center" style={{fontSize:'13px',color:'#9CA3AF'}}>Nouveau praticien ? <button onClick={()=>setShowRegister(true)} style={{color:'#3B82F6',fontWeight:600,background:'none',border:'none',cursor:'pointer'}}>Créer un accès</button></p>
+          <p style={{marginTop:'24px',textAlign:'center',fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Nouveau praticien ? <button onClick={()=>setShowRegister(true)} style={{color:'var(--gold)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontSize:'12px'}}>Créer un accès</button></p>
         </div>
       </div>
     </div>
@@ -594,64 +675,63 @@ function Dashboard({onNav,user}){
           className="search-premium w-full"
           style={{paddingLeft:'44px',paddingRight:'16px',paddingTop:'13px',paddingBottom:'13px',fontSize:'13px',color:'var(--charcoal)',width:'100%',fontFamily:"'DM Sans',sans-serif",fontWeight:300,letterSpacing:'0.01em'}}/>
         {searchRes&&(
-          <div className="absolute top-full mt-2 left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl z-10 overflow-hidden fade-in">
+          <div className="absolute top-full mt-1 left-0 right-0 z-10 fade-in" style={{background:'var(--white)',border:'1px solid var(--border)',boxShadow:'0 8px 32px rgba(0,0,0,0.08)'}}>
             {searchRes.patients?.length>0&&<>
-              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wide">Patients</p>
+              <p style={{padding:'12px 20px 6px',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500}}>Patients</p>
               {searchRes.patients.map(p=>(
                 <button key={p.id} onClick={()=>{setSearch('');setSearchRes(null);onNav('patient/'+p.id);}}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-left">
-                  <div className={`w-8 h-8 rounded-full ${avatarColor(p.sexe)} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{initials(p.prenom,p.nom)}</div>
-                  <span className="text-sm font-medium">{p.prenom} {p.nom}</span>
-                  <span className="text-xs text-slate-400 ml-auto">{ageStr(p.dateNaissance)}</span>
+                  className="data-row w-full text-left" style={{padding:'10px 20px',display:'flex',alignItems:'center',gap:'12px',background:'none',border:'none',cursor:'pointer'}}>
+                  <div style={{width:'28px',height:'28px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--gold-light)',fontSize:'10px',flexShrink:0,fontFamily:"'Cormorant Garamond',serif"}}>{initials(p.prenom,p.nom)}</div>
+                  <span style={{fontSize:'13px',fontWeight:400,color:'var(--navy)',flex:1}}>{p.prenom} {p.nom}</span>
+                  <span style={{fontSize:'11px',color:'var(--muted)'}}>{ageStr(p.dateNaissance)}</span>
                 </button>
               ))}
             </>}
             {searchRes.consultations?.length>0&&<>
-              <p className="px-4 pt-2 pb-1 text-xs font-semibold text-slate-400 uppercase tracking-wide border-t border-slate-100 mt-1">Consultations</p>
+              <p style={{padding:'8px 20px 6px',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500,borderTop:'1px solid var(--border)',marginTop:'4px'}}>Consultations</p>
               {searchRes.consultations.map(c=>(
                 <button key={c.id} onClick={()=>{setSearch('');setSearchRes(null);onNav('consultation/'+c.id+'/patient');}}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 text-left">
-                  <Ic.Steth className="w-4 h-4 text-slate-400 flex-shrink-0"/>
+                  className="data-row w-full text-left" style={{padding:'10px 20px',display:'flex',alignItems:'center',gap:'12px',background:'none',border:'none',cursor:'pointer'}}>
+                  <Ic.Steth style={{width:'14px',height:'14px',color:'var(--light)',flexShrink:0}}/>
                   <div>
-                    <p className="text-sm font-medium">{c.motif}</p>
-                    <p className="text-xs text-slate-400">{c.prenom} {c.nom} · {fmtDate(c.date)}</p>
+                    <p style={{fontSize:'12px',fontWeight:400,color:'var(--navy)'}}>{c.motif}</p>
+                    <p style={{fontSize:'10px',color:'var(--muted)',marginTop:'2px'}}>{c.prenom} {c.nom} · {fmtDate(c.date)}</p>
                   </div>
                 </button>
               ))}
             </>}
             {!searchRes.patients?.length&&!searchRes.consultations?.length&&
-              <p className="px-4 py-4 text-sm text-slate-400 text-center">Aucun résultat pour « {search} »</p>}
+              <p style={{padding:'16px 20px',fontSize:'12px',color:'var(--muted)',textAlign:'center',fontStyle:'italic'}}>Aucun résultat pour « {search} »</p>}
           </div>
         )}
       </div>
 
       {/* ── Secretary Alerts ── */}
       {(alertsUnread>0||showAlerts)&&(
-        <div className={`rounded-2xl border shadow-sm mb-6 overflow-hidden ${alertsUnread>0?'border-amber-200 bg-amber-50':'border-slate-100 bg-white'}`}>
-          <div className="px-5 py-3.5 flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${alertsUnread>0?'bg-amber-100':'bg-slate-100'}`}>
-              <Ic.Bell className={`w-4 h-4 ${alertsUnread>0?'text-amber-600':'text-slate-400'}`}/>
+        <div style={{border:'1px solid var(--border)',borderLeft:alertsUnread>0?'3px solid var(--gold)':'3px solid var(--border)',background:alertsUnread>0?'var(--cream)':'var(--white)',marginBottom:'24px'}}>
+          <div style={{padding:'14px 20px',display:'flex',alignItems:'center',gap:'12px',borderBottom:showAlerts?'1px solid var(--border)':'none'}}>
+            <div style={{width:'32px',height:'32px',background:alertsUnread>0?'var(--navy)':'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <Ic.Bell style={{width:'14px',height:'14px',color:alertsUnread>0?'var(--gold)':'var(--muted)'}}/>
             </div>
-            <div className="flex-1">
-              <span className="text-sm font-semibold text-slate-800">Messages du secrétariat</span>
-              {alertsUnread>0&&<span className="ml-2 text-xs font-bold bg-amber-500 text-white rounded-full px-2 py-0.5">{alertsUnread} nouveau{alertsUnread>1?'x':''}</span>}
+            <div style={{flex:1}}>
+              <span style={{fontSize:'12px',fontWeight:500,color:'var(--navy)'}}>Messages du secrétariat</span>
+              {alertsUnread>0&&<span style={{marginLeft:'8px',fontSize:'9px',fontWeight:500,letterSpacing:'0.15em',textTransform:'uppercase',background:'var(--navy)',color:'var(--gold-light)',padding:'2px 8px'}}>{alertsUnread} nouveau{alertsUnread>1?'x':''}</span>}
             </div>
-            {alertsUnread>0&&<button onClick={markAllRead} className="text-xs text-amber-700 hover:text-amber-900 font-medium">Tout marquer lu</button>}
-            <button onClick={()=>setShowAlerts(s=>!s)} className="text-xs text-slate-400 hover:text-slate-600 font-medium">{showAlerts?'Réduire':'Voir tout'}</button>
+            {alertsUnread>0&&<button onClick={markAllRead} style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,background:'none',border:'none',cursor:'pointer'}}>Tout marquer lu</button>}
+            <button onClick={()=>setShowAlerts(s=>!s)} style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--muted)',fontWeight:400,background:'none',border:'none',cursor:'pointer'}}>{showAlerts?'Réduire':'Voir tout'}</button>
           </div>
-          {/* Always show unread; show all when expanded */}
-          <div className="divide-y divide-amber-100">
+          <div>
             {alerts.filter(a=>showAlerts||!a.isRead).map(al=>{
-              const typeColor={urgent:'bg-red-100 text-red-700',rdv:'bg-blue-100 text-blue-700',admin:'bg-violet-100 text-violet-700',info:'bg-slate-100 text-slate-600'}[al.type]||'bg-slate-100 text-slate-600';
-              const typeLabel={urgent:'Urgent',rdv:'RDV',admin:'Administratif',info:'Info'}[al.type]||'Info';
+              const typeLabel={urgent:'Urgent',rdv:'RDV',admin:'Admin',info:'Info'}[al.type]||'Info';
+              const urgColor=al.type==='urgent'?'var(--accent)':al.type==='rdv'?'var(--navy)':'var(--muted)';
               return(
-                <div key={al.id} className={`px-5 py-3.5 flex items-start gap-3 ${al.isRead?'opacity-60':''}`}>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5 ${typeColor}`}>{typeLabel}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-800">{al.message}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{al.fromName} · {new Date(al.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
+                <div key={al.id} className="data-row" style={{padding:'12px 20px',display:'flex',alignItems:'flex-start',gap:'12px',opacity:al.isRead?0.55:1}}>
+                  <Badge color={al.type==='urgent'?'red':al.type==='rdv'?'blue':'slate'} size="xs">{typeLabel}</Badge>
+                  <div style={{flex:1,minWidth:0}}>
+                    <p style={{fontSize:'13px',color:'var(--charcoal)',fontWeight:al.isRead?300:400}}>{al.message}</p>
+                    <p style={{fontSize:'10px',color:'var(--muted)',marginTop:'3px',fontWeight:300}}>{al.fromName} · {new Date(al.createdAt).toLocaleDateString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</p>
                   </div>
-                  {!al.isRead&&<button onClick={()=>markRead(al.id)} className="text-xs text-slate-400 hover:text-slate-600 flex-shrink-0 mt-0.5">✓ Lu</button>}
+                  {!al.isRead&&<button onClick={()=>markRead(al.id)} style={{fontSize:'10px',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--muted)',fontWeight:400,background:'none',border:'none',cursor:'pointer',flexShrink:0,marginTop:'2px'}}>✓ Lu</button>}
                 </div>
               );
             })}
@@ -659,9 +739,9 @@ function Dashboard({onNav,user}){
         </div>
       )}
       {!alertsUnread&&!showAlerts&&alerts.length>0&&(
-        <div className="flex justify-end mb-2">
-          <button onClick={()=>setShowAlerts(true)} className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600">
-            <Ic.Bell className="w-3.5 h-3.5"/>{alerts.length} message{alerts.length>1?'s':''} secrétariat
+        <div style={{display:'flex',justifyContent:'flex-end',marginBottom:'8px'}}>
+          <button onClick={()=>setShowAlerts(true)} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--muted)',fontWeight:400,background:'none',border:'none',cursor:'pointer'}}>
+            <Ic.Bell style={{width:'12px',height:'12px'}}/>{alerts.length} message{alerts.length>1?'s':''} secrétariat
           </button>
         </div>
       )}
@@ -880,29 +960,31 @@ function PatientList({onSelect,onNew}){
     <Page title="Patients" subtitle={`${patients.length} patient${patients.length>1?'s':''} enregistré${patients.length>1?'s':''}`}
       actions={<Btn variant="primary" icon={Ic.Plus} onClick={onNew}>Nouveau patient</Btn>}>
       <div className="relative mb-6">
-        <Ic.Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"/>
+        <Ic.Search style={{position:'absolute',left:'16px',top:'50%',transform:'translateY(-50%)',width:'14px',height:'14px',color:'var(--light)',pointerEvents:'none'}}/>
         <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher par nom ou prénom…"
-          className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"/>
+          className="search-premium w-full"
+          style={{paddingLeft:'44px',paddingRight:'16px',paddingTop:'13px',paddingBottom:'13px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}/>
       </div>
-      {loading?<div className="flex justify-center py-20"><Ic.Spin className="w-6 h-6 text-slate-400"/></div>:(
-        <div className="grid gap-3">
-          {filtered.map(p=>(
+      {loading?<div className="flex justify-center py-20"><Ic.Spin style={{width:'24px',height:'24px',color:'var(--muted)'}}/></div>:(
+        <div style={{border:'1px solid var(--border)'}}>
+          {filtered.map((p,idx)=>(
             <button key={p.id} onClick={()=>onSelect(p.id)}
-              className="card-hover bg-white border border-slate-100 rounded-2xl px-5 py-4 flex items-center gap-4 text-left w-full shadow-sm">
-              <div className={`w-12 h-12 rounded-2xl ${avatarColor(p.sexe)} flex items-center justify-center text-white font-bold flex-shrink-0`}>
+              className="data-row w-full text-left"
+              style={{padding:'16px 24px',display:'flex',alignItems:'center',gap:'16px',background:'none',border:'none',cursor:'pointer',borderBottom:idx<filtered.length-1?'1px solid var(--border)':'none'}}>
+              <div style={{width:'36px',height:'36px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--gold-light)',fontSize:'12px',fontFamily:"'Cormorant Garamond',serif",flexShrink:0}}>
                 {initials(p.prenom,p.nom)}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900">{p.prenom} {p.nom}</p>
-                <p className="text-slate-400 text-sm">{ageStr(p.dateNaissance)} · né{p.sexe==='F'?'e':''} le {fmtDate(p.dateNaissance)}</p>
+              <div style={{flex:1,minWidth:0}}>
+                <p style={{fontSize:'13px',fontWeight:400,color:'var(--navy)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.prenom} {p.nom}</p>
+                <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>{ageStr(p.dateNaissance)} · né{p.sexe==='F'?'e':''} le {fmtDate(p.dateNaissance)}</p>
               </div>
               <Badge color={p.sexe==='F'?'red':'blue'}>{p.sexe==='F'?'F':'M'}</Badge>
-              <Ic.Chevron className="w-4 h-4 text-slate-300 flex-shrink-0"/>
+              <Ic.Chevron style={{width:'14px',height:'14px',color:'var(--light)',flexShrink:0}}/>
             </button>
           ))}
-          {!filtered.length&&<div className="text-center py-16 text-slate-400">
-            <Ic.Users className="w-10 h-10 mx-auto mb-3 opacity-40"/>
-            <p className="text-sm">Aucun patient trouvé</p>
+          {!filtered.length&&<div style={{textAlign:'center',padding:'64px 24px',color:'var(--muted)'}}>
+            <Ic.Users style={{width:'40px',height:'40px',margin:'0 auto 12px',opacity:0.3}}/>
+            <p style={{fontSize:'13px',fontWeight:300}}>Aucun patient trouvé</p>
           </div>}
         </div>
       )}
@@ -922,17 +1004,17 @@ function PatientForm({patientId,onSave,onBack}){
   const save=async()=>{setSaving(true);if(patientId)await api.put(`/patients/${patientId}`,form);else await api.post('/patients',form);setSaving(false);onSave();};
 
   return(
-    <Page title={patientId?'Modifier le dossier':'Nouveau patient'} breadcrumb={<><span className="cursor-pointer hover:text-slate-600" onClick={onBack}>Patients</span> / {patientId?'Modifier':'Nouveau'}</>}>
+    <Page title={patientId?'Modifier le dossier':'Nouveau patient'} breadcrumb={<><span className="cursor-pointer" style={{color:'var(--muted)'}} onClick={onBack}>Patients</span> / {patientId?'Modifier':'Nouveau'}</>}>
       <div className="max-w-2xl space-y-5">
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm space-y-5">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Identité</p>
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'28px 32px'}} className="space-y-5">
+          <p className="eyebrow">Identité</p>
           <div className="grid grid-cols-2 gap-4">
             <Input label="Prénom" value={form.prenom} onChange={set('prenom')}/>
             <Input label="Nom" value={form.nom} onChange={set('nom')}/>
             <Input label="Date de naissance" type="date" value={form.dateNaissance} onChange={set('dateNaissance')}/>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Sexe</label>
-              <select value={form.sexe} onChange={set('sexe')} className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Sexe</label>
+              <select value={form.sexe} onChange={set('sexe')} style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}>
                 <option value="M">Masculin</option><option value="F">Féminin</option>
               </select>
             </div>
@@ -943,12 +1025,12 @@ function PatientForm({patientId,onSave,onBack}){
               <Input label="Adresse / Quartier" value={form.adresse} onChange={set('adresse')}/>
             </div>
           </div>
-          <div className="border-t border-slate-100 pt-5">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Assurance</p>
+          <div style={{borderTop:'1px solid var(--border)',paddingTop:'20px'}}>
+            <p className="eyebrow" style={{marginBottom:'16px'}}>Assurance</p>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">Type d'assurance</label>
-                <select value={form.typeAssurance} onChange={set('typeAssurance')} className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Type d'assurance</label>
+                <select value={form.typeAssurance} onChange={set('typeAssurance')} style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}>
                   <option value="">— Sélectionner —</option>
                   <option value="CNAMGS">CNAMGS</option>
                   <option value="CNSS">CNSS</option>
@@ -961,8 +1043,8 @@ function PatientForm({patientId,onSave,onBack}){
               <Input label="Numéro d'assurance" value={form.numAssurance} onChange={set('numAssurance')}/>
             </div>
           </div>
-          <div className="border-t border-slate-100 pt-5">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Informations médicales</p>
+          <div style={{borderTop:'1px solid var(--border)',paddingTop:'20px'}}>
+            <p className="eyebrow" style={{marginBottom:'16px'}}>Informations médicales</p>
             <div className="space-y-4">
               <Input label="Antécédents médicaux personnels" value={form.antecedents} onChange={set('antecedents')} textarea rows={2} placeholder="Ex: HTA depuis 2018, hypothyroïdie…"/>
               <Input label="Antécédents familiaux" value={form.antecedents_familiaux||''} onChange={set('antecedents_familiaux')} textarea rows={2} placeholder="Ex: père — IDM à 55 ans, mère — diabète type 2…"/>
@@ -1111,7 +1193,7 @@ function DiscussionPanel({patientId,userId}){
           <input autoFocus value={newTitre} onChange={e=>setNewTitre(e.target.value)}
             onKeyDown={e=>{if(e.key==='Enter')create();if(e.key==='Escape'){setCreating(false);setNewTitre('');}}}
             placeholder="Sujet de la discussion…"
-            className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"/>
+            style={{flex:1,border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
           <Btn variant="primary" size="sm" onClick={create} disabled={!newTitre.trim()}>Créer</Btn>
           <Btn variant="ghost" size="sm" onClick={()=>{setCreating(false);setNewTitre('');}}>✕</Btn>
         </div>
@@ -1129,8 +1211,8 @@ function DiscussionPanel({patientId,userId}){
         {discussions.map(d=>(
           <button key={d.id} onClick={()=>openDiscussion(d)}
             className="w-full px-5 py-3.5 flex items-start gap-3 hover:bg-slate-50 text-left">
-            <div className="w-9 h-9 rounded-xl bg-violet-100 flex items-center justify-center flex-shrink-0">
-              <Ic.Chat className="w-4 h-4 text-violet-600"/>
+            <div style={{width:'36px',height:'36px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+              <Ic.Chat style={{width:'14px',height:'14px',color:'var(--gold-light)'}}/>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
@@ -1217,7 +1299,7 @@ function DiscussionPanel({patientId,userId}){
                     {isMe?'Vous':`${m.prenom} ${m.nom}`} · {fmtTime(m.createdAt)}
                   </p>
                 )}
-                <div className={`rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${isMe?'bg-violet-600 text-white rounded-br-sm':'bg-slate-100 text-slate-900 rounded-bl-sm'}`}>
+                <div style={isMe?{background:'var(--navy)',color:'var(--white)',padding:'10px 14px',fontSize:'13px',lineHeight:1.5,maxWidth:'320px'}:{background:'var(--cream)',border:'1px solid var(--border)',color:'var(--text)',padding:'10px 14px',fontSize:'13px',lineHeight:1.5,maxWidth:'320px'}}>
                   {m.contenu&&<p>{m.contenu}</p>}
                   {m.fichier&&(
                     <button onClick={()=>downloadPdf(m.fichier,m.fichierNom)}
@@ -1246,11 +1328,10 @@ function DiscussionPanel({patientId,userId}){
         <textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={handleKey}
           placeholder="Écrivez un message… (Entrée pour envoyer)"
           rows={1}
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-none leading-5"
-          style={{minHeight:'40px',maxHeight:'120px'}}
+          style={{flex:1,border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",resize:'none',outline:'none',minHeight:'40px',maxHeight:'120px',lineHeight:1.4}}
           onInput={e=>{e.target.style.height='auto';e.target.style.height=e.target.scrollHeight+'px';}}/>
         <button onClick={send} disabled={!text.trim()||sending}
-          className="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:bg-slate-200 flex items-center justify-center text-white flex-shrink-0 transition-colors">
+          style={{width:'36px',height:'36px',background:'var(--navy)',color:'var(--white)',border:'none',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,cursor:'pointer',opacity:(!text.trim()||sending)?0.4:1}}>
           <Ic.Send className="w-4 h-4"/>
         </button>
       </div>
@@ -1277,15 +1358,15 @@ function NoteModal({consultationId, motif, onClose}){
   const dlPdf=async()=>{const r=await fetch(`${API}/consultations/${consultationId}/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='consultation.pdf';a.click();};
   return(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col" onClick={e=>e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 flex-shrink-0">
+      <div style={{background:'var(--white)',width:'100%',maxWidth:'672px',maxHeight:'85vh',display:'flex',flexDirection:'column',border:'1px solid var(--border)'}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'20px 24px',borderBottom:'1px solid var(--border)',flexShrink:0}}>
           <div>
-            <h3 className="font-bold text-slate-900">{motif}</h3>
-            {data&&<p className="text-xs text-slate-400 mt-0.5">{fmtDateLong(data.date)}</p>}
+            <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18px',fontWeight:400,color:'var(--navy)'}}>{motif}</h3>
+            {data&&<p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>{fmtDateLong(data.date)}</p>}
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={dlPdf} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium px-3 py-1.5 rounded-lg hover:bg-blue-50">
-              <Ic.Download className="w-3.5 h-3.5"/> PDF
+          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+            <button onClick={dlPdf} style={{display:'flex',alignItems:'center',gap:'6px',fontSize:'11px',color:'var(--gold)',letterSpacing:'0.1em',textTransform:'uppercase',padding:'6px 12px',border:'1px solid var(--border)',background:'var(--white)',cursor:'pointer'}}>
+              <Ic.Download style={{width:'12px',height:'12px'}}/> PDF
             </button>
             <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 text-xl font-light">✕</button>
           </div>
@@ -1295,15 +1376,15 @@ function NoteModal({consultationId, motif, onClose}){
           :!data.note?<div className="text-center py-10 text-slate-400"><p className="text-sm">Aucune note disponible pour cette consultation.</p></div>
           :<div className="space-y-4">
             {data.transcription&&(
-              <div className="bg-slate-50 rounded-xl p-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Transcription</p>
-                <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">{data.transcription}</p>
+              <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'16px'}}>
+                <p className="eyebrow" style={{marginBottom:'8px'}}>Transcription</p>
+                <p style={{fontSize:'13px',color:'var(--text)',lineHeight:1.6,whiteSpace:'pre-wrap'}}>{data.transcription}</p>
               </div>
             )}
             {fields.map(({label,key})=>data.note[key]?(
-              <div key={key} className={`rounded-xl p-4 ${key==='drapeaux_rouges'?'bg-rose-50 border border-rose-100':key==='conseils_patient'?'bg-blue-50 border border-blue-100':'bg-slate-50'}`}>
-                <p className={`text-xs font-semibold uppercase tracking-wide mb-1.5 ${key==='drapeaux_rouges'?'text-rose-600':key==='conseils_patient'?'text-blue-600':'text-slate-500'}`}>{label}</p>
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{data.note[key]}</p>
+              <div key={key} style={{padding:'16px',background:key==='drapeaux_rouges'?'#fdf5f3':key==='conseils_patient'?'var(--cream)':'var(--white)',border:'1px solid var(--border)',borderLeft:key==='drapeaux_rouges'?'3px solid var(--accent)':key==='conseils_patient'?'3px solid var(--gold)':'1px solid var(--border)'}}>
+                <p style={{fontSize:'10px',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:'6px',color:key==='drapeaux_rouges'?'var(--accent)':key==='conseils_patient'?'var(--gold)':'var(--muted)'}}>{label}</p>
+                <p style={{fontSize:'13px',color:'var(--text)',lineHeight:1.6,whiteSpace:'pre-wrap'}}>{data.note[key]}</p>
               </div>
             ):null)}
           </div>}
@@ -1529,7 +1610,7 @@ function DocumentsHub({patient,user}){
 
   const formLabel=form?.type==='_adressage'?'Lettre d\'adressage':papeterieTypes[form?.type]?.label||'';
 
-  const inp='w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const inp='ch-input w-full';
 
   return(
     <>
@@ -1557,7 +1638,9 @@ function DocumentsHub({patient,user}){
                   {label:'Lettre d\'adressage',icon:'📨',action:()=>setForm({type:'_adressage',consId:lastValidated.id,fields:{specialiste:'',specialiteAdre:'',motif:''}})},
                 ].map(({label,icon,action})=>(
                   <button key={label} onClick={action} disabled={!!loading}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50/30 text-left text-sm font-medium text-slate-700 transition-colors disabled:opacity-50">
+                    style={{display:'flex',alignItems:'center',gap:'8px',padding:'10px 12px',border:'1px solid var(--border)',background:'var(--white)',textAlign:'left',fontSize:'13px',color:'var(--text)',fontFamily:"'DM Sans',sans-serif",cursor:'pointer',opacity:loading?0.5:1}}
+                    onMouseEnter={e=>{if(!loading){e.currentTarget.style.borderColor='var(--gold)';e.currentTarget.style.background='var(--cream)';}}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.background='var(--white)';}}>
                     <span>{icon}</span>{label}
                   </button>
                 ))}
@@ -1597,8 +1680,8 @@ function DocumentsHub({patient,user}){
     {/* Form modal */}
     {form&&(
       <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={e=>{if(e.target===e.currentTarget)setForm(null);}}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 fade-in">
-          <h3 className="font-bold text-slate-900 mb-4">{formLabel}</h3>
+        <div style={{background:'var(--white)',width:'100%',maxWidth:'384px',padding:'28px 32px',border:'1px solid var(--border)'}} className="fade-in">
+          <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:400,color:'var(--navy)',marginBottom:'20px'}}>{formLabel}</h3>
           <div className="space-y-3 mb-5">
             {(form.type==='_adressage'?[
               {key:'specialiste',label:'Nom du spécialiste',type:'text',default:''},
@@ -1606,7 +1689,7 @@ function DocumentsHub({patient,user}){
               {key:'motif',label:"Motif d'adressage",type:'textarea',default:''},
             ]:papeterieTypes[form.type]?.fields||[]).map(f=>(
               <div key={f.key}>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">{f.label}</label>
+                <label style={{display:'block',fontSize:'10px',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:'4px',color:'var(--muted)'}}>{f.label}</label>
                 {f.type==='select'?(
                   <select value={form.fields[f.key]} onChange={e=>setForm(fm=>({...fm,fields:{...fm.fields,[f.key]:e.target.value}}))} className={inp}>
                     {f.options.map(o=><option key={o.v} value={o.v}>{o.l}</option>)}
@@ -1630,25 +1713,25 @@ function DocumentsHub({patient,user}){
     {/* Email modal */}
     {emailModal&&(
       <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={e=>{if(e.target===e.currentTarget)setEmailModal(false);}}>
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 fade-in">
-          <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2"><Ic.Mail className="w-4 h-4 text-blue-500"/>Envoyer par email</h3>
+        <div style={{background:'var(--white)',width:'100%',maxWidth:'448px',padding:'28px 32px',border:'1px solid var(--border)'}} className="fade-in">
+          <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:400,color:'var(--navy)',marginBottom:'20px',display:'flex',alignItems:'center',gap:'10px'}}><Ic.Mail style={{width:'16px',height:'16px',color:'var(--gold)'}}/>Envoyer par email</h3>
           {emailSent?(
-            <div className="text-center py-6">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3"><Ic.Check className="w-6 h-6 text-emerald-600"/></div>
-              <p className="font-semibold text-slate-900">Email envoyé !</p>
+            <div style={{textAlign:'center',padding:'24px 0'}}>
+              <div style={{width:'48px',height:'48px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 12px'}}><Ic.Check style={{width:'20px',height:'20px',color:'var(--gold-light)'}}/></div>
+              <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18px',color:'var(--navy)'}}>Email envoyé !</p>
             </div>
           ):(
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Destinataire</label>
+                <label style={{display:'block',fontSize:'10px',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:'4px',color:'var(--muted)'}}>Destinataire</label>
                 <input value={emailTo} onChange={e=>setEmailTo(e.target.value)} type="email" className={inp}/>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Objet</label>
+                <label style={{display:'block',fontSize:'10px',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:'4px',color:'var(--muted)'}}>Objet</label>
                 <input value={emailSubj} onChange={e=>setEmailSubj(e.target.value)} className={inp}/>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Message</label>
+                <label style={{display:'block',fontSize:'10px',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:'4px',color:'var(--muted)'}}>Message</label>
                 <textarea value={emailBody} onChange={e=>setEmailBody(e.target.value)} rows={4} className={inp}/>
               </div>
               <p className="text-xs text-slate-400">Le compte rendu PDF sera joint automatiquement.</p>
@@ -1702,123 +1785,120 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Identity */}
         <div className="space-y-4">
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-            <div className="flex flex-col items-center text-center mb-5">
-              <div className={`w-20 h-20 rounded-3xl ${avatarColor(patient.sexe)} flex items-center justify-center text-white font-bold text-2xl mb-3`}>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <div style={{display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center',marginBottom:'20px'}}>
+              <div style={{width:'64px',height:'64px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--gold-light)',fontSize:'22px',fontFamily:"'Cormorant Garamond',serif",fontWeight:300,marginBottom:'12px'}}>
                 {initials(patient.prenom,patient.nom)}
               </div>
-              <h2 className="font-bold text-xl text-slate-900">{patient.prenom} {patient.nom}</h2>
-              <p className="text-slate-400 text-sm mt-0.5">{ageStr(patient.dateNaissance)} · {fmtDate(patient.dateNaissance)}</p>
-              <div className="mt-2"><Badge color={patient.sexe==='F'?'red':'blue'}>{patient.sexe==='F'?'Féminin':'Masculin'}</Badge></div>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--navy)',lineHeight:1.2}}>{patient.prenom} {patient.nom}</h2>
+              <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>{ageStr(patient.dateNaissance)} · {fmtDate(patient.dateNaissance)}</p>
+              <div style={{marginTop:'8px'}}><Badge color={patient.sexe==='F'?'red':'blue'}>{patient.sexe==='F'?'Féminin':'Masculin'}</Badge></div>
             </div>
-            <div className="border-t border-slate-100 pt-4 space-y-2">
+            <div style={{borderTop:'1px solid var(--border)',paddingTop:'16px',display:'flex',flexDirection:'column',gap:'8px'}}>
               {patient.telephone&&(
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0"><Ic.Users className="w-3.5 h-3.5 text-slate-500"/></div>
-                  <a href={`https://wa.me/${patient.telephone.replace(/\s/g,'')}`} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{patient.telephone}</a>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Ic.Users style={{width:'13px',height:'13px',color:'var(--muted)'}}/></div>
+                  <a href={`https://wa.me/${patient.telephone.replace(/\s/g,'')}`} target="_blank" rel="noreferrer" style={{fontSize:'13px',color:'var(--green)',fontWeight:400,textDecoration:'none'}}>{patient.telephone}</a>
                 </div>
               )}
               {patient.telephone2&&(
-                <div className="flex items-center gap-2 text-sm">
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0"><Ic.Users className="w-3.5 h-3.5 text-slate-500"/></div>
-                  <a href={`https://wa.me/${patient.telephone2.replace(/\s/g,'')}`} target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline font-medium">{patient.telephone2}</a>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Ic.Users style={{width:'13px',height:'13px',color:'var(--muted)'}}/></div>
+                  <a href={`https://wa.me/${patient.telephone2.replace(/\s/g,'')}`} target="_blank" rel="noreferrer" style={{fontSize:'13px',color:'var(--green)',fontWeight:400,textDecoration:'none'}}>{patient.telephone2}</a>
                 </div>
               )}
               {patient.email&&(
-                <div className="flex items-center gap-2 text-sm text-slate-600">
-                  <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0"><Ic.Mail className="w-3.5 h-3.5 text-slate-500"/></div>
-                  <a href={`mailto:${patient.email}`} className="text-blue-600 hover:underline truncate">{patient.email}</a>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Ic.Mail style={{width:'13px',height:'13px',color:'var(--muted)'}}/></div>
+                  <a href={`mailto:${patient.email}`} style={{fontSize:'13px',color:'var(--gold)',fontWeight:300,textDecoration:'none',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{patient.email}</a>
                 </div>
               )}
-              {patient.adresse&&<div className="flex items-center gap-2 text-sm text-slate-600"><div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0"><Ic.Map className="w-3.5 h-3.5 text-slate-500"/></div>{patient.adresse}</div>}
+              {patient.adresse&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Ic.Map style={{width:'13px',height:'13px',color:'var(--muted)'}}/></div><span style={{fontSize:'13px',color:'var(--charcoal)',fontWeight:300}}>{patient.adresse}</span></div>}
             </div>
             {(patient.typeAssurance||patient.numAssurance)&&(
-              <div className="border-t border-slate-100 pt-4 mt-2">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Assurance</p>
-                {patient.typeAssurance&&<div className="flex items-center justify-between text-sm"><span className="text-slate-500">Type</span><Badge color={patient.typeAssurance==='Aucune'?'gray':patient.typeAssurance.startsWith('Privée')?'violet':'teal'}>{patient.typeAssurance}</Badge></div>}
-                {patient.numAssurance&&<p className="text-xs text-slate-400 font-mono mt-1">{patient.numAssurance}</p>}
+              <div style={{borderTop:'1px solid var(--border)',paddingTop:'16px',marginTop:'8px'}}>
+                <p className="eyebrow" style={{marginBottom:'10px'}}>Assurance</p>
+                {patient.typeAssurance&&<div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}><span style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Type</span><Badge color={patient.typeAssurance==='Aucune'?'gray':patient.typeAssurance.startsWith('Privée')?'violet':'teal'}>{patient.typeAssurance}</Badge></div>}
+                {patient.numAssurance&&<p style={{fontSize:'11px',color:'var(--muted)',fontFamily:'monospace',marginTop:'6px'}}>{patient.numAssurance}</p>}
               </div>
             )}
           </div>
 
           {/* Informations médicales étendues */}
           {[
-            {label:'Antécédents médicaux',val:patient.antecedents,color:'bg-amber-50 border-amber-100',dot:'bg-amber-400'},
-            {label:'Antécédents familiaux',val:patient.antecedents_familiaux,color:'bg-orange-50 border-orange-100',dot:'bg-orange-400'},
-            {label:'Antécédents chirurgicaux',val:patient.antecedents_chirurgicaux,color:'bg-yellow-50 border-yellow-100',dot:'bg-yellow-400'},
-            {label:'Allergies',val:patient.allergies,color:'bg-rose-50 border-rose-100',dot:'bg-rose-400'},
-            {label:'Intolérances médicamenteuses',val:patient.intolerances,color:'bg-pink-50 border-pink-100',dot:'bg-pink-400'},
-            {label:'Facteurs de risque',val:patient.facteurs_risque,color:'bg-red-50 border-red-100',dot:'bg-red-400'},
-            {label:'Vaccinations',val:patient.vaccinations,color:'bg-teal-50 border-teal-100',dot:'bg-teal-400'},
-          ].filter(({val})=>val).map(({label,val,color,dot})=>(
-            <div key={label} className={`border rounded-2xl p-4 ${color}`}>
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-2 h-2 rounded-full ${dot}`}/>
-                <p className="text-xs font-bold text-slate-600 uppercase tracking-wide">{label}</p>
-              </div>
-              <p className="text-sm text-slate-700 leading-relaxed">{val}</p>
+            {label:'Antécédents médicaux',val:patient.antecedents,accent:'var(--gold)'},
+            {label:'Antécédents familiaux',val:patient.antecedents_familiaux,accent:'var(--gold-light)'},
+            {label:'Antécédents chirurgicaux',val:patient.antecedents_chirurgicaux,accent:'var(--muted)'},
+            {label:'Allergies',val:patient.allergies,accent:'var(--accent)'},
+            {label:'Intolérances médicamenteuses',val:patient.intolerances,accent:'var(--accent)'},
+            {label:'Facteurs de risque',val:patient.facteurs_risque,accent:'var(--accent)'},
+            {label:'Vaccinations',val:patient.vaccinations,accent:'var(--green)'},
+          ].filter(({val})=>val).map(({label,val,accent})=>(
+            <div key={label} style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:`3px solid ${accent}`,padding:'16px 20px'}}>
+              <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:accent,fontWeight:500,marginBottom:'8px'}}>{label}</p>
+              <p style={{fontSize:'13px',color:'var(--charcoal)',fontWeight:300,lineHeight:1.7}}>{val}</p>
             </div>
           ))}
 
           {/* Traitements chroniques en cours */}
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Ic.Pill className="w-4 h-4 text-blue-600"/>
-              <p className="text-xs font-bold text-blue-700 uppercase tracking-wide">Traitements chroniques</p>
+          <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'16px 20px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'12px'}}>
+              <Ic.Pill style={{width:'14px',height:'14px',color:'var(--navy)'}}/>
+              <p className="eyebrow" style={{color:'var(--navy)'}}>Traitements chroniques</p>
             </div>
             {patient.traitements?(
-              <div className="space-y-1.5">
+              <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                 {patient.traitements.split(/[,;\n]+/).filter(t=>t.trim()).map((t,i)=>(
-                  <div key={i} className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"/>
-                    <span className="text-sm text-slate-700 leading-snug">{t.trim()}</span>
+                  <div key={i} style={{display:'flex',alignItems:'flex-start',gap:'8px'}}>
+                    <span style={{width:'4px',height:'4px',borderRadius:'50%',background:'var(--gold)',marginTop:'7px',flexShrink:0}}/>
+                    <span style={{fontSize:'12px',color:'var(--charcoal)',fontWeight:300,lineHeight:1.5}}>{t.trim()}</span>
                   </div>
                 ))}
               </div>
-            ):<span className="text-slate-400 italic text-sm">Non renseigné</span>}
+            ):<span style={{fontSize:'12px',color:'var(--muted)',fontStyle:'italic',fontWeight:300}}>Non renseigné</span>}
           </div>
 
           {/* 3 dernières ordonnances */}
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2">
-              <Ic.Rx className="w-4 h-4 text-violet-600"/>
-              <p className="text-xs font-bold text-slate-600 uppercase tracking-wide flex-1">Dernières ordonnances</p>
-              {prescriptions.length>0&&<span className="text-xs text-slate-400">{prescriptions.length} au total</span>}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{padding:'12px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+              <Ic.Rx style={{width:'14px',height:'14px',color:'var(--gold)'}}/>
+              <p className="eyebrow" style={{flex:1}}>Dernières ordonnances</p>
+              {prescriptions.length>0&&<span style={{fontSize:'10px',color:'var(--muted)',fontWeight:300}}>{prescriptions.length} au total</span>}
             </div>
             {prescriptions.length===0?(
-              <div className="px-4 py-5 text-center"><p className="text-xs text-slate-400 italic">Aucune ordonnance validée</p></div>
+              <div style={{padding:'20px',textAlign:'center'}}><p style={{fontSize:'12px',color:'var(--muted)',fontStyle:'italic',fontWeight:300}}>Aucune ordonnance validée</p></div>
             ):(
-              <div className="divide-y divide-slate-50">
+              <div>
                 {prescriptions.slice(0,3).map((rx,idx)=>(
                   <div key={rx.id}>
                     <button onClick={()=>setRxExpanded(rxExpanded===idx?null:idx)}
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 text-left">
-                      <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
-                        <Ic.Rx className="w-4 h-4 text-violet-600"/>
+                      className="data-row w-full text-left" style={{padding:'12px 20px',display:'flex',alignItems:'center',gap:'12px',background:'none',border:'none',cursor:'pointer'}}>
+                      <div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <Ic.Rx style={{width:'13px',height:'13px',color:'var(--gold)'}}/>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-800 truncate">{rx.motif}</p>
-                        <p className="text-xs text-slate-400">{new Date(rx.date).toLocaleDateString('fr-FR')}</p>
+                      <div style={{flex:1,minWidth:0}}>
+                        <p style={{fontSize:'12px',fontWeight:400,color:'var(--navy)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{rx.motif}</p>
+                        <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>{new Date(rx.date).toLocaleDateString('fr-FR')}</p>
                       </div>
-                      <div className="flex items-center gap-1.5">
+                      <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                         <Badge color="green" size="xs">Validée</Badge>
-                        <svg className={`w-3.5 h-3.5 text-slate-300 transition-transform ${rxExpanded===idx?'rotate-90':''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7"/></svg>
+                        <Ic.Chevron style={{width:'12px',height:'12px',color:'var(--light)',transform:rxExpanded===idx?'rotate(90deg)':'none'}}/>
                       </div>
                     </button>
                     {rxExpanded===idx&&(
-                      <div className="px-4 pb-3 pt-1 bg-violet-50/50 space-y-1.5">
+                      <div style={{padding:'8px 20px 12px',background:'var(--cream)',borderTop:'1px solid var(--border)',display:'flex',flexDirection:'column',gap:'6px'}}>
                         {rx.lignes.map((l,j)=>(
-                          <div key={j} className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 flex-shrink-0"/>
+                          <div key={j} style={{display:'flex',alignItems:'flex-start',gap:'8px'}}>
+                            <span style={{width:'4px',height:'4px',borderRadius:'50%',background:'var(--gold)',marginTop:'6px',flexShrink:0}}/>
                             <div>
-                              <span className="text-xs font-semibold text-slate-700">{l.medicament}</span>
-                              {l.posologie&&<span className="text-xs text-slate-500 ml-1">— {l.posologie}</span>}
-                              {l.duree&&<span className="text-xs text-slate-400"> ({l.duree})</span>}
+                              <span style={{fontSize:'12px',fontWeight:400,color:'var(--navy)'}}>{l.medicament}</span>
+                              {l.posologie&&<span style={{fontSize:'11px',color:'var(--charcoal)',marginLeft:'4px',fontWeight:300}}>— {l.posologie}</span>}
+                              {l.duree&&<span style={{fontSize:'10px',color:'var(--muted)'}}> ({l.duree})</span>}
                             </div>
                           </div>
                         ))}
-                        <div className="pt-1 flex gap-2">
-                          <button onClick={async()=>{const r=await fetch(`${API}/consultations/${rx.consultationId}/prescription/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='ordonnance.pdf';a.click();URL.revokeObjectURL(url);}} className="text-xs text-blue-600 hover:underline font-medium">Télécharger PDF</button>
+                        <div style={{paddingTop:'6px'}}>
+                          <button onClick={async()=>{const r=await fetch(`${API}/consultations/${rx.consultationId}/prescription/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='ordonnance.pdf';a.click();URL.revokeObjectURL(url);}} style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,background:'none',border:'none',cursor:'pointer'}}>Télécharger PDF</button>
                         </div>
                       </div>
                     )}
@@ -1832,17 +1912,22 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
         {/* Right */}
         <div className="lg:col-span-2 space-y-5">
           {/* New consultation */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-semibold text-slate-900 mb-4 flex items-center gap-2"><Ic.Steth className="w-4 h-4 text-blue-600"/>Démarrer une consultation</h3>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px 28px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
+              <Ic.Steth style={{width:'14px',height:'14px',color:'var(--gold)'}}/>
+              <p className="eyebrow">Démarrer une consultation</p>
+            </div>
             {!showForm?(
               <button onClick={()=>setShowForm(true)}
-                className="w-full border-2 border-dashed border-blue-200 rounded-2xl py-5 text-blue-600 font-semibold hover:border-blue-400 hover:bg-blue-50/50 text-sm flex items-center justify-center gap-2 transition-colors">
-                <Ic.Plus className="w-4 h-4"/>Ouvrir une consultation
+                style={{width:'100%',border:'1px dashed var(--border)',padding:'20px',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',fontWeight:400,background:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',transition:'border-color .15s,color .15s'}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--gold)';e.currentTarget.style.color='var(--gold)';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.color='var(--muted)';}}>
+                <Ic.Plus style={{width:'14px',height:'14px'}}/>Ouvrir une consultation
               </button>
             ):(
-              <div className="space-y-3">
+              <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
                 <Input value={motif} onChange={e=>setMotif(e.target.value)} placeholder="Motif de consultation (ex: céphalées, suivi diabète, renouvellement ordonnance…)"/>
-                <div className="flex gap-2">
+                <div style={{display:'flex',gap:'8px'}}>
                   <Btn variant="secondary" onClick={()=>setShowForm(false)} size="sm">Annuler</Btn>
                   <Btn variant="primary" onClick={start} loading={starting} icon={Ic.Mic} disabled={!motif.trim()}>Ouvrir la consultation</Btn>
                 </div>
@@ -1857,37 +1942,39 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
           <ImagingSection patientId={patientId}/>
 
           {/* History */}
-          <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden" id="history-card">
-            <div className="px-6 py-4 border-b border-slate-100">
-              <h3 className="font-semibold text-slate-900">Historique des consultations</h3>
-              <p className="text-xs text-slate-400 mt-0.5">Tous les médecins de l'établissement</p>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{padding:'16px 24px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div>
+                <p className="eyebrow">Historique des consultations</p>
+                <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300,marginTop:'3px'}}>Tous les médecins de l'établissement</p>
+              </div>
             </div>
             {!patient.consultations?.length?(
-              <div className="px-6 py-10 text-center">
-                <Ic.Clock className="w-8 h-8 text-slate-200 mx-auto mb-2"/>
-                <p className="text-sm text-slate-400">Aucune consultation enregistrée</p>
+              <div style={{padding:'40px',textAlign:'center'}}>
+                <Ic.Clock style={{width:'32px',height:'32px',margin:'0 auto 8px',opacity:0.2,color:'var(--navy)'}}/>
+                <p style={{fontSize:'13px',color:'var(--muted)',fontWeight:300}}>Aucune consultation enregistrée</p>
               </div>
             ):(
-              <div className="divide-y divide-slate-50">
+              <div>
                 {patient.consultations.map(c=>{
                   const {l,c:col}=statusInfo(c.statut);
                   const hasNote=c.statut==='validee'||c.statut==='note_generee';
                   const isMe=c.userId===userId;
                   return(
                     <div key={c.id} onClick={()=>hasNote&&setNoteModal(c)}
-                      className={`px-6 py-4 flex items-start gap-4 ${hasNote?'cursor-pointer hover:bg-blue-50/40':'hover:bg-slate-50/50'}`}>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900">{c.motif}</p>
-                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1"><Ic.Clock className="w-3 h-3"/>{fmtDateLong(c.date)}</p>
+                      className="data-row" style={{padding:'14px 24px',display:'flex',alignItems:'flex-start',gap:'16px',cursor:hasNote?'pointer':'default'}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <p style={{fontSize:'13px',fontWeight:400,color:'var(--navy)'}}>{c.motif}</p>
+                        <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300,marginTop:'3px',display:'flex',alignItems:'center',gap:'4px'}}><Ic.Clock style={{width:'10px',height:'10px'}}/>{fmtDateLong(c.date)}</p>
                         {c.docteurNom&&(
-                          <p className={`text-xs mt-1 font-medium ${isMe?'text-blue-500':'text-violet-500'}`}>
+                          <p style={{fontSize:'10px',marginTop:'4px',fontWeight:400,color:isMe?'var(--gold)':'var(--muted)'}}>
                             Dr. {c.docteurPrenom} {c.docteurNom}{c.docteurSpec?` — ${c.docteurSpec}`:''}{isMe?' (vous)':''}
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
+                      <div style={{display:'flex',alignItems:'center',gap:'8px',flexShrink:0,marginTop:'2px'}}>
                         <Badge color={col} size="xs">{l}</Badge>
-                        {hasNote&&<Ic.Chevron className="w-4 h-4 text-slate-300"/>}
+                        {hasNote&&<Ic.Chevron style={{width:'14px',height:'14px',color:'var(--light)'}}/>}
                       </div>
                     </div>
                   );
@@ -1896,10 +1983,10 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
             )}
           </div>
           {/* Dossier complet */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'20px 24px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'16px'}}>
             <div>
-              <p className="text-sm font-semibold text-slate-800">Dossier médical complet</p>
-              <p className="text-xs text-slate-400 mt-0.5">Identité, antécédents, ordonnances, consultations — tout en un PDF</p>
+              <p style={{fontSize:'13px',fontWeight:400,color:'var(--navy)'}}>Dossier médical complet</p>
+              <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'3px'}}>Identité, antécédents, ordonnances, consultations — tout en un PDF</p>
             </div>
             <Btn variant="secondary" icon={Ic.Download} onClick={downloadDossier} loading={dossDlLoading} size="sm">Télécharger</Btn>
           </div>
@@ -1947,12 +2034,14 @@ function DrugSearch({value,onChange}){
         onFocus={()=>setOpen(true)}
         onBlur={()=>setTimeout(()=>setOpen(false),200)}
         placeholder="Médicament / DCI (ex: Amoxicilline 500mg)"
-        className="w-full border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+        style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
       {open&&suggestions.length>0&&(
-        <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl z-30 overflow-hidden">
+        <div style={{position:'absolute',left:0,right:0,top:'100%',marginTop:'2px',background:'var(--white)',border:'1px solid var(--border)',zIndex:30,overflow:'hidden',boxShadow:'0 4px 16px rgba(26,35,50,0.08)'}}>
           {suggestions.map(d=>(
             <button key={d} onMouseDown={()=>pick(d)}
-              className="w-full text-left px-3 py-2 text-sm hover:bg-blue-50 hover:text-blue-700 text-slate-700">{d}</button>
+              style={{width:'100%',textAlign:'left',padding:'8px 12px',fontSize:'13px',color:'var(--text)',background:'var(--white)',border:'none',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}
+              onMouseEnter={e=>e.currentTarget.style.background='var(--cream)'}
+              onMouseLeave={e=>e.currentTarget.style.background='var(--white)'}>{d}</button>
           ))}
         </div>
       )}
@@ -1994,24 +2083,26 @@ function PrescriptionPanel({consultationId}){
       {!validee&&(
         <div className="space-y-3 mb-4">
           {lignes.map((l,i)=>(
-            <div key={i} className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-400">{i+1}.</span>
-                <button onClick={()=>del(i)} className="w-6 h-6 rounded-lg hover:bg-rose-100 flex items-center justify-center text-slate-400 hover:text-rose-500"><Ic.Trash className="w-3.5 h-3.5"/></button>
+            <div key={i} style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px',marginBottom:'12px'}}>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                <span style={{fontSize:'11px',fontWeight:600,color:'var(--gold)',letterSpacing:'0.1em'}}>{String(i+1).padStart(2,'0')}</span>
+                <button onClick={()=>del(i)} style={{width:'24px',height:'24px',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}><Ic.Trash style={{width:'12px',height:'12px'}}/></button>
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 <DrugSearch value={l.medicament} onChange={v=>upd(i,'medicament',v)}/>
                 <input value={l.posologie} onChange={e=>upd(i,'posologie',e.target.value)} placeholder="Posologie"
-                  className="col-span-2 border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  style={{gridColumn:'span 2',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
                 <input value={l.duree} onChange={e=>upd(i,'duree',e.target.value)} placeholder="Durée"
-                  className="border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  style={{border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
                 <input value={l.quantite} onChange={e=>upd(i,'quantite',e.target.value)} placeholder="Quantité"
-                  className="border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  style={{border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
               </div>
             </div>
           ))}
           <button onClick={addLigne}
-            className="w-full border-2 border-dashed border-slate-200 hover:border-blue-300 hover:bg-blue-50/50 rounded-xl py-3 text-sm text-slate-400 hover:text-blue-600 font-medium transition-colors flex items-center justify-center gap-2">
+            style={{width:'100%',border:'1px dashed var(--border)',padding:'12px 0',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',fontFamily:"'DM Sans',sans-serif"}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--gold)';e.currentTarget.style.color='var(--gold)';}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.color='var(--muted)';}}>
             <Ic.Plus className="w-4 h-4"/>Ajouter un médicament
           </button>
         </div>
@@ -2137,11 +2228,11 @@ function ConsultationScreen({consultationId,patientId,onBack}){
 
   const NF=({label,field,ta=true,alert=false})=>(
     <div>
-      <label className={`block text-xs font-bold uppercase tracking-widest mb-1.5 ${alert?'text-rose-600':'text-slate-500'}`}>{label}</label>
+      <label style={{display:'block',fontSize:'10px',fontWeight:600,letterSpacing:'0.2em',textTransform:'uppercase',marginBottom:'6px',color:alert?'var(--accent)':'var(--muted)'}}>{label}</label>
       {ta?<textarea value={noteEdit?.[field]||''} onChange={e=>setNoteEdit(n=>({...n,[field]:e.target.value}))} rows={3} disabled={validated}
-          className={`w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 resize-none disabled:opacity-70 ${alert?'border-rose-200 bg-rose-50/50 focus:ring-rose-400':'border-slate-200 focus:ring-blue-500'}`}/>
+          style={{width:'100%',border:`1px solid ${alert?'rgba(180,60,40,0.3)':'var(--border)'}`,borderLeft:alert?'3px solid var(--accent)':'1px solid var(--border)',background:alert?'#fdf5f3':'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",resize:'none',outline:'none',opacity:validated?0.7:1}}/>
         :<input value={noteEdit?.[field]||''} onChange={e=>setNoteEdit(n=>({...n,[field]:e.target.value}))} disabled={validated}
-          className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-70"/>}
+          style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none',opacity:validated?0.7:1}}/>}
     </div>
   );
 
@@ -2154,8 +2245,8 @@ function ConsultationScreen({consultationId,patientId,onBack}){
       {/* Email modal */}
       {emailModal&&(
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md mx-4 fade-in">
-            <h3 className="font-bold text-slate-900 mb-4">Envoyer le compte rendu par email</h3>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'448px',margin:'0 16px',padding:'28px 32px',border:'1px solid var(--border)'}} className="fade-in">
+            <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:400,color:'var(--navy)',marginBottom:'20px'}}>Envoyer le compte rendu par email</h3>
             <Input label="Adresse email du destinataire" type="email" value={emailTo} onChange={e=>setEmailTo(e.target.value)} placeholder="patient@email.fr ou confrere@hopital.fr"/>
             <div className="flex gap-3 mt-4">
               <Btn variant="secondary" onClick={()=>setEmailModal(false)}>Annuler</Btn>
@@ -2171,63 +2262,63 @@ function ConsultationScreen({consultationId,patientId,onBack}){
 
           {/* Patient card */}
           {patient&&(
-            <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-12 h-12 rounded-2xl ${avatarColor(patient.sexe)} flex items-center justify-center text-white font-bold`}>
+            <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'16px'}}>
+                <div style={{width:'44px',height:'44px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--gold-light)',fontFamily:"'Cormorant Garamond',serif",fontSize:'16px',fontWeight:400,flexShrink:0}}>
                   {initials(patient.prenom,patient.nom)}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900">{patient.prenom} {patient.nom}</p>
-                  <p className="text-xs text-slate-400">{ageStr(patient.dateNaissance)}</p>
+                  <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'17px',fontWeight:400,color:'var(--navy)'}}>{patient.prenom} {patient.nom}</p>
+                  <p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>{ageStr(patient.dateNaissance)}</p>
                 </div>
               </div>
-              {consultation?.motif&&<div className="bg-blue-50 border border-blue-100 rounded-xl px-3 py-2 mb-3"><p className="text-xs text-blue-700 font-semibold">Motif : {consultation.motif}</p>{consultation?.dureeMinutes&&<span className="text-xs text-slate-400">Durée : {consultation.dureeMinutes} min</span>}</div>}
-              {patient.allergies&&<div className="flex items-start gap-2 text-xs text-rose-700 bg-rose-50 rounded-xl px-3 py-2"><Ic.Warn className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"/><span><strong>Allergies : </strong>{patient.allergies}</span></div>}
-              {patient.traitements&&<p className="text-xs text-slate-500 mt-2"><strong>Traitements : </strong>{patient.traitements}</p>}
+              {consultation?.motif&&<div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'8px 12px',marginBottom:'12px'}}><p style={{fontSize:'12px',color:'var(--navy)',fontWeight:500}}>Motif : {consultation.motif}</p>{consultation?.dureeMinutes&&<span style={{fontSize:'11px',color:'var(--muted)'}}>Durée : {consultation.dureeMinutes} min</span>}</div>}
+              {patient.allergies&&<div style={{display:'flex',alignItems:'flex-start',gap:'8px',fontSize:'12px',color:'var(--accent)',background:'#fdf5f3',border:'1px solid rgba(180,60,40,0.2)',borderLeft:'3px solid var(--accent)',padding:'8px 12px'}}><Ic.Warn style={{width:'12px',height:'12px',flexShrink:0,marginTop:'1px'}}/><span><strong>Allergies : </strong>{patient.allergies}</span></div>}
+              {patient.traitements&&<p style={{fontSize:'11px',color:'var(--muted)',marginTop:'8px'}}><strong>Traitements : </strong>{patient.traitements}</p>}
             </div>
           )}
 
           {/* Consent */}
-          <label className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer ${consent?'bg-emerald-50 border-emerald-200':'bg-amber-50 border-amber-200'}`}>
-            <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} className="mt-0.5 accent-emerald-600 w-4 h-4"/>
+          <label style={{display:'flex',alignItems:'flex-start',gap:'12px',padding:'16px',border:'1px solid var(--border)',borderLeft:consent?'3px solid #4a7c59':'3px solid var(--gold)',background:consent?'#f0f7f4':'var(--gold-pale)',cursor:'pointer'}}>
+            <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} style={{marginTop:'2px',width:'14px',height:'14px',accentColor:'var(--navy)'}}/>
             <div>
-              <p className={`text-sm font-semibold ${consent?'text-emerald-800':'text-amber-800'}`}>{consent?'✓ Consentement enregistré':'Consentement d\'enregistrement'}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Le patient a été informé et consent à l'enregistrement audio.</p>
+              <p style={{fontSize:'13px',fontWeight:500,color:'var(--navy)'}}>{consent?'✓ Consentement enregistré':'Consentement d\'enregistrement'}</p>
+              <p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>Le patient a été informé et consent à l'enregistrement audio.</p>
             </div>
           </label>
 
           {/* Recorder */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm text-center">
-            <div className="flex justify-center mb-4">
-              <div className="relative">
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px',textAlign:'center'}}>
+            <div style={{display:'flex',justifyContent:'center',marginBottom:'16px'}}>
+              <div style={{position:'relative'}}>
                 {recording?(
-                  <button onClick={stopRec} className="w-24 h-24 rounded-full bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center pulse-ring shadow-xl shadow-rose-200">
-                    <Ic.Stop className="w-8 h-8"/>
+                  <button onClick={stopRec} style={{width:'80px',height:'80px',background:'var(--accent)',color:'var(--white)',display:'flex',alignItems:'center',justifyContent:'center',border:'none',cursor:'pointer'}}>
+                    <Ic.Stop style={{width:'28px',height:'28px'}}/>
                   </button>
                 ):(
                   <button onClick={startRec} disabled={processing}
-                    className={`w-24 h-24 rounded-full text-white flex items-center justify-center shadow-xl ${processing?'bg-slate-300':'bg-blue-600 hover:bg-blue-700 shadow-blue-200'}`}
-                    style={!processing?{background:'linear-gradient(135deg,#3B82F6,#6366F1)'}:{}}>
+                    className={`w-24 h-24 text-white flex items-center justify-center ${processing?'bg-slate-300':''}`}
+                    style={!processing?{background:'var(--navy)'}:{background:'var(--muted)'}}>
                     {processing?<Ic.Spin className="w-8 h-8 text-slate-600"/>:<Ic.Mic className="w-8 h-8"/>}
                   </button>
                 )}
               </div>
             </div>
             {recording&&(
-              <div className="flex flex-col items-center justify-center gap-1 text-rose-600">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"/>
-                  <span className="font-mono text-sm font-bold">REC {fmt(audioTime)}</span>
+              <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'4px',color:'var(--accent)'}}>
+                <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                  <span style={{width:'8px',height:'8px',background:'var(--accent)',display:'inline-block'}}/>
+                  <span style={{fontFamily:'monospace',fontSize:'13px',fontWeight:700,color:'var(--navy)'}}>REC {fmt(audioTime)}</span>
                 </div>
-                {heureDebut&&<span className="text-xs text-rose-400">Début : {new Date(heureDebut).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>}
+                {heureDebut&&<span style={{fontSize:'11px',color:'var(--muted)'}}>Début : {new Date(heureDebut).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>}
               </div>
             )}
-            {processing&&<p className="text-sm text-slate-400 mt-2">Traitement en cours…</p>}
+            {processing&&<p style={{fontSize:'13px',color:'var(--muted)',marginTop:'8px'}}>Traitement en cours…</p>}
             {!recording&&!processing&&(
               <div>
-                <p className="text-sm font-medium text-slate-700">{consent?'Prêt à enregistrer':'Activez le consentement'}</p>
-                {realtimeOk&&consent&&<p className="text-xs text-emerald-600 mt-1">● Transcription temps réel activée</p>}
-                {!realtimeOk&&consent&&<p className="text-xs text-amber-600 mt-1">● Transcription via Whisper — mise à jour toutes les 30s</p>}
+                <p style={{fontSize:'13px',color:'var(--navy)',fontFamily:"'DM Sans',sans-serif"}}>{consent?'Prêt à enregistrer':'Activez le consentement'}</p>
+                {realtimeOk&&consent&&<p style={{fontSize:'11px',color:'#4a7c59',marginTop:'4px'}}>● Transcription temps réel activée</p>}
+                {!realtimeOk&&consent&&<p style={{fontSize:'11px',color:'var(--gold)',marginTop:'4px'}}>● Transcription via Whisper — mise à jour toutes les 30s</p>}
               </div>
             )}
           </div>
@@ -2237,14 +2328,14 @@ function ConsultationScreen({consultationId,patientId,onBack}){
         <div className="lg:col-span-3 space-y-4">
 
           {/* Transcription */}
-          <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-slate-900">Transcription</h3>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+              <p className="eyebrow">Transcription</p>
               {transcription&&!note&&(
                 <Btn variant="success" icon={processing?null:Ic.Steth} onClick={genNote} loading={processing} size="sm">Générer la note</Btn>
               )}
             </div>
-            <div className="min-h-36 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-mono leading-relaxed">
+            <div style={{minHeight:'144px',background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 16px',fontSize:'13px',fontFamily:'monospace',lineHeight:1.6}}>
               {transcription&&<span className="text-slate-800 whitespace-pre-wrap">{transcription}</span>}
               {interim&&<span className="interim"> {interim}</span>}
               {!transcription&&!interim&&<span className="text-slate-400 italic text-sm">{recording?(realtimeOk?'🎙 Parlez, la transcription s\'affiche ici en temps réel…':'🎙 Enregistrement en cours — la transcription sera générée toutes les 30s…'):'La transcription apparaîtra ici après l\'enregistrement.'}</span>}
@@ -2253,19 +2344,19 @@ function ConsultationScreen({consultationId,patientId,onBack}){
               <div className="mt-2">
                 <p className="text-xs text-slate-400 mb-1">Corriger si nécessaire :</p>
                 <textarea value={transcription} onChange={e=>updTx(e.target.value)} rows={3}
-                  className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-400 resize-none bg-white"/>
+                  style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',color:'var(--text)',fontFamily:"'DM Sans',sans-serif",resize:'none',outline:'none'}}/>
               </div>
             )}
-            {transcription&&note&&!validated&&<button onClick={genNote} disabled={processing} className="mt-1 text-xs text-blue-600 hover:underline">Regénérer la note</button>}
+            {transcription&&note&&!validated&&<button onClick={genNote} disabled={processing} style={{fontSize:'11px',color:'var(--gold)',letterSpacing:'0.08em',textDecoration:'underline',background:'none',border:'none',cursor:'pointer',marginTop:'4px'}}>Regénérer la note</button>}
           </div>
 
           {/* Note + Prescription tabs */}
           {note&&(
-            <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden fade-in">
+            <div style={{background:'var(--white)',border:'1px solid var(--border)'}} className="fade-in">
               <div className="flex border-b border-slate-100">
                 {[['note','📋 Note clinique'],['prescription','💊 Ordonnance']].map(([k,l])=>(
                   <button key={k} onClick={()=>setTab(k)}
-                    className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${tab===k?'text-blue-600 border-b-2 border-blue-600 bg-blue-50/40':'text-slate-400 hover:text-slate-700 hover:bg-slate-50/50'}`}>
+                    style={tab===k?{borderBottom:'2px solid var(--gold)',color:'var(--navy)',background:'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:'13px',padding:'14px 0',flex:1}:{borderBottom:'2px solid transparent',color:'var(--muted)',background:'var(--white)',fontFamily:"'DM Sans',sans-serif",fontWeight:400,fontSize:'13px',padding:'14px 0',flex:1}}>
                     {l}
                   </button>
                 ))}
@@ -2295,17 +2386,17 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                   </div>
 
                   {!validated&&(
-                    <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 flex items-start gap-2.5">
-                      <Ic.Warn className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5"/>
-                      <p className="text-xs text-amber-800 font-medium">Proposition générée par IA — vérifiez et corrigez avant de valider.</p>
+                    <div style={{marginBottom:'16px',background:'var(--gold-pale)',border:'1px solid rgba(184,147,90,0.3)',borderLeft:'3px solid var(--gold)',padding:'10px 16px',display:'flex',alignItems:'flex-start',gap:'10px'}}>
+                      <Ic.Warn style={{width:'14px',height:'14px',color:'var(--gold)',flexShrink:0,marginTop:'1px'}}/>
+                      <p style={{fontSize:'12px',color:'var(--navy)',fontFamily:"'DM Sans',sans-serif"}}>Proposition générée par IA — vérifiez et corrigez avant de valider.</p>
                     </div>
                   )}
 
                   {noteEdit?.cim10?.code&&(
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="inline-flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-xl px-4 py-2">
-                        <span className="text-xs font-bold text-violet-700 bg-violet-100 px-2 py-0.5 rounded-lg font-mono">{noteEdit.cim10.code}</span>
-                        <span className="text-sm text-violet-700 font-medium">{noteEdit.cim10.libelle}</span>
+                      <span style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'8px 16px'}}>
+                        <span style={{fontSize:'11px',fontWeight:700,color:'var(--navy)',background:'var(--gold-pale)',padding:'2px 8px',fontFamily:'monospace'}}>{noteEdit.cim10.code}</span>
+                        <span style={{fontSize:'13px',color:'var(--navy)'}}>{noteEdit.cim10.libelle}</span>
                       </span>
                       <span className="text-xs text-slate-400">Code CIM-10</span>
                     </div>
@@ -2321,9 +2412,9 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                     <NF label="Conseils au patient" field="conseils_patient"/>
                     <NF label="⚠ Signes d'alarme" field="drapeaux_rouges" alert/>
                     {noteEdit?.conseils_patient&&(
-                      <div className="mt-4 bg-blue-50 border border-blue-200 rounded-2xl p-4">
-                        <p className="text-xs font-bold text-blue-700 uppercase tracking-widest mb-2">Recommandations MedPilot</p>
-                        <p className="text-sm text-blue-900 leading-relaxed">{noteEdit.conseils_patient}</p>
+                      <div style={{marginTop:'16px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 20px'}}>
+                        <p className="eyebrow" style={{marginBottom:'8px'}}>Recommandations MedPilot</p>
+                        <p style={{fontSize:'13px',color:'var(--text)',lineHeight:1.6}}>{noteEdit.conseils_patient}</p>
                       </div>
                     )}
                   </div>
@@ -2350,22 +2441,22 @@ function AgePyramideChart({groups}){
   const scale=v=>(midX-labelW-16)*v/maxVal;
   return(
     <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
-      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#3B82F6" fontWeight="500">Hommes</text>
-      <text x={midX+(midX-labelW)/2+labelW} y={14} textAnchor="middle" fontSize={11} fill="#ec4899" fontWeight="bold">Femmes</text>
+      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#1A2332" fontWeight="400">Hommes</text>
+      <text x={midX+(midX-labelW)/2+labelW} y={14} textAnchor="middle" fontSize={11} fill="#B8935A" fontWeight="400">Femmes</text>
       {groups.map((g,i)=>{
         const y=20+i*(barH+gap);
         const hw=scale(g.h), fw=scale(g.f);
         return(
           <g key={g.label}>
-            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={3} fill="#3B82F6" opacity={0.8}/>
-            <rect x={midX+labelW} y={y} width={fw} height={barH} rx={3} fill="#ec4899" opacity={0.8}/>
-            <text x={midX} y={y+barH/2+4} textAnchor="middle" fontSize={10} fill="#64748b">{g.label}</text>
-            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#3B82F6">{g.h}</text>
-            <text x={midX+labelW+fw+4} y={y+barH/2+4} textAnchor="start" fontSize={9} fill="#ec4899">{g.f}</text>
+            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={0} fill="#1A2332" opacity={0.85}/>
+            <rect x={midX+labelW} y={y} width={fw} height={barH} rx={0} fill="#B8935A" opacity={0.85}/>
+            <text x={midX} y={y+barH/2+4} textAnchor="middle" fontSize={10} fill="#8A8A8A">{g.label}</text>
+            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#1A2332">{g.h}</text>
+            <text x={midX+labelW+fw+4} y={y+barH/2+4} textAnchor="start" fontSize={9} fill="#B8935A">{g.f}</text>
           </g>
         );
       })}
-      <line x1={midX} y1={16} x2={midX} y2={H-8} stroke="#e2e8f0" strokeWidth={1}/>
+      <line x1={midX} y1={16} x2={midX} y2={H-8} stroke="#E8E4DC" strokeWidth={1}/>
     </svg>
   );
 }
@@ -2406,16 +2497,16 @@ function FamillesPieChart({familles}){
 function TopDiagChart({diags}){
   const max=Math.max(...diags.map(d=>d.n),1);
   return(
-    <div className="space-y-1.5">
+    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
       {diags.map((d,i)=>(
-        <div key={d.code} className="flex items-center gap-2">
-          <span className="text-xs text-slate-400 w-4 text-right">{i+1}</span>
-          <span className="text-xs font-mono text-blue-600 w-10 flex-shrink-0">{d.code}</span>
-          <div className="flex-1 bg-slate-100 rounded-full h-4 relative overflow-hidden">
-            <div className="h-full rounded-full" style={{width:`${d.n/max*100}%`,background:'linear-gradient(90deg,#3B82F6,#6366F1)'}}/>
-            <span className="absolute inset-0 flex items-center pl-2 text-xs text-slate-700 font-medium truncate">{d.libelle}</span>
+        <div key={d.code} style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <span style={{fontSize:'9px',color:'var(--muted)',width:'16px',textAlign:'right',fontWeight:300}}>{i+1}</span>
+          <span style={{fontSize:'10px',fontFamily:'monospace',color:'var(--gold)',width:'40px',flexShrink:0,fontWeight:500}}>{d.code}</span>
+          <div style={{flex:1,background:'var(--cream2)',height:'16px',position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',left:0,top:0,bottom:0,background:'var(--navy)',width:`${d.n/max*100}%`,opacity:0.85}}/>
+            <span style={{position:'absolute',inset:0,display:'flex',alignItems:'center',paddingLeft:'8px',fontSize:'10px',color:'var(--white)',fontWeight:300,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{d.libelle}</span>
           </div>
-          <span className="text-xs font-semibold text-slate-600 w-7 text-right">{d.n}</span>
+          <span style={{fontSize:'10px',fontWeight:500,color:'var(--charcoal)',width:'24px',textAlign:'right'}}>{d.n}</span>
         </div>
       ))}
     </div>
@@ -2445,14 +2536,14 @@ function SaisonnaliteChart({data}){
         return<g key={f}><line x1={pad.l} y1={y} x2={W-pad.r} y2={y} stroke="#f1f5f9" strokeWidth={1}/><text x={pad.l-4} y={y+4} textAnchor="end" fontSize={8} fill="#94a3b8">{Math.round(maxV*f)}</text></g>;
       })}
       {months.map((m,i)=><text key={m} x={px(i)} y={H-6} textAnchor="middle" fontSize={8} fill="#94a3b8">{m}</text>)}
-      {line('resp','#3b82f6')}
-      {line('card','#ef4444')}
-      {line('inf','#10b981')}
+      {line('resp','#1A2332')}
+      {line('card','#B8935A')}
+      {line('inf','#4A7C6B')}
       <g transform={`translate(${W-120},${pad.t})`}>
-        {[['#3B82F6','Respiratoire'],['#ef4444','Cardiaque'],['#10b981','Infectieux']].map(([c,l],i)=>(
+        {[['#1A2332','Respiratoire'],['#B8935A','Cardiaque'],['#4A7C6B','Infectieux']].map(([c,l],i)=>(
           <g key={l} transform={`translate(0,${i*16})`}>
-            <rect width={10} height={6} y={0} rx={2} fill={c}/>
-            <text x={14} y={7} fontSize={8} fill="#64748b">{l}</text>
+            <rect width={10} height={2} y={2} fill={c}/>
+            <text x={14} y={7} fontSize={8} fill="#8A8A8A">{l}</text>
           </g>
         ))}
       </g>
@@ -2480,50 +2571,50 @@ function ForecastChart({monthly,forecast,demoMonthly,demoForecast,useDemo}){
     <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
       <defs>
         <linearGradient id="fgrd" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.2"/>
-          <stop offset="100%" stopColor="#3B82F6" stopOpacity="0"/>
+          <stop offset="0%" stopColor="#B8935A" stopOpacity="0.15"/>
+          <stop offset="100%" stopColor="#B8935A" stopOpacity="0"/>
         </linearGradient>
       </defs>
       {[0,0.25,0.5,0.75,1].map(f=>{
         const y=pad.t+iH*(1-f);
-        return<g key={f}><line x1={pad.l} y1={y} x2={W-pad.r} y2={y} stroke="#f1f5f9" strokeWidth={1}/><text x={pad.l-4} y={y+4} textAnchor="end" fontSize={8} fill="#94a3b8">{Math.round(maxV*f)}</text></g>;
+        return<g key={f}><line x1={pad.l} y1={y} x2={W-pad.r} y2={y} stroke="#E8E4DC" strokeWidth={1}/><text x={pad.l-4} y={y+4} textAnchor="end" fontSize={8} fill="#BEBEBE">{Math.round(maxV*f)}</text></g>;
       })}
       {all.map((d,i)=>{
         if(i%3!==0&&i!==all.length-1) return null;
-        return<text key={d.month} x={px(i)} y={H-6} textAnchor="middle" fontSize={8} fill="#94a3b8">{d.month.slice(2)}</text>;
+        return<text key={d.month} x={px(i)} y={H-6} textAnchor="middle" fontSize={8} fill="#BEBEBE">{d.month.slice(2)}</text>;
       })}
       <path d={areaPath} fill="url(#fgrd)"/>
-      <polyline points={histPts} fill="none" stroke="#3B82F6" strokeWidth={2.5} strokeLinejoin="round"/>
-      {proj&&<polyline points={fullProjPts} fill="none" stroke="#f59e0b" strokeWidth={2} strokeDasharray="6,3" strokeLinejoin="round"/>}
-      {hist.map((d,i)=><circle key={i} cx={px(i)} cy={py(d.n)} r={3} fill="#3b82f6"/>)}
-      {proj?.map((d,i)=><circle key={i} cx={px(projOffset+i)} cy={py(d.n)} r={3} fill="#f59e0b" stroke="white" strokeWidth={1.5}/>)}
+      <polyline points={histPts} fill="none" stroke="#B8935A" strokeWidth={1.5} strokeLinejoin="miter"/>
+      {proj&&<polyline points={fullProjPts} fill="none" stroke="#8A8A8A" strokeWidth={1.5} strokeDasharray="6,3" strokeLinejoin="miter"/>}
+      {hist.map((d,i)=><circle key={i} cx={px(i)} cy={py(d.n)} r={3} fill="#FAFAF8" stroke="#B8935A" strokeWidth={1.5}/>)}
+      {proj?.map((d,i)=><circle key={i} cx={px(projOffset+i)} cy={py(d.n)} r={3} fill="#FAFAF8" stroke="#8A8A8A" strokeWidth={1.5}/>)}
       <g transform={`translate(${W-160},${pad.t})`}>
-        <rect width={10} height={4} y={1} rx={2} fill="#3b82f6"/><text x={14} y={7} fontSize={8} fill="#64748b">Historique</text>
-        <rect width={10} height={4} y={17} rx={2} fill="#f59e0b"/><text x={14} y={23} fontSize={8} fill="#64748b">Prévision (régression linéaire)</text>
+        <rect width={10} height={2} y={2} fill="#B8935A"/><text x={14} y={7} fontSize={8} fill="#8A8A8A">Historique</text>
+        <rect width={10} height={2} y={18} fill="#8A8A8A"/><text x={14} y={23} fontSize={8} fill="#8A8A8A">Prévision (régression linéaire)</text>
       </g>
     </svg>
   );
 }
 
-const RISK_COLORS={critique:{bg:'bg-red-50',border:'border-red-200',badge:'bg-red-100 text-red-700',dot:'bg-red-500'},élevé:{bg:'bg-orange-50',border:'border-orange-200',badge:'bg-orange-100 text-orange-700',dot:'bg-orange-400'},modéré:{bg:'bg-amber-50',border:'border-amber-200',badge:'bg-amber-100 text-amber-700',dot:'bg-amber-400'},faible:{bg:'bg-slate-50',border:'border-slate-100',badge:'bg-slate-100 text-slate-600',dot:'bg-slate-300'}};
+const RISK_COLORS={critique:{accent:'var(--accent)',badgeColor:'red'},élevé:{accent:'#C47B2A',badgeColor:'amber'},modéré:{accent:'var(--gold)',badgeColor:'amber'},faible:{accent:'var(--muted)',badgeColor:'slate'}};
 
 function RiskPatientCard({p,onView}){
   const rc=RISK_COLORS[p.level]||RISK_COLORS.faible;
   return(
-    <div className={`rounded-xl border p-4 flex items-start gap-3 ${rc.bg} ${rc.border}`}>
-      <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${rc.dot}`}/>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-semibold text-slate-800 text-sm">{p.prenom} {p.nom}</span>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rc.badge}`}>{p.level.toUpperCase()} — {p.score}pts</span>
-          {p.age>0&&<span className="text-xs text-slate-400">{p.age} ans</span>}
+    <div style={{border:'1px solid var(--border)',borderLeft:`3px solid ${rc.accent}`,padding:'16px 20px',display:'flex',alignItems:'flex-start',gap:'12px',background:'var(--white)'}}>
+      <div style={{width:'8px',height:'8px',borderRadius:'50%',background:rc.accent,marginTop:'6px',flexShrink:0}}/>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+          <span style={{fontSize:'13px',fontWeight:400,color:'var(--navy)'}}>{p.prenom} {p.nom}</span>
+          <Badge color={rc.badgeColor} size="xs">{p.level.toUpperCase()} — {p.score}pts</Badge>
+          {p.age>0&&<span style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>{p.age} ans</span>}
         </div>
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {p.flags.map(f=><span key={f} className="text-xs bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full">{f}</span>)}
+        <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'8px'}}>
+          {p.flags.map(f=><span key={f} style={{fontSize:'10px',letterSpacing:'0.1em',color:'var(--charcoal)',background:'var(--cream)',border:'1px solid var(--border)',padding:'2px 8px',fontWeight:300}}>{f}</span>)}
         </div>
-        {p.lastConsultDate&&<p className="text-xs text-slate-400">Dernière consultation : {new Date(p.lastConsultDate).toLocaleDateString('fr-FR')}</p>}
+        {p.lastConsultDate&&<p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300}}>Dernière consultation : {new Date(p.lastConsultDate).toLocaleDateString('fr-FR')}</p>}
       </div>
-      <button onClick={()=>onView(p.id)} className="text-xs text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap">Dossier →</button>
+      <button onClick={()=>onView(p.id)} style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,background:'none',border:'none',cursor:'pointer',whiteSpace:'nowrap'}}>Dossier →</button>
     </div>
   );
 }
@@ -2563,27 +2654,27 @@ function IntelligencePage({onViewPatient}){
   ];
 
   return(
-    <div className="p-6 max-w-6xl mx-auto">
+    <div style={{padding:'36px 48px',maxWidth:'1200px'}}>
       {/* Header */}
-      <div className="mb-6 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0" style={{background:'linear-gradient(135deg,#3B82F6,#6366F1)'}}>
-          <Ic.Brain className="w-6 h-6 text-white"/>
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Intelligence Médicale</h1>
-          <p className="text-sm text-slate-500">Analyse prédictive et épidémiologique de votre patientèle</p>
-        </div>
-        <div className="ml-auto flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-lg px-3 py-2">
-          <span className="text-xs text-violet-600 font-medium">⚡ Alimenté par l'IA</span>
+      <div className="page-header" style={{padding:'28px 0 24px',marginBottom:'36px',position:'relative'}}>
+        <p className="eyebrow" style={{marginBottom:'8px'}}>Intelligence IA</p>
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:'24px'}}>
+          <div>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(28px,2.5vw,38px)',fontWeight:300,color:'var(--navy)',lineHeight:1.15,letterSpacing:'-0.01em'}}>Intelligence Médicale</h1>
+            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>Analyse prédictive et épidémiologique de votre patientèle</p>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',padding:'8px 16px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',flexShrink:0}}>
+            <span style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>Alimenté par l'IA</span>
+          </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6">
+      <div style={{display:'flex',gap:'0',marginBottom:'32px',borderBottom:'1px solid var(--border)'}}>
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${tab===t.id?'bg-white text-slate-800 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
-            <span>{t.icon}</span><span className="hidden sm:inline">{t.label}</span>
+            style={{padding:'12px 24px',fontSize:'11px',fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',background:'none',border:'none',borderBottom:tab===t.id?'2px solid var(--gold)':'2px solid transparent',color:tab===t.id?'var(--navy)':'var(--muted)',cursor:'pointer',marginBottom:'-1px',transition:'color .15s'}}>
+            {t.label.replace(/Module [A-C] — /,'')}
           </button>
         ))}
       </div>
@@ -2657,7 +2748,7 @@ function IntelligencePage({onViewPatient}){
                   ))}
                 </div>
                 {/* Methodology note */}
-                <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-5 text-xs text-blue-700">
+                <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'12px 16px',marginBottom:'20px',fontSize:'11px',color:'var(--navy)'}}>
                   <strong>Méthodologie du score de risque :</strong> HTA (+3) · Diabète (+3) · Cardiopathie (+4) · Oncologie (+4) · MRC (+3) · Dyslipidémie (+2) · Polymédication (+2) · Âge ≥65 (+2) · Allergies (+1) · Suivi &gt;180j (+2). Critique ≥8 · Élevé ≥5 · Modéré ≥3 · Faible.
                 </div>
                 {/* Patient list */}
@@ -2793,12 +2884,11 @@ function AnalyticsPage(){
   };
 
   const StatCard=({label,value,sub,color='blue'})=>{
-    const colors={blue:'from-blue-500 to-blue-700',teal:'from-teal-500 to-teal-700',violet:'from-violet-500 to-violet-700',emerald:'from-emerald-500 to-emerald-700',rose:'from-rose-500 to-rose-700',amber:'from-amber-500 to-amber-700'};
     return(
-      <div className={`bg-gradient-to-br ${colors[color]||colors.blue} rounded-2xl p-5 text-white shadow-lg`}>
-        <p className="text-white/70 text-xs font-medium mb-1">{label}</p>
-        <p className="text-3xl font-bold">{value??'—'}</p>
-        {sub&&<p className="text-white/60 text-xs mt-1">{sub}</p>}
+      <div className="stat-block card-hover">
+        <span className="stat-n">{value??'—'}</span>
+        <span className="stat-l">{label}</span>
+        {sub&&<span style={{display:'block',fontSize:'9px',letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(250,250,248,0.3)',marginTop:'4px'}}>{sub}</span>}
       </div>
     );
   };
@@ -2825,24 +2915,24 @@ function AnalyticsPage(){
   return(
     <Page title="Analytiques" subtitle="Insights sur votre activité médicale">
       {/* Controls */}
-      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm mb-6 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <input type="date" value={from} max={to} onChange={e=>setFrom(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          <span className="text-slate-400 text-sm">→</span>
-          <input type="date" value={to} min={from} max={today} onChange={e=>setTo(e.target.value)} className="border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+      <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'16px 20px',marginBottom:'28px',display:'flex',flexWrap:'wrap',alignItems:'center',gap:'12px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <input type="date" value={from} max={to} onChange={e=>setFrom(e.target.value)} style={{border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
+          <span style={{fontSize:'12px',color:'var(--muted)'}}>→</span>
+          <input type="date" value={to} min={from} max={today} onChange={e=>setTo(e.target.value)} style={{border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
           <Btn variant="primary" onClick={apply} size="sm">Appliquer</Btn>
         </div>
-        <div className="flex gap-2">
+        <div style={{display:'flex',gap:'6px'}}>
           {[['7j',7],['30j',30],['3 mois',90],['Année',365]].map(([l,d])=>(
-            <button key={l} onClick={()=>preset(d)} className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg">{l}</button>
+            <button key={l} onClick={()=>preset(d)} style={{padding:'6px 12px',fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',fontWeight:400,color:'var(--muted)',background:'var(--white)',border:'1px solid var(--border)',cursor:'pointer'}}>{l}</button>
           ))}
         </div>
-        <div className="ml-auto">
+        <div style={{marginLeft:'auto'}}>
           <Btn variant="secondary" onClick={downloadCSV} icon={Ic.Download} size="sm">Télécharger CSV</Btn>
         </div>
       </div>
 
-      {loading&&<div className="flex justify-center py-16"><Ic.Spin className="w-8 h-8 text-blue-500"/></div>}
+      {loading&&<div style={{display:'flex',justifyContent:'center',padding:'64px'}}><Ic.Spin style={{width:'28px',height:'28px',color:'var(--muted)'}}/></div>}
 
       {data&&!loading&&(
         <div className="space-y-6">
@@ -2866,7 +2956,7 @@ function AnalyticsPage(){
             {/* Daily activity */}
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
               <h3 className="font-semibold text-slate-900 mb-4">Activité quotidienne</h3>
-              <BarChartSVG data={data.daily} color="#3b82f6"/>
+              <BarChartSVG data={data.daily} color="#1A2332"/>
             </div>
 
             {/* Top motifs */}
@@ -2883,7 +2973,7 @@ function AnalyticsPage(){
                         <span className="text-xs font-bold text-slate-500 ml-2">{m.n} ({pct}%)</span>
                       </div>
                       <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-blue-500 rounded-full" style={{width:`${pct}%`}}/>
+                        <div style={{height:'100%',background:'var(--navy)',width:`${pct}%`}}/>
                       </div>
                     </div>
                   );
@@ -2918,7 +3008,7 @@ function AnalyticsPage(){
 
             <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm">
               <h3 className="font-semibold text-slate-900 mb-4">Consultations par heure</h3>
-              <BarChartSVG data={data.byHour?.map(x=>({...x,d:x.h+'h'}))} color="#8b5cf6"/>
+              <BarChartSVG data={data.byHour?.map(x=>({...x,d:x.h+'h'}))} color="#B8935A"/>
             </div>
           </div>
         </div>
@@ -2949,22 +3039,24 @@ function ProfilePage({user,onUpdate}){
     <Page title="Mon profil" subtitle="Gérez vos informations et votre accès">
       <div className="max-w-2xl space-y-6">
         {/* Avatar header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 flex items-center gap-5 text-white">
+        <div style={{background:'var(--navy)',padding:'32px 36px',display:'flex',alignItems:'center',gap:'24px',position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',bottom:0,left:0,width:'56px',height:'2px',background:'var(--gold)'}}/>
           {form.photo
-            ? <img src={encodeURI(form.photo)} alt="" className="w-20 h-20 rounded-3xl object-cover flex-shrink-0 shadow-lg"/>
-            : <div className="w-20 h-20 rounded-3xl bg-white/20 flex items-center justify-center text-3xl font-bold flex-shrink-0">{initials(form.prenom,form.nom)}</div>
+            ? <img src={encodeURI(form.photo)} alt="" style={{width:'72px',height:'72px',objectFit:'cover',flexShrink:0}}/>
+            : <div style={{width:'72px',height:'72px',background:'rgba(184,147,90,0.15)',border:'1px solid rgba(184,147,90,0.3)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--gold-light)'}}>{initials(form.prenom,form.nom)}</div>
           }
           <div>
-            <h2 className="text-xl font-bold">{form.prenom} {form.nom}</h2>
-            <p className="text-blue-200 text-sm">{form.specialite||'Médecin'}</p>
-            {form.rpps&&<p className="text-blue-200/70 text-xs mt-1">N° RPPS : {form.rpps}</p>}
+            <p className="eyebrow" style={{color:'rgba(250,250,248,0.45)',marginBottom:'8px'}}>Mon profil</p>
+            <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'26px',fontWeight:300,color:'var(--white)',lineHeight:1.2}}>{form.prenom} {form.nom}</h2>
+            <p style={{fontSize:'11px',letterSpacing:'0.1em',textTransform:'uppercase',color:'rgba(250,250,248,0.5)',marginTop:'4px',fontWeight:300}}>{form.specialite||'Médecin'}</p>
+            {form.rpps&&<p style={{fontSize:'10px',color:'rgba(250,250,248,0.35)',marginTop:'4px',fontFamily:'monospace'}}>N° RPPS : {form.rpps}</p>}
           </div>
         </div>
 
         {/* Profile form */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-semibold text-slate-900 mb-5">Informations professionnelles</h3>
-          {msg&&<div className="mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm px-4 py-2.5 rounded-xl">{msg}</div>}
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'28px 32px'}}>
+          <p className="eyebrow" style={{marginBottom:'20px'}}>Informations professionnelles</p>
+          {msg&&<div style={{marginBottom:'16px',background:'#f0f7f4',border:'1px solid rgba(74,124,107,0.3)',color:'var(--green)',fontSize:'12px',padding:'10px 16px',display:'flex',alignItems:'center',gap:'6px'}}><Ic.Check style={{width:'12px',height:'12px'}}/>{msg}</div>}
           <div className="grid grid-cols-2 gap-4">
             <Input label="Prénom" value={form.prenom} onChange={set('prenom')}/>
             <Input label="Nom" value={form.nom} onChange={set('nom')}/>
@@ -2973,21 +3065,24 @@ function ProfilePage({user,onUpdate}){
             <Input label="Téléphone" value={form.telephone} onChange={set('telephone')}/>
             <Input label="Adresse du cabinet" value={form.adresse} onChange={set('adresse')}/>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div style={{marginTop:'20px',display:'flex',justifyContent:'flex-end'}}>
             <Btn variant="primary" onClick={saveProfile} loading={saving} icon={Ic.Check}>Enregistrer</Btn>
           </div>
         </div>
 
         {/* Password */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-          <h3 className="font-semibold text-slate-900 mb-5 flex items-center gap-2"><Ic.Key className="w-4 h-4 text-slate-400"/>Sécurité</h3>
-          {pwMsg&&<div className={`mb-4 text-sm px-4 py-2.5 rounded-xl border ${pwMsg.includes('✓')?'bg-emerald-50 border-emerald-200 text-emerald-700':'bg-rose-50 border-rose-200 text-rose-700'}`}>{pwMsg}</div>}
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'28px 32px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'20px'}}>
+            <Ic.Key style={{width:'14px',height:'14px',color:'var(--muted)'}}/>
+            <p className="eyebrow">Sécurité</p>
+          </div>
+          {pwMsg&&<div style={{marginBottom:'16px',fontSize:'12px',padding:'10px 16px',border:'1px solid',borderColor:pwMsg.includes('✓')?'rgba(74,124,107,0.3)':'rgba(197,71,42,0.2)',color:pwMsg.includes('✓')?'var(--green)':'var(--accent)',background:pwMsg.includes('✓')?'#f0f7f4':'#fdf5f3'}}>{pwMsg}</div>}
           <div className="space-y-4">
             <Input label="Mot de passe actuel" type="password" value={pwForm.current} onChange={setPw('current')}/>
             <Input label="Nouveau mot de passe" type="password" value={pwForm.next} onChange={setPw('next')}/>
             <Input label="Confirmer le nouveau mot de passe" type="password" value={pwForm.confirm} onChange={setPw('confirm')}/>
           </div>
-          <div className="mt-4 flex justify-end">
+          <div style={{marginTop:'20px',display:'flex',justifyContent:'flex-end'}}>
             <Btn variant="primary" onClick={savePw} loading={pwSaving} icon={Ic.Key}>Changer le mot de passe</Btn>
           </div>
         </div>
@@ -3128,20 +3223,24 @@ function AgendaPage(){
       actions={<Btn icon={Ic.Plus} onClick={openCreate}>Nouveau RDV</Btn>}>
       <div className="flex gap-6">
         {/* Calendar */}
-        <div className="flex-1 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+        <div style={{flex:1,background:'var(--white)',border:'1px solid var(--border)'}}>
           {/* Month nav */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <button onClick={()=>setCurrent(new Date(year, month-1, 1))} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
-              <Ic.Back className="w-4 h-4"/>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'16px 24px',borderBottom:'1px solid var(--border)'}}>
+            <button onClick={()=>setCurrent(new Date(year, month-1, 1))} style={{padding:'6px',background:'none',border:'none',cursor:'pointer',color:'var(--muted)'}}
+              onMouseEnter={e=>e.currentTarget.style.color='var(--navy)'}
+              onMouseLeave={e=>e.currentTarget.style.color='var(--muted)'}>
+              <Ic.Back style={{width:'14px',height:'14px'}}/>
             </button>
-            <h3 className="font-semibold text-slate-800">{monthNames[month]} {year}</h3>
-            <button onClick={()=>setCurrent(new Date(year, month+1, 1))} className="p-2 rounded-lg hover:bg-slate-100 text-slate-500">
-              <Ic.Chevron className="w-4 h-4"/>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18px',fontWeight:400,color:'var(--navy)'}}>{monthNames[month]} {year}</p>
+            <button onClick={()=>setCurrent(new Date(year, month+1, 1))} style={{padding:'6px',background:'none',border:'none',cursor:'pointer',color:'var(--muted)'}}
+              onMouseEnter={e=>e.currentTarget.style.color='var(--navy)'}
+              onMouseLeave={e=>e.currentTarget.style.color='var(--muted)'}>
+              <Ic.Chevron style={{width:'14px',height:'14px'}}/>
             </button>
           </div>
           {/* Day headers */}
-          <div className="grid grid-cols-7 border-b border-slate-100">
-            {dayNames.map(d=><div key={d} className="py-2 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">{d}</div>)}
+          <div className="grid grid-cols-7" style={{borderBottom:'1px solid var(--border)'}}>
+            {dayNames.map(d=><div key={d} style={{padding:'8px',textAlign:'center',fontSize:'9px',fontWeight:500,letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--muted)'}}>{d}</div>)}
           </div>
           {/* Day cells */}
           <div className="grid grid-cols-7">
@@ -3153,15 +3252,16 @@ function AgendaPage(){
               const appts = apptsByDate[date]||[];
               return(
                 <div key={date} onClick={()=>setSelectedDate(date)}
-                  className={`h-20 p-1.5 border-b border-r border-slate-50 cursor-pointer hover:bg-blue-50/50
-                    ${isSelected?'bg-blue-50 ring-1 ring-inset ring-blue-200':''}`}>
-                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-semibold mb-1
-                    ${isToday?'bg-blue-600 text-white':isSelected?'text-blue-700':'text-slate-600'}`}>
+                  className="cursor-pointer"
+                  style={{height:'80px',padding:'6px',borderBottom:'1px solid var(--border)',borderRight:'1px solid var(--border)',background:isSelected?'var(--cream)':isToday?'var(--gold-pale)':'var(--white)',transition:'background .15s'}}
+                  onMouseEnter={e=>{if(!isSelected)e.currentTarget.style.background='var(--cream)';}}
+                  onMouseLeave={e=>{e.currentTarget.style.background=isSelected?'var(--cream)':isToday?'var(--gold-pale)':'var(--white)';}}>
+                  <span style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:'22px',height:'22px',fontSize:'11px',fontWeight:isToday||isSelected?500:400,marginBottom:'4px',color:isToday?'var(--white)':isSelected?'var(--navy)':'var(--charcoal)',background:isToday?'var(--navy)':'transparent'}}>
                     {dayNum}
                   </span>
-                  <div className="space-y-0.5">
+                  <div style={{display:'flex',flexDirection:'column',gap:'2px'}}>
                     {appts.slice(0,3).map(a=>(
-                      <div key={a.id} className={`text-[10px] px-1 py-0.5 rounded truncate text-white font-medium ${statusColor(a.statut)}`}>
+                      <div key={a.id} style={{fontSize:'9px',padding:'1px 4px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',color:'var(--white)',fontWeight:400,background:a.statut==='confirme'?'var(--green)':a.statut==='annule'?'var(--accent)':'var(--navy)'}}>
                         {a.heure} {a.prenom}
                       </div>
                     ))}
@@ -3174,37 +3274,39 @@ function AgendaPage(){
         </div>
 
         {/* Day panel */}
-        <div className="w-72 flex-shrink-0">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-slate-800 text-sm">
+        <div style={{width:'280px',flexShrink:0,display:'flex',flexDirection:'column',gap:'16px'}}>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'16px 20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
+              <p style={{fontSize:'12px',fontWeight:400,color:'var(--navy)',textTransform:'capitalize'}}>
                 {new Date(selectedDate+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})}
-              </h3>
-              <button onClick={openCreate} className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700">
-                <Ic.Plus className="w-3.5 h-3.5"/>
+              </p>
+              <button onClick={openCreate} style={{width:'28px',height:'28px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--gold-light)',border:'none',cursor:'pointer'}}>
+                <Ic.Plus style={{width:'12px',height:'12px'}}/>
               </button>
             </div>
             {dayAppts.length===0
-              ? <div className="text-center py-8 text-slate-400 text-sm">
-                  <Ic.Calendar className="w-8 h-8 mx-auto mb-2 opacity-30"/>
-                  <p>Aucun RDV ce jour</p>
+              ? <div style={{textAlign:'center',padding:'32px 0',color:'var(--muted)'}}>
+                  <Ic.Calendar style={{width:'28px',height:'28px',margin:'0 auto 8px',opacity:0.25}}/>
+                  <p style={{fontSize:'12px',fontWeight:300}}>Aucun RDV ce jour</p>
                 </div>
-              : <div className="space-y-2">
+              : <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
                   {dayAppts.map(a=>(
-                    <div key={a.id} className="bg-slate-50 rounded-xl p-3 hover:bg-blue-50 cursor-pointer group" onClick={()=>openEdit(a)}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-slate-800 truncate">{a.prenom} {a.nom}</p>
-                          <p className="text-xs text-slate-500">{a.heure} · {a.motif||'RDV'}</p>
+                    <div key={a.id} className="data-row" style={{padding:'10px 12px',cursor:'pointer',background:'var(--cream)'}} onClick={()=>openEdit(a)}>
+                      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'8px'}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <p style={{fontSize:'12px',fontWeight:400,color:'var(--navy)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.prenom} {a.nom}</p>
+                          <p style={{fontSize:'10px',color:'var(--gold)',fontWeight:500,marginTop:'2px'}}>{a.heure} · {a.motif||'RDV'}</p>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div style={{display:'flex',alignItems:'center',gap:'4px',flexShrink:0}}>
                           <Badge color={statusBadge(a.statut)} size="xs">{statusLabel(a.statut)}</Badge>
-                          <button onClick={e=>{e.stopPropagation();deleteAppt(a.id);}} className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-rose-100 text-slate-400 hover:text-rose-500">
-                            <Ic.Trash className="w-3 h-3"/>
+                          <button onClick={e=>{e.stopPropagation();deleteAppt(a.id);}} style={{padding:'2px',background:'none',border:'none',cursor:'pointer',color:'var(--light)'}}
+                            onMouseEnter={e=>e.currentTarget.style.color='var(--accent)'}
+                            onMouseLeave={e=>e.currentTarget.style.color='var(--light)'}>
+                            <Ic.Trash style={{width:'11px',height:'11px'}}/>
                           </button>
                         </div>
                       </div>
-                      {a.notes&&<p className="text-xs text-slate-400 mt-1 truncate">{a.notes}</p>}
+                      {a.notes&&<p style={{fontSize:'10px',color:'var(--muted)',marginTop:'4px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:300}}>{a.notes}</p>}
                     </div>
                   ))}
                 </div>
@@ -3212,12 +3314,12 @@ function AgendaPage(){
           </div>
 
           {/* Monthly summary */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mt-4">
-            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Ce mois</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm"><span className="text-slate-600">Total RDV</span><span className="font-semibold text-slate-900">{appointments.length}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-slate-600">Confirmés</span><span className="font-semibold text-emerald-600">{appointments.filter(a=>a.statut==='confirme').length}</span></div>
-              <div className="flex justify-between text-sm"><span className="text-slate-600">Annulés</span><span className="font-semibold text-rose-500">{appointments.filter(a=>a.statut==='annule').length}</span></div>
+          <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 20px'}}>
+            <p className="eyebrow" style={{marginBottom:'12px'}}>Ce mois</p>
+            <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+              <div style={{display:'flex',justifyContent:'space-between'}}><span style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Total RDV</span><span style={{fontSize:'12px',fontWeight:500,color:'var(--navy)'}}>{appointments.length}</span></div>
+              <div style={{display:'flex',justifyContent:'space-between'}}><span style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Confirmés</span><span style={{fontSize:'12px',fontWeight:500,color:'var(--green)'}}>{appointments.filter(a=>a.statut==='confirme').length}</span></div>
+              <div style={{display:'flex',justifyContent:'space-between'}}><span style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Annulés</span><span style={{fontSize:'12px',fontWeight:500,color:'var(--accent)'}}>{appointments.filter(a=>a.statut==='annule').length}</span></div>
             </div>
           </div>
         </div>
@@ -3226,21 +3328,24 @@ function AgendaPage(){
       {/* Modal */}
       {modal&&(
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={()=>setModal(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e=>e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-slate-900 mb-5">{modal.mode==='create'?'Nouveau rendez-vous':'Modifier le rendez-vous'}</h3>
-            <div className="space-y-4">
+          <div style={{background:'var(--white)',boxShadow:'0 24px 64px rgba(0,0,0,0.15)',width:'100%',maxWidth:'440px',padding:'0'}} onClick={e=>e.stopPropagation()} className="fade-in">
+            <div style={{padding:'20px 28px',borderBottom:'1px solid var(--border)'}}>
+              <p className="eyebrow" style={{marginBottom:'4px'}}>Agenda</p>
+              <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:300,color:'var(--navy)'}}>{modal.mode==='create'?'Nouveau rendez-vous':'Modifier le rendez-vous'}</h3>
+            </div>
+            <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'16px'}}>
               {/* Patient search */}
-              <div className="relative">
-                <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Patient *</label>
+              <div style={{position:'relative'}}>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Patient *</label>
                 <input value={patSearch} onChange={e=>{setPatSearch(e.target.value);if(!e.target.value)setForm(f=>({...f,patientId:''}));}}
-                  placeholder="Rechercher un patient..." className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder:text-slate-400"/>
+                  placeholder="Rechercher un patient..." style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
                 {filteredPats.length>0&&(
-                  <div className="absolute z-10 left-0 right-0 bg-white border border-slate-200 rounded-xl mt-1 shadow-lg overflow-hidden">
+                  <div style={{position:'absolute',zIndex:10,left:0,right:0,background:'var(--white)',border:'1px solid var(--border)',marginTop:'1px',boxShadow:'0 8px 24px rgba(0,0,0,0.08)'}}>
                     {filteredPats.map(p=>(
-                      <button key={p.id} className="w-full px-4 py-2.5 text-sm text-left hover:bg-blue-50 flex items-center gap-2"
+                      <button key={p.id} className="data-row w-full text-left" style={{padding:'10px 14px',display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer'}}
                         onClick={()=>{setForm(f=>({...f,patientId:p.id}));setPatSearch(`${p.prenom} ${p.nom}`);}}>
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${avatarColor(p.sexe)}`}>{initials(p.prenom,p.nom)}</div>
-                        <span>{p.prenom} {p.nom}</span>
+                        <div style={{width:'24px',height:'24px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--gold-light)',fontSize:'9px',flexShrink:0,fontFamily:"'Cormorant Garamond',serif"}}>{initials(p.prenom,p.nom)}</div>
+                        <span style={{fontSize:'12px',color:'var(--navy)',fontWeight:400}}>{p.prenom} {p.nom}</span>
                       </button>
                     ))}
                   </div>
@@ -3248,23 +3353,23 @@ function AgendaPage(){
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Date *</label>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Date *</label>
                   <input type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Heure</label>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Heure</label>
                   <input type="time" value={form.heure} onChange={e=>setForm(f=>({...f,heure:e.target.value}))}
-                    className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
                 </div>
               </div>
               <Input label="Motif" value={form.motif} onChange={e=>setForm(f=>({...f,motif:e.target.value}))} placeholder="Ex: Consultation de suivi"/>
               <Input label="Notes" value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} textarea rows={2} placeholder="Informations complémentaires..."/>
               {modal.mode==='edit'&&(
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">Statut</label>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Statut</label>
                   <select value={modal.appt.statut||'planifie'} onChange={e=>setModal(m=>({...m,appt:{...m.appt,statut:e.target.value}}))}
-                    className="w-full border border-slate-200 bg-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}>
                     <option value="planifie">Planifié</option>
                     <option value="confirme">Confirmé</option>
                     <option value="annule">Annulé</option>
@@ -3272,7 +3377,7 @@ function AgendaPage(){
                 </div>
               )}
             </div>
-            <div className="flex gap-3 mt-6">
+            <div style={{padding:'16px 28px',borderTop:'1px solid var(--border)',display:'flex',gap:'8px',justifyContent:'flex-end'}}>
               <Btn variant="secondary" onClick={()=>setModal(null)} size="md">Annuler</Btn>
               <Btn onClick={saveAppt} loading={saving} disabled={!form.patientId||!form.date} size="md">{modal.mode==='create'?'Créer':'Enregistrer'}</Btn>
             </div>
@@ -3312,29 +3417,29 @@ function DocModal({consultationId,patient,onClose}){
     URL.revokeObjectURL(url);setLoading(false);
   };
 
-  const inp='w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const inp='ch-input w-full';
   const lbl='block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide';
   const tabs=[{id:'arret',label:'Arrêt maladie'},{id:'certificat',label:'Certificat'},{id:'adressage',label:'Adressage'}];
 
   return(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900">Documents médicaux</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">✕</button>
+      <div style={{background:'var(--white)',width:'100%',maxWidth:'512px',border:'1px solid var(--border)'}}>
+        <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:400,color:'var(--navy)'}}>Documents médicaux</h3>
+          <button onClick={onClose} style={{width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',fontSize:'18px'}}>✕</button>
         </div>
         <div className="px-6 py-5">
-          <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-5">
+          <div style={{display:'flex',borderBottom:'1px solid var(--border)',marginBottom:'20px'}}>
             {tabs.map(t=>(
               <button key={t.id} onClick={()=>setType(t.id)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold ${type===t.id?'bg-white text-slate-900 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
+                style={{flex:1,padding:'10px 0',fontSize:'11px',letterSpacing:'0.1em',textTransform:'uppercase',background:'none',border:'none',borderBottom:type===t.id?'2px solid var(--gold)':'2px solid transparent',color:type===t.id?'var(--navy)':'var(--muted)',cursor:'pointer',fontFamily:"'DM Sans',sans-serif"}}>
                 {t.label}
               </button>
             ))}
           </div>
-          <div className="bg-slate-50 rounded-xl px-4 py-3 mb-5">
-            <p className="text-sm font-medium text-slate-900">{patient?.prenom} {patient?.nom}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{ageStr(patient?.dateNaissance)} · {patient?.typeAssurance||'Assurance non renseignée'}</p>
+          <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'12px 16px',marginBottom:'20px'}}>
+            <p style={{fontSize:'14px',color:'var(--navy)',fontFamily:"'Cormorant Garamond',serif"}}>{patient?.prenom} {patient?.nom}</p>
+            <p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>{ageStr(patient?.dateNaissance)} · {patient?.typeAssurance||'Assurance non renseignée'}</p>
           </div>
 
           {type==='arret'&&<div className="space-y-3">
@@ -3375,7 +3480,7 @@ function DocModal({consultationId,patient,onClose}){
                 rows={3} placeholder="Raison de la demande de consultation..." className={inp+' resize-none'}/></div>
           </div>}
         </div>
-        <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+        <div style={{padding:'16px 24px',borderTop:'1px solid var(--border)',display:'flex',justifyContent:'flex-end',gap:'12px'}}>
           <Btn variant="secondary" onClick={onClose}>Annuler</Btn>
           <Btn variant="primary" icon={Ic.Download} onClick={generate} loading={loading}>Générer PDF</Btn>
         </div>
@@ -3403,20 +3508,20 @@ function FactureModal({consult,tarifs,onClose,onSave}){
     await api.post('/honoraires',{consultationId:consult.id,montant:Number(montant),statut,caisse:caisse||null,typeActe,dateFacturation:dateFact,datePaiement:statut==='paye'?datePay:null,notes:notes||null});
     await onSave();onClose();
   };
-  const sel='w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
-  const inp='w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500';
+  const sel='ch-input w-full';
+  const inp='ch-input w-full';
   const lbl='block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide';
   return(
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-          <h3 className="font-bold text-slate-900">Facturer la consultation</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100">✕</button>
+      <div style={{background:'var(--white)',width:'100%',maxWidth:'512px',border:'1px solid var(--border)'}}>
+        <div style={{padding:'20px 24px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:400,color:'var(--navy)'}}>Facturer la consultation</h3>
+          <button onClick={onClose} style={{width:'28px',height:'28px',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',fontSize:'18px'}}>✕</button>
         </div>
         <div className="px-6 py-5 space-y-4">
-          <div className="bg-slate-50 rounded-xl px-4 py-3">
-            <p className="text-sm font-medium text-slate-900">{consult?.prenom} {consult?.nom}</p>
-            <p className="text-xs text-slate-500 mt-0.5">{consult?.motif} · {fmtDate(consult?.date)}</p>
+          <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'12px 16px'}}>
+            <p style={{fontSize:'14px',color:'var(--navy)',fontFamily:"'Cormorant Garamond',serif"}}>{consult?.prenom} {consult?.nom}</p>
+            <p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>{consult?.motif} · {fmtDate(consult?.date)}</p>
           </div>
           <div><label className={lbl}>Type d'acte</label>
             <select value={typeActe} onChange={e=>setTypeActe(e.target.value)} className={sel}>
@@ -3498,16 +3603,15 @@ function HonorairesPage(){
       {/* KPI Row */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          {label:"Aujourd'hui",val:revenus?.jour,emoji:'💰',sub:'payés aujourd\'hui'},
-          {label:'Cette semaine',val:revenus?.semaine,emoji:'📅',sub:'du lundi à aujourd\'hui'},
-          {label:'Ce mois',val:revenus?.mois,emoji:'📊',sub:new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})},
-          {label:'Projection mois',val:projection?.mois,emoji:'📈',sub:'au rythme actuel'},
-        ].map(({label,val,emoji,sub})=>(
-          <div key={label} className="stat-card card-hover">
-            <span className="text-2xl">{emoji}</span>
-            <p className="text-xl font-bold text-slate-900 mt-3">{fmtFCFA(val)}</p>
-            <p className="text-sm font-medium text-slate-700 mt-1">{label}</p>
-            <p className="text-xs text-slate-400 mt-0.5">{sub}</p>
+          {label:"Aujourd'hui",val:revenus?.jour,sub:'payés aujourd\'hui'},
+          {label:'Cette semaine',val:revenus?.semaine,sub:'du lundi à aujourd\'hui'},
+          {label:'Ce mois',val:revenus?.mois,sub:new Date().toLocaleDateString('fr-FR',{month:'long',year:'numeric'})},
+          {label:'Projection mois',val:projection?.mois,sub:'au rythme actuel'},
+        ].map(({label,val,sub})=>(
+          <div key={label} className="stat-block card-hover">
+            <span className="stat-n" style={{fontSize:'22px'}}>{fmtFCFA(val)}</span>
+            <span className="stat-l">{label}</span>
+            <span style={{display:'block',fontSize:'9px',letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(250,250,248,0.3)',marginTop:'4px'}}>{sub}</span>
           </div>
         ))}
       </div>
@@ -3533,14 +3637,14 @@ function HonorairesPage(){
       )}
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-slate-100 rounded-xl p-1 mb-6 w-fit">
+      <div style={{display:'flex',gap:'0',marginBottom:'28px',borderBottom:'1px solid var(--border)'}}>
         {[
           {id:'overview',label:'Vue d\'ensemble'},
           {id:'facturation',label:`Facturation${nonFactures?.count>0?` (${nonFactures.count})`:''}`},
           {id:'tarifs',label:'Tarifs'},
         ].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium ${tab===t.id?'bg-white text-slate-900 shadow-sm':'text-slate-500 hover:text-slate-700'}`}>
+            style={{padding:'10px 20px',fontSize:'11px',fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',background:'none',border:'none',borderBottom:tab===t.id?'2px solid var(--gold)':'2px solid transparent',color:tab===t.id?'var(--navy)':'var(--muted)',cursor:'pointer',marginBottom:'-1px',transition:'color .15s'}}>
             {t.label}
           </button>
         ))}
@@ -3549,22 +3653,22 @@ function HonorairesPage(){
       {/* Tab: Vue d'ensemble */}
       {tab==='overview'&&<div className="space-y-6">
         <div className="grid grid-cols-3 gap-4">
-          <div className="stat-card">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">En attente de paiement</p>
-            <p className="text-xl font-bold text-amber-600">{fmtFCFA(enAttente?.total)}</p>
-            <p className="text-sm text-slate-500 mt-1">{enAttente?.count||0} facture{(enAttente?.count||0)>1?'s':''}</p>
+          <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'20px 24px'}}>
+            <p className="eyebrow" style={{marginBottom:'10px'}}>En attente de paiement</p>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:300,color:'var(--gold)'}}>{fmtFCFA(enAttente?.total)}</p>
+            <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'6px'}}>{enAttente?.count||0} facture{(enAttente?.count||0)>1?'s':''}</p>
           </div>
-          <div className="stat-card">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Taux de recouvrement</p>
-            <p className="text-xl font-bold text-slate-900">{kpis?.tauxRecouvrement||0}%</p>
-            <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{width:`${Math.min(kpis?.tauxRecouvrement||0,100)}%`}}/>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px 24px'}}>
+            <p className="eyebrow" style={{marginBottom:'10px'}}>Taux de recouvrement</p>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:300,color:'var(--navy)'}}>{kpis?.tauxRecouvrement||0}%</p>
+            <div style={{marginTop:'10px',height:'2px',background:'var(--cream2)',overflow:'hidden'}}>
+              <div style={{height:'100%',background:'var(--green)',width:`${Math.min(kpis?.tauxRecouvrement||0,100)}%`}}/>
             </div>
           </div>
-          <div className="stat-card">
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">Revenu / consultation</p>
-            <p className="text-xl font-bold text-slate-900">{fmtFCFA(kpis?.revParConsult)}</p>
-            <p className="text-sm text-slate-500 mt-1">ce mois</p>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px 24px'}}>
+            <p className="eyebrow" style={{marginBottom:'10px'}}>Revenu / consultation</p>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:300,color:'var(--navy)'}}>{fmtFCFA(kpis?.revParConsult)}</p>
+            <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'6px'}}>ce mois</p>
           </div>
         </div>
 
@@ -3597,7 +3701,7 @@ function HonorairesPage(){
                 return(<div key={c.caisse} className="flex items-center gap-4">
                   <div className="w-24 text-sm text-slate-600 font-medium flex-shrink-0">{c.caisse||'Autre'}</div>
                   <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-blue-500 rounded-full" style={{width:`${pct}%`}}/>
+                    <div style={{height:'100%',background:'var(--navy)',width:`${pct}%`}}/>
                   </div>
                   <div className="text-sm font-semibold text-slate-900 w-36 text-right flex-shrink-0">{fmtFCFA(c.total)}</div>
                   <div className="text-xs text-slate-400 w-16 text-right flex-shrink-0">{c.count} acte{c.count>1?'s':''}</div>
@@ -3608,20 +3712,20 @@ function HonorairesPage(){
         )}
 
         {/* Avance sur honoraires */}
-        <div className="rounded-2xl p-6 text-white" style={{background:'linear-gradient(135deg,#1E40AF,#3B82F6)'}}>
-          <div className="flex items-start gap-4">
-            <div className="flex-1">
-              <p className="text-blue-300 text-xs font-semibold uppercase tracking-wide mb-1">💳 Avance sur honoraires</p>
-              <h3 className="text-xl font-bold mb-2">Besoin de liquidités rapidement ?</h3>
-              <p className="text-blue-100 text-sm leading-relaxed mb-4">
-                Obtenez jusqu'à <strong>70% de vos créances en attente</strong> en avance, remboursé automatiquement à l'encaissement.
+        <div style={{background:'var(--navy)',padding:'24px 28px',color:'var(--white)'}}>
+          <div style={{display:'flex',alignItems:'flex-start',gap:'16px'}}>
+            <div style={{flex:1}}>
+              <p className="eyebrow" style={{color:'var(--gold)',marginBottom:'8px'}}>Avance sur honoraires</p>
+              <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:300,marginBottom:'8px'}}>Besoin de liquidités rapidement ?</h3>
+              <p style={{fontSize:'13px',color:'rgba(250,250,248,0.7)',lineHeight:1.6,marginBottom:'16px'}}>
+                Obtenez jusqu'à <strong style={{color:'var(--gold-light)'}}>70% de vos créances en attente</strong> en avance, remboursé automatiquement à l'encaissement.
                 Idéal pour gérer votre trésorerie face aux délais de paiement des caisses.
               </p>
-              <div className="flex gap-6 mb-4">
-                <div><p className="text-blue-300 text-xs">Créances éligibles</p><p className="font-bold text-lg">{fmtFCFA(enAttente?.total)}</p></div>
-                <div><p className="text-blue-300 text-xs">Avance possible (70%)</p><p className="font-bold text-lg">{fmtFCFA((enAttente?.total||0)*0.7)}</p></div>
+              <div style={{display:'flex',gap:'24px',marginBottom:'16px'}}>
+                <div><p style={{fontSize:'10px',color:'rgba(250,250,248,0.4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Créances éligibles</p><p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--gold)'}}>{fmtFCFA(enAttente?.total)}</p></div>
+                <div><p style={{fontSize:'10px',color:'rgba(250,250,248,0.4)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Avance possible (70%)</p><p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--gold)'}}>{fmtFCFA((enAttente?.total||0)*0.7)}</p></div>
               </div>
-              <button className="bg-white text-blue-700 font-semibold px-5 py-2 rounded-xl text-sm hover:bg-blue-50">Simuler mon avance →</button>
+              <button style={{background:'var(--gold)',color:'var(--navy)',fontWeight:600,padding:'8px 20px',fontSize:'12px',border:'none',cursor:'pointer',letterSpacing:'0.05em'}}>Simuler mon avance →</button>
             </div>
             <div className="text-7xl opacity-10 flex-shrink-0 select-none">💳</div>
           </div>
@@ -3731,14 +3835,14 @@ function HonorairesPage(){
                 <div className="flex-1">
                   {editTarifs
                     ?<input value={t.typeActe} onChange={e=>{const d=[...tarifsDraft];d[i]={...d[i],typeActe:e.target.value};setTarifsDraft(d);}}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                        style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
                     :<p className="font-medium text-slate-900 text-sm">{t.typeActe}</p>
                   }
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   {editTarifs
                     ?<><input type="number" value={t.montant} onChange={e=>{const d=[...tarifsDraft];d[i]={...d[i],montant:Number(e.target.value)};setTarifsDraft(d);}}
-                          className="w-28 border border-slate-200 rounded-xl px-3 py-2 text-sm text-right focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                          style={{width:'112px',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',textAlign:'right',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
                         <span className="text-sm text-slate-500">FCFA</span></>
                     :<p className="font-semibold text-slate-900">{new Intl.NumberFormat('fr-FR').format(t.montant)} FCFA</p>
                   }
@@ -3749,8 +3853,8 @@ function HonorairesPage(){
           {editTarifs&&(
             <div className="px-6 py-3 border-t border-slate-100">
               <button onClick={()=>setTarifsDraft([...tarifsDraft,{typeActe:"Nouveau type d'acte",montant:0}])}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-                <Ic.Plus className="w-4 h-4 inline-block mr-1"/>Ajouter un type d'acte
+                style={{fontSize:'11px',color:'var(--gold)',letterSpacing:'0.1em',textTransform:'uppercase',background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:'4px',fontFamily:"'DM Sans',sans-serif"}}>
+                <Ic.Plus style={{width:'12px',height:'12px'}}/>Ajouter un type d'acte
               </button>
             </div>
           )}
