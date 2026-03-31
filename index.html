@@ -342,6 +342,8 @@ function Badge({color,children,size='sm'}){
     violet:{bg:'var(--navy-mid)',text:'var(--white)'},
     teal:  {bg:'var(--green)',text:'var(--white)'},
     gray:  {bg:'var(--cream2)',text:'var(--muted)'},
+    rose:  {bg:'#f7e2ea',text:'#8a3a55'},
+    sky:   {bg:'#deeaf7',text:'#2a5a8a'},
   };
   const s=c[color]||c.slate;
   const pad=size==='xs'?'2px 8px':'3px 10px';
@@ -1083,7 +1085,7 @@ function PatientList({onSelect,onNew}){
                 <p style={{fontSize:'13px',fontWeight:400,color:'var(--navy)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{p.prenom} {p.nom}</p>
                 <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>{ageStr(p.dateNaissance)} · né{p.sexe==='F'?'e':''} le {fmtDate(p.dateNaissance)}</p>
               </div>
-              <Badge color={p.sexe==='F'?'red':'blue'}>{p.sexe==='F'?'F':'M'}</Badge>
+              <Badge color={p.sexe==='F'?'rose':'sky'}>{p.sexe==='F'?'F':'M'}</Badge>
               <Ic.Chevron style={{width:'14px',height:'14px',color:'var(--light)',flexShrink:0}}/>
             </button>
           ))}
@@ -1897,7 +1899,7 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
               </div>
               <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--navy)',lineHeight:1.2}}>{patient.prenom} {patient.nom}</h2>
               <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>{ageStr(patient.dateNaissance)} · {fmtDate(patient.dateNaissance)}</p>
-              <div style={{marginTop:'8px'}}><Badge color={patient.sexe==='F'?'red':'blue'}>{patient.sexe==='F'?'Féminin':'Masculin'}</Badge></div>
+              <div style={{marginTop:'8px'}}><Badge color={patient.sexe==='F'?'rose':'sky'}>{patient.sexe==='F'?'Féminin':'Masculin'}</Badge></div>
             </div>
             <div style={{borderTop:'1px solid var(--border)',paddingTop:'16px',display:'flex',flexDirection:'column',gap:'8px'}}>
               {patient.telephone&&(
@@ -2622,18 +2624,18 @@ function AgePyramideChart({groups}){
   const scale=v=>(midX-labelW-16)*v/maxVal;
   return(
     <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{fontFamily:'inherit'}}>
-      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#00725f" fontWeight="400">Hommes</text>
-      <text x={midX+(midX-labelW)/2+labelW} y={14} textAnchor="middle" fontSize={11} fill="#B8935A" fontWeight="400">Femmes</text>
+      <text x={midX/2} y={14} textAnchor="middle" fontSize={11} fill="#2a5a8a" fontWeight="400">Hommes</text>
+      <text x={midX+(midX-labelW)/2+labelW} y={14} textAnchor="middle" fontSize={11} fill="#8a3a55" fontWeight="400">Femmes</text>
       {groups.map((g,i)=>{
         const y=20+i*(barH+gap);
         const hw=scale(g.h), fw=scale(g.f);
         return(
           <g key={g.label}>
-            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={0} fill="#00725f" opacity={0.85}/>
-            <rect x={midX+labelW} y={y} width={fw} height={barH} rx={0} fill="#B8935A" opacity={0.85}/>
+            <rect x={midX-labelW-hw} y={y} width={hw} height={barH} rx={0} fill="#7aa8d0" opacity={0.85}/>
+            <rect x={midX+labelW} y={y} width={fw} height={barH} rx={0} fill="#d48a9a" opacity={0.85}/>
             <text x={midX} y={y+barH/2+4} textAnchor="middle" fontSize={10} fill="#8A8A8A">{g.label}</text>
-            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#00725f">{g.h}</text>
-            <text x={midX+labelW+fw+4} y={y+barH/2+4} textAnchor="start" fontSize={9} fill="#B8935A">{g.f}</text>
+            <text x={midX-labelW-hw-4} y={y+barH/2+4} textAnchor="end" fontSize={9} fill="#2a5a8a">{g.h}</text>
+            <text x={midX+labelW+fw+4} y={y+barH/2+4} textAnchor="start" fontSize={9} fill="#8a3a55">{g.f}</text>
           </g>
         );
       })}
@@ -3066,12 +3068,22 @@ function AnalyticsPage(){
     const a=document.createElement('a');a.href=url;a.download=`analytics-${from}-${to}.csv`;a.click();
   };
 
+  const STAT_PALETTES={
+    blue:  {bg:'var(--navy)',  num:'var(--gold-light)',label:'rgba(250,250,248,0.5)',sub:'rgba(250,250,248,0.3)',border:'var(--navy)'},
+    rose:  {bg:'#f7e2ea',     num:'#8a3a55',           label:'rgba(138,58,85,0.55)',sub:'rgba(138,58,85,0.35)',border:'#d48a9a'},
+    sky:   {bg:'#deeaf7',     num:'#2a5a8a',           label:'rgba(42,90,138,0.55)',sub:'rgba(42,90,138,0.35)',border:'#7aa8d0'},
+    amber: {bg:'#fdf6ee',     num:'#8a5220',           label:'rgba(138,82,32,0.55)',sub:'rgba(138,82,32,0.35)',border:'#c89050'},
+    teal:  {bg:'#eef7f3',     num:'#1d5c42',           label:'rgba(29,92,66,0.55)', sub:'rgba(29,92,66,0.35)', border:'#4a9a6a'},
+  };
   const StatCard=({label,value,sub,color='blue'})=>{
+    const p=STAT_PALETTES[color]||STAT_PALETTES.blue;
+    const isNavy=color==='blue';
     return(
-      <div className="stat-block card-hover">
-        <span className="stat-n">{value??'—'}</span>
-        <span className="stat-l">{label}</span>
-        {sub&&<span style={{display:'block',fontSize:'9px',letterSpacing:'0.15em',textTransform:'uppercase',color:'rgba(250,250,248,0.3)',marginTop:'4px'}}>{sub}</span>}
+      <div className="card-hover" style={{background:p.bg,padding:'22px 20px',position:'relative',border:`1px solid ${p.border}22`,overflow:'hidden'}}>
+        <div style={{position:'absolute',bottom:0,left:0,width:'36px',height:'2px',background:p.border}}/>
+        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'42px',fontWeight:300,color:p.num,display:'block',lineHeight:1,letterSpacing:'-0.02em',marginBottom:'10px'}}>{value??'—'}</span>
+        <span style={{fontSize:'11px',fontWeight:500,color:p.num,letterSpacing:'0.06em',display:'block',marginBottom:'2px'}}>{label}</span>
+        {sub&&<span style={{display:'block',fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:p.sub}}>{sub}</span>}
       </div>
     );
   };
