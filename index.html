@@ -2022,28 +2022,28 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
               <div style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:'12px'}}>
                 {/* Alertes cliniques */}
                 {view360.alertes?.map((a,i)=>(
-                  <div key={i} style={{background:a.niveau==='danger'?'#fdf0ee':'#fdf8ee',border:`1px solid ${a.niveau==='danger'?'rgba(180,60,40,0.3)':'rgba(180,140,40,0.3)'}`,borderLeft:`3px solid ${a.niveau==='danger'?'var(--accent)':'var(--gold)'}`,padding:'10px 14px',display:'flex',gap:'10px',alignItems:'flex-start'}}>
-                    <span style={{fontSize:'14px',flexShrink:0}}>{a.niveau==='danger'?'⚠️':'⚡'}</span>
+                  <div key={i} style={{background:a.level==='danger'?'#fdf0ee':'#fdf8ee',border:`1px solid ${a.level==='danger'?'rgba(180,60,40,0.3)':'rgba(180,140,40,0.3)'}`,borderLeft:`3px solid ${a.level==='danger'?'var(--accent)':'var(--gold)'}`,padding:'10px 14px',display:'flex',gap:'10px',alignItems:'flex-start'}}>
+                    <span style={{fontSize:'14px',flexShrink:0}}>{a.level==='danger'?'⚠️':'⚡'}</span>
                     <div>
-                      <p style={{fontSize:'12px',fontWeight:500,color:a.niveau==='danger'?'var(--accent)':'#8a6020',marginBottom:'2px'}}>{a.message}</p>
-                      {a.detail&&<p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>{a.detail}</p>}
+                      <p style={{fontSize:'12px',fontWeight:500,color:a.level==='danger'?'var(--accent)':'#8a6020',marginBottom:'2px'}}>{a.msg}</p>
                     </div>
                   </div>
                 ))}
                 {/* Dernières constantes */}
                 {view360.lastConstantes&&(()=>{
                   const c=view360.lastConstantes;
+                  const v=c.data||{};
                   return(
                     <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 16px'}}>
                       <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--navy)',fontWeight:500,marginBottom:'10px'}}>Dernières constantes · {c.date?new Date(c.date).toLocaleDateString('fr-FR'):''}</p>
                       <div style={{display:'flex',flexWrap:'wrap',gap:'12px'}}>
-                        {c.ta_sys&&c.ta_dia&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>TA</strong> {c.ta_sys}/{c.ta_dia} mmHg</span>}
-                        {c.fc&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>FC</strong> {c.fc} bpm</span>}
-                        {c.spo2&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>SpO₂</strong> {c.spo2}%</span>}
-                        {c.temperature&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>T°</strong> {c.temperature}°C</span>}
-                        {c.poids&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>Poids</strong> {c.poids} kg</span>}
-                        {c.imc&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>IMC</strong> {c.imc}</span>}
-                        {c.eva!=null&&c.eva!==''&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>EVA</strong> {c.eva}/10</span>}
+                        {v.ta_sys&&v.ta_dia&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>TA</strong> {v.ta_sys}/{v.ta_dia} mmHg</span>}
+                        {v.fc&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>FC</strong> {v.fc} bpm</span>}
+                        {v.spo2&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>SpO₂</strong> {v.spo2}%</span>}
+                        {v.temperature&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>T°</strong> {v.temperature}°C</span>}
+                        {v.poids&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>Poids</strong> {v.poids} kg</span>}
+                        {v.imc&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>IMC</strong> {v.imc}</span>}
+                        {v.eva!=null&&v.eva!==''&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>EVA</strong> {v.eva}/10</span>}
                       </div>
                     </div>
                   );
@@ -2052,7 +2052,7 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
                 {view360.rdv?.slice(0,1).map(r=>(
                   <div key={r.id} style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'12px',color:'var(--charcoal)',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'10px 14px'}}>
                     <Ic.Clock style={{width:'13px',height:'13px',color:'var(--navy)',flexShrink:0}}/>
-                    <span><strong>Prochain RDV</strong> — {new Date(r.dateHeure).toLocaleString('fr-FR',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'})} · {r.motif}</span>
+                    <span><strong>Prochain RDV</strong> — {r.date} {r.heure&&r.heure.slice(0,5)} · {r.motif}</span>
                   </div>
                 ))}
               </div>
