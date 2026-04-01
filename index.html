@@ -1075,7 +1075,7 @@ function PatientList({onSelect,onNew}){
    PATIENT FORM
 ══════════════════════════════════════════════════════════════ */
 function PatientForm({patientId,onSave,onBack}){
-  const empty={nom:'',prenom:'',dateNaissance:'',sexe:'M',telephone:'',telephone2:'',email:'',adresse:'',typeAssurance:'',numAssurance:'',antecedents:'',allergies:'',traitements:'',antecedents_familiaux:'',antecedents_chirurgicaux:'',vaccinations:'',facteurs_risque:'',intolerances:''};
+  const empty={nom:'',prenom:'',dateNaissance:'',sexe:'M',telephone:'',telephone2:'',email:'',adresse:'',typeAssurance:'',numAssurance:'',antecedents:'',allergies:'',traitements:'',antecedents_familiaux:'',antecedents_chirurgicaux:'',vaccinations:'',facteurs_risque:'',intolerances:'',groupe_sanguin:'',employeur:'',ayant_droit:'',medecin_referent:''};
   const [form,setForm]=useState(empty);
   const [saving,setSaving]=useState(false);
   useEffect(()=>{if(patientId)api.get(`/patients/${patientId}`).then(p=>setForm(p));},[patientId]);
@@ -1120,6 +1120,21 @@ function PatientForm({patientId,onSave,onBack}){
                 </select>
               </div>
               <Input label="Numéro d'assurance" value={form.numAssurance} onChange={set('numAssurance')}/>
+            </div>
+          </div>
+          <div style={{borderTop:'1px solid var(--border)',paddingTop:'20px'}}>
+            <p className="eyebrow" style={{marginBottom:'16px'}}>Informations complémentaires</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Groupe sanguin</label>
+                <select value={form.groupe_sanguin||''} onChange={set('groupe_sanguin')} style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 14px',fontSize:'13px',color:'var(--charcoal)',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}>
+                  <option value="">— Non renseigné —</option>
+                  {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(g=><option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <Input label="Médecin référent" value={form.medecin_referent||''} onChange={set('medecin_referent')} placeholder="Dr. NOM Prénom"/>
+              <Input label="Employeur / Profession" value={form.employeur||''} onChange={set('employeur')} placeholder="Ex: Fonctionnaire, Commerçant…"/>
+              <Input label="Ayant droit / Contact urgence" value={form.ayant_droit||''} onChange={set('ayant_droit')} placeholder="Ex: Épouse — 06 00 00 00"/>
             </div>
           </div>
           <div style={{borderTop:'1px solid var(--border)',paddingTop:'20px'}}>
@@ -1836,10 +1851,12 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
   const [prescriptions,setPrescriptions]=useState([]);
   const [rxExpanded,setRxExpanded]=useState(null);
   const [dossDlLoading,setDossDlLoading]=useState(false);
+  const [view360,setView360]=useState(null);
 
   useEffect(()=>{
     api.get(`/patients/${patientId}`).then(setPatient);
     api.get(`/patients/${patientId}/prescriptions`).then(setPrescriptions);
+    api.get(`/patients/${patientId}/360`).then(setView360).catch(()=>{});
   },[patientId]);
 
   const downloadDossier=async()=>{
@@ -1893,6 +1910,10 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
                 </div>
               )}
               {patient.adresse&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Ic.Map style={{width:'13px',height:'13px',color:'var(--muted)'}}/></div><span style={{fontSize:'13px',color:'var(--charcoal)',fontWeight:300}}>{patient.adresse}</span></div>}
+              {patient.groupe_sanguin&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:'11px',fontWeight:600,color:'var(--navy)'}}>{patient.groupe_sanguin}</div><span style={{fontSize:'13px',color:'var(--charcoal)',fontWeight:300}}>Groupe sanguin</span></div>}
+              {patient.medecin_referent&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><Ic.User style={{width:'13px',height:'13px',color:'var(--muted)'}}/></div><span style={{fontSize:'12px',color:'var(--charcoal)',fontWeight:300}}>Réf. : {patient.medecin_referent}</span></div>}
+              {patient.employeur&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',color:'var(--muted)'}}>💼</span></div><span style={{fontSize:'12px',color:'var(--charcoal)',fontWeight:300}}>{patient.employeur}</span></div>}
+              {patient.ayant_droit&&<div style={{display:'flex',alignItems:'center',gap:'10px'}}><div style={{width:'28px',height:'28px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}><span style={{fontSize:'11px',color:'var(--muted)'}}>🆘</span></div><span style={{fontSize:'12px',color:'var(--charcoal)',fontWeight:300}}>{patient.ayant_droit}</span></div>}
             </div>
             {(patient.typeAssurance||patient.numAssurance)&&(
               <div style={{borderTop:'1px solid var(--border)',paddingTop:'16px',marginTop:'8px'}}>
@@ -1990,6 +2011,54 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
 
         {/* Right */}
         <div className="lg:col-span-2 space-y-5">
+
+          {/* Vue 360 */}
+          {view360&&(view360.alertes?.length>0||view360.lastConstantes||view360.rdv?.length>0)&&(
+            <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+              <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+                <span style={{fontSize:'14px'}}>🔭</span>
+                <p className="eyebrow" style={{flex:1}}>Vue 360° — Résumé clinique</p>
+              </div>
+              <div style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:'12px'}}>
+                {/* Alertes cliniques */}
+                {view360.alertes?.map((a,i)=>(
+                  <div key={i} style={{background:a.niveau==='danger'?'#fdf0ee':'#fdf8ee',border:`1px solid ${a.niveau==='danger'?'rgba(180,60,40,0.3)':'rgba(180,140,40,0.3)'}`,borderLeft:`3px solid ${a.niveau==='danger'?'var(--accent)':'var(--gold)'}`,padding:'10px 14px',display:'flex',gap:'10px',alignItems:'flex-start'}}>
+                    <span style={{fontSize:'14px',flexShrink:0}}>{a.niveau==='danger'?'⚠️':'⚡'}</span>
+                    <div>
+                      <p style={{fontSize:'12px',fontWeight:500,color:a.niveau==='danger'?'var(--accent)':'#8a6020',marginBottom:'2px'}}>{a.message}</p>
+                      {a.detail&&<p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>{a.detail}</p>}
+                    </div>
+                  </div>
+                ))}
+                {/* Dernières constantes */}
+                {view360.lastConstantes&&(()=>{
+                  const c=view360.lastConstantes;
+                  return(
+                    <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 16px'}}>
+                      <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--navy)',fontWeight:500,marginBottom:'10px'}}>Dernières constantes · {c.date?new Date(c.date).toLocaleDateString('fr-FR'):''}</p>
+                      <div style={{display:'flex',flexWrap:'wrap',gap:'12px'}}>
+                        {c.ta_sys&&c.ta_dia&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>TA</strong> {c.ta_sys}/{c.ta_dia} mmHg</span>}
+                        {c.fc&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>FC</strong> {c.fc} bpm</span>}
+                        {c.spo2&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>SpO₂</strong> {c.spo2}%</span>}
+                        {c.temperature&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>T°</strong> {c.temperature}°C</span>}
+                        {c.poids&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>Poids</strong> {c.poids} kg</span>}
+                        {c.imc&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>IMC</strong> {c.imc}</span>}
+                        {c.eva!=null&&c.eva!==''&&<span style={{fontSize:'12px',color:'var(--navy)'}}><strong>EVA</strong> {c.eva}/10</span>}
+                      </div>
+                    </div>
+                  );
+                })()}
+                {/* Prochain RDV */}
+                {view360.rdv?.slice(0,1).map(r=>(
+                  <div key={r.id} style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'12px',color:'var(--charcoal)',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'10px 14px'}}>
+                    <Ic.Clock style={{width:'13px',height:'13px',color:'var(--navy)',flexShrink:0}}/>
+                    <span><strong>Prochain RDV</strong> — {new Date(r.dateHeure).toLocaleString('fr-FR',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'})} · {r.motif}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* New consultation */}
           <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px 28px'}}>
             <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'16px'}}>
@@ -2129,15 +2198,51 @@ function DrugSearch({value,onChange}){
 }
 
 /* ══════════════════════════════════════════════════════════════
+   PACKS THÉRAPEUTIQUES & INTERACTIONS
+══════════════════════════════════════════════════════════════ */
+const THERAPEUTIC_PACKS=[
+  {name:'HTA standard',icon:'❤️',meds:[{medicament:'Ramipril 5mg',posologie:'1 cp/j le matin',duree:'3 mois',quantite:'90 cp'},{medicament:'Amlodipine 5mg',posologie:'1 cp/j le matin',duree:'3 mois',quantite:'90 cp'}]},
+  {name:'Diabète type 2 — initiation',icon:'🩸',meds:[{medicament:'Metformine 500mg',posologie:'1 cp matin et soir avec les repas (augmenter progressivement)',duree:'1 mois',quantite:'60 cp'}]},
+  {name:'Paludisme adulte (Coartem)',icon:'🦟',meds:[{medicament:'Artemether/Luméfantrine (Coartem)',posologie:'4 cp à H0, H8, H24, H36, H48 et H60',duree:'3 jours',quantite:'24 cp'}]},
+  {name:'Douleur modérée',icon:'💊',meds:[{medicament:'Paracétamol 1g',posologie:'1 cp toutes les 6h si douleur (max 4g/j)',duree:'5 jours',quantite:'20 cp'},{medicament:'Ibuprofène 400mg',posologie:'1 cp 3×/j au repas si insuffisant',duree:'5 jours',quantite:'15 cp'}]},
+  {name:'Infection respiratoire',icon:'🫁',meds:[{medicament:'Amoxicilline 1g',posologie:'1 cp matin et soir',duree:'7 jours',quantite:'14 cp'},{medicament:'Paracétamol 1g',posologie:'1 cp toutes les 6h si fièvre',duree:'5 jours',quantite:'20 cp'}]},
+  {name:'Grossesse — vitamines T1',icon:'🤱',meds:[{medicament:'Acide folique 5mg',posologie:'1 cp/j',duree:'3 mois',quantite:'90 cp'},{medicament:'Fer sulfate 80mg',posologie:'1 cp/j hors repas',duree:'3 mois',quantite:'90 cp'}]},
+  {name:'Crise d\'asthme légère',icon:'💨',meds:[{medicament:'Salbutamol (Ventoline) 100µg spray',posologie:'2 bouffées toutes les 4h si besoin',duree:'5 jours',quantite:'1 spray'},{medicament:'Prednisolone 20mg',posologie:'2 cp le matin pendant 5 jours',duree:'5 jours',quantite:'10 cp'}]},
+  {name:'Anxiété / insomnie légère',icon:'🧠',meds:[{medicament:'Hydroxyzine 25mg',posologie:'1 cp le soir au coucher',duree:'1 mois',quantite:'30 cp'},{medicament:'Mélatonine 2mg',posologie:'1 cp 30 min avant coucher',duree:'1 mois',quantite:'30 cp'}]},
+];
+const INTERACTION_RULES=[
+  {a:/warfarin|warfarine/i,b:/aspirine|ibuprofène|kétoprofène|diclofénac|ains/i,level:'danger',msg:'Risque hémorragique majeur — éviter l\'association'},
+  {a:/amiodarone/i,b:/warfarin|warfarine/i,level:'danger',msg:'Potentialisation anticoagulante — surveiller INR étroitement'},
+  {a:/clonazépam|diazépam|alprazolam|zopiclone|zolpidem/i,b:/tramadol|morphine|codéine|oxycodone/i,level:'danger',msg:'Risque de dépression respiratoire sévère'},
+  {a:/sertraline|fluoxétine|escitalopram|paroxétine/i,b:/tramadol/i,level:'warning',msg:'Risque de syndrome sérotoninergique'},
+  {a:/ramipril|perindopril|enalapril|lisinopril/i,b:/losartan|valsartan|irbésartan|telmisartan/i,level:'warning',msg:'Double blocage SRAA — risque rénal et hyperkaliémie'},
+  {a:/spironolactone/i,b:/ramipril|perindopril|enalapril|losartan/i,level:'warning',msg:'Hyperkaliémie — surveiller kaliémie régulièrement'},
+  {a:/digoxine/i,b:/amiodarone/i,level:'warning',msg:'Toxicité digitalique augmentée — adapter la dose de digoxine'},
+  {a:/metformine/i,b:/alcool/i,level:'warning',msg:'Risque d\'acidose lactique — éviter l\'alcool'},
+];
+function checkInteractions(lignes){
+  const alerts=[];
+  const names=lignes.map(l=>(l.medicament||'').toLowerCase());
+  INTERACTION_RULES.forEach(rule=>{
+    const idxA=names.findIndex(n=>rule.a.test(n));
+    const idxB=names.findIndex(n=>rule.b.test(n));
+    if(idxA>=0&&idxB>=0&&idxA!==idxB){
+      alerts.push({level:rule.level,msg:rule.msg,drugs:[lignes[idxA].medicament,lignes[idxB].medicament]});
+    }
+  });
+  return alerts;
+}
+
+/* ══════════════════════════════════════════════════════════════
    PRESCRIPTION PANEL
 ══════════════════════════════════════════════════════════════ */
-function PrescriptionPanel({consultationId}){
+function PrescriptionPanel({consultationId,patientAllergies}){
   const empty={medicament:'',posologie:'',duree:'',quantite:''};
   const [lignes,setLignes]=useState([]);
   const [validee,setValidee]=useState(false);
   const [saving,setSaving]=useState(false);
   const [pdfLoading,setPdfLoading]=useState(false);
-  const [renewModal,setRenewModal]=useState(false);
+  const [showPacks,setShowPacks]=useState(false);
 
   useEffect(()=>{api.get(`/consultations/${consultationId}/prescription`).then(d=>{if(d.lignes){setLignes(d.lignes);setValidee(!!d.validee);}});},[consultationId]);
 
@@ -2146,28 +2251,71 @@ function PrescriptionPanel({consultationId}){
   const upd=(i,k,v)=>setLignes(l=>l.map((r,idx)=>idx===i?{...r,[k]:v}:r));
   const del=i=>setLignes(l=>l.filter((_,idx)=>idx!==i));
   const dlPdf=async()=>{await save(validee);setPdfLoading(true);const r=await fetch(`${API}/consultations/${consultationId}/prescription/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='ordonnance.pdf';a.click();setPdfLoading(false);};
+  const applyPack=pack=>{setLignes(l=>[...l,...pack.meds.map(m=>({...m}))]);setShowPacks(false);};
+
+  const interactions=checkInteractions(lignes);
+  // Check allergie
+  const allergieAlerts=patientAllergies?lignes.filter(l=>{
+    const al=(patientAllergies||'').toLowerCase().split(/[,;\n]+/).map(a=>a.trim()).filter(Boolean);
+    return al.some(a=>a&&l.medicament.toLowerCase().includes(a.split(' ')[0]));
+  }).map(l=>({level:'danger',msg:`Allergie connue : ${l.medicament} — vérifier avant de prescrire`,drugs:[l.medicament]})):[];
+  const allAlerts=[...allergieAlerts,...interactions];
 
   return(
     <div>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      {/* Alertes interactions / allergies */}
+      {allAlerts.length>0&&(
+        <div style={{marginBottom:'16px',display:'flex',flexDirection:'column',gap:'6px'}}>
+          {allAlerts.map((a,i)=>(
+            <div key={i} style={{background:a.level==='danger'?'#fdf0ee':'#fdf8ee',border:`1px solid ${a.level==='danger'?'rgba(180,60,40,0.3)':'rgba(180,140,40,0.3)'}`,borderLeft:`3px solid ${a.level==='danger'?'var(--accent)':'var(--gold)'}`,padding:'10px 14px',display:'flex',gap:'10px',alignItems:'flex-start'}}>
+              <span style={{fontSize:'14px',flexShrink:0}}>{a.level==='danger'?'⚠️':'⚡'}</span>
+              <div>
+                <p style={{fontSize:'12px',fontWeight:500,color:a.level==='danger'?'var(--accent)':'#8a6020',marginBottom:'2px'}}>{a.level==='danger'?'Alerte':'Attention'} — {a.msg}</p>
+                {a.drugs&&<p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>{a.drugs.join(' + ')}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
         {validee&&<Badge color="green">Ordonnance validée</Badge>}
-        <div className="flex gap-2 ml-auto flex-wrap">
+        <div style={{display:'flex',gap:'8px',marginLeft:'auto',flexWrap:'wrap'}}>
+          {!validee&&<Btn variant="secondary" size="sm" onClick={()=>setShowPacks(s=>!s)}>📦 Packs</Btn>}
           {!validee&&<Btn variant="secondary" onClick={()=>save(false)} loading={saving} size="sm">Sauvegarder</Btn>}
-          {validee&&lignes.length>0&&<Btn variant="secondary" icon={Ic.Refresh} size="sm" onClick={()=>{setValidee(false);}}>Renouveler</Btn>}
+          {validee&&lignes.length>0&&<Btn variant="secondary" icon={Ic.Refresh} size="sm" onClick={()=>setValidee(false)}>Renouveler</Btn>}
           <Btn variant="secondary" icon={Ic.Download} onClick={dlPdf} loading={pdfLoading} size="sm">Ordonnance PDF</Btn>
           {!validee&&lignes.length>0&&<Btn variant="success" icon={Ic.Check} onClick={()=>save(true)} size="sm">Valider</Btn>}
         </div>
       </div>
 
+      {/* Packs thérapeutiques */}
+      {showPacks&&!validee&&(
+        <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'16px',marginBottom:'16px'}}>
+          <p style={{fontSize:'10px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'12px'}}>Packs thérapeutiques — 1 clic</p>
+          <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
+            {THERAPEUTIC_PACKS.map(pack=>(
+              <button key={pack.name} onClick={()=>applyPack(pack)}
+                style={{display:'flex',alignItems:'center',gap:'6px',padding:'8px 14px',border:'1px solid var(--border)',background:'var(--white)',fontSize:'12px',color:'var(--navy)',cursor:'pointer',fontFamily:"'DM Sans',sans-serif",fontWeight:400}}
+                onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--gold)';e.currentTarget.style.background='var(--cream2)';}}
+                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.background='var(--white)';}}>
+                <span>{pack.icon}</span><span>{pack.name}</span>
+                <span style={{fontSize:'10px',color:'var(--muted)',marginLeft:'2px'}}>({pack.meds.length})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {!validee&&(
-        <div className="space-y-3 mb-4">
+        <div style={{marginBottom:'16px'}}>
           {lignes.map((l,i)=>(
-            <div key={i} style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px',marginBottom:'12px'}}>
+            <div key={i} style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:`3px solid ${allergieAlerts.some(a=>a.drugs?.includes(l.medicament))?'var(--accent)':'var(--gold)'}`,padding:'16px',marginBottom:'10px'}}>
               <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
                 <span style={{fontSize:'11px',fontWeight:600,color:'var(--gold)',letterSpacing:'0.1em'}}>{String(i+1).padStart(2,'0')}</span>
                 <button onClick={()=>del(i)} style={{width:'24px',height:'24px',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}><Ic.Trash style={{width:'12px',height:'12px'}}/></button>
               </div>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
                 <DrugSearch value={l.medicament} onChange={v=>upd(i,'medicament',v)}/>
                 <input value={l.posologie} onChange={e=>upd(i,'posologie',e.target.value)} placeholder="Posologie"
                   style={{gridColumn:'span 2',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
@@ -2182,26 +2330,26 @@ function PrescriptionPanel({consultationId}){
             style={{width:'100%',border:'1px dashed var(--border)',padding:'12px 0',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',fontFamily:"'DM Sans',sans-serif"}}
             onMouseEnter={e=>{e.currentTarget.style.borderColor='var(--gold)';e.currentTarget.style.color='var(--gold)';}}
             onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.color='var(--muted)';}}>
-            <Ic.Plus className="w-4 h-4"/>Ajouter un médicament
+            <Ic.Plus style={{width:'14px',height:'14px'}}/>Ajouter un médicament
           </button>
         </div>
       )}
 
       {validee&&lignes.length>0&&(
-        <div className="space-y-3">
+        <div style={{display:'flex',flexDirection:'column',gap:'0'}}>
           {lignes.map((l,i)=>(
-            <div key={i} className="flex gap-3 py-3 border-b border-slate-100 last:border-0">
-              <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-bold flex-shrink-0">{i+1}</div>
+            <div key={i} style={{display:'flex',gap:'12px',padding:'12px 0',borderBottom:'1px solid var(--border)'}}>
+              <div style={{width:'24px',height:'24px',background:'var(--cream2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:600,color:'var(--gold)',flexShrink:0}}>{i+1}</div>
               <div>
-                <p className="text-sm font-semibold text-slate-900">{l.medicament}</p>
-                {l.posologie&&<p className="text-xs text-slate-600 mt-0.5">{l.posologie}</p>}
-                {(l.duree||l.quantite)&&<p className="text-xs text-slate-400 mt-0.5">{[l.duree,l.quantite].filter(Boolean).join(' · ')}</p>}
+                <p style={{fontSize:'13px',fontWeight:500,color:'var(--navy)'}}>{l.medicament}</p>
+                {l.posologie&&<p style={{fontSize:'12px',color:'var(--charcoal)',marginTop:'2px',fontWeight:300}}>{l.posologie}</p>}
+                {(l.duree||l.quantite)&&<p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>{[l.duree,l.quantite].filter(Boolean).join(' · ')}</p>}
               </div>
             </div>
           ))}
         </div>
       )}
-      {validee&&lignes.length===0&&<p className="text-sm text-slate-400 italic">Aucun médicament prescrit</p>}
+      {validee&&lignes.length===0&&<p style={{fontSize:'12px',color:'var(--muted)',fontStyle:'italic',fontWeight:300}}>Aucun médicament prescrit</p>}
     </div>
   );
 }
@@ -2224,6 +2372,10 @@ function ConsultationScreen({consultationId,patientId,onBack}){
   const [consent,setConsent]=useState(false);
   const [audioTime,setAudioTime]=useState(0);
   const [tab,setTab]=useState('note');
+  const [constantes,setConstantes]=useState({ta_sys:'',ta_dia:'',fc:'',fr:'',temperature:'',spo2:'',poids:'',taille:'',eva:'',glasgow:''});
+  const [constSaving,setConstSaving]=useState(false);
+  const [resumePatient,setResumePatient]=useState('');
+  const [resumeLoading,setResumeLoading]=useState(false);
   const [emailModal,setEmailModal]=useState(false);
   const [emailTo,setEmailTo]=useState('');
   const [emailSending,setEmailSending]=useState(false);
@@ -2235,7 +2387,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
 
   useEffect(()=>{
     api.get(`/patients/${patientId}`).then(setPatient);
-    api.get(`/consultations/${consultationId}`).then(c=>{setConsultation(c);setTranscription(c.transcription||'');txRef.current=c.transcription||'';if(c.note){setNote(c.note);setNoteEdit({...c.note});}if(c.statut==='validee')setValidated(true);});
+    api.get(`/consultations/${consultationId}`).then(c=>{setConsultation(c);setTranscription(c.transcription||'');txRef.current=c.transcription||'';if(c.note){setNote(c.note);setNoteEdit({...c.note});}if(c.statut==='validee')setValidated(true);if(c.constantes){try{const cv=typeof c.constantes==='string'?JSON.parse(c.constantes):c.constantes;setConstantes(cv);}catch(e){}}if(c.resume_patient)setResumePatient(c.resume_patient);});
     return ()=>{recRef.current?.stop();mrRef.current?.stop();streamRef.current?.getTracks().forEach(t=>t.stop());clearInterval(timerRef.current);};
   },[]);
 
@@ -2304,6 +2456,10 @@ function ConsultationScreen({consultationId,patientId,onBack}){
   const deleteConsult=async()=>{if(!confirm('Supprimer cette consultation ?'))return;await api.delete(`/consultations/${consultationId}`);onBack();};
   const sendEmail=async()=>{setEmailSending(true);const r=await api.post(`/consultations/${consultationId}/send-email`,{to:emailTo});setEmailSending(false);if(r.ok){setEmailModal(false);}else alert(r.error||'Erreur envoi email');};
   const fmt=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+
+  const setC=k=>e=>{const v=e.target.value;setConstantes(prev=>{const next={...prev,[k]:v};if((k==='poids'||k==='taille')&&next.poids&&next.taille){const p=parseFloat(next.poids),t=parseFloat(next.taille)/100;if(p>0&&t>0)next.imc=(p/(t*t)).toFixed(1);}return next;});};
+  const saveConstantes=async()=>{setConstSaving(true);await api.put(`/consultations/${consultationId}/constantes`,{constantes});setConstSaving(false);};
+  const genResume=async()=>{setResumeLoading(true);const r=await api.post(`/consultations/${consultationId}/resume-patient`,{});if(r.resume)setResumePatient(r.resume);setResumeLoading(false);};
 
   const NF=({label,field,ta=true,alert=false})=>(
     <div>
@@ -2433,7 +2589,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
           {note&&(
             <div style={{background:'var(--white)',border:'1px solid var(--border)'}} className="fade-in">
               <div className="flex border-b border-slate-100">
-                {[['note','📋 Note clinique'],['prescription','💊 Ordonnance']].map(([k,l])=>(
+                {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance']].map(([k,l])=>(
                   <button key={k} onClick={()=>setTab(k)}
                     style={tab===k?{borderBottom:'2px solid var(--gold)',color:'var(--navy)',background:'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:'13px',padding:'14px 0',flex:1}:{borderBottom:'2px solid transparent',color:'var(--muted)',background:'var(--white)',fontFamily:"'DM Sans',sans-serif",fontWeight:400,fontSize:'13px',padding:'14px 0',flex:1}}>
                     {l}
@@ -2500,7 +2656,80 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                 </div>
               )}
 
-              {tab==='prescription'&&<div className="p-5"><PrescriptionPanel consultationId={consultationId}/></div>}
+              {tab==='constantes'&&(
+                <div style={{padding:'20px'}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
+                    <p className="eyebrow">Constantes vitales</p>
+                    <Btn variant="primary" size="sm" icon={Ic.Check} onClick={saveConstantes} loading={constSaving}>Enregistrer</Btn>
+                  </div>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+                    {/* TA */}
+                    <div style={{gridColumn:'span 2',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'14px 16px'}}>
+                      <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--navy)',fontWeight:500,marginBottom:'10px'}}>Tension artérielle (mmHg)</p>
+                      <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
+                        <input value={constantes.ta_sys} onChange={setC('ta_sys')} placeholder="Sys" type="number" style={{flex:1,border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'14px',fontFamily:"'DM Sans',sans-serif",outline:'none',textAlign:'center'}}/>
+                        <span style={{color:'var(--muted)',fontWeight:300,fontSize:'18px'}}>/</span>
+                        <input value={constantes.ta_dia} onChange={setC('ta_dia')} placeholder="Dia" type="number" style={{flex:1,border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'14px',fontFamily:"'DM Sans',sans-serif",outline:'none',textAlign:'center'}}/>
+                      </div>
+                    </div>
+                    {[
+                      {label:'Fréquence cardiaque (bpm)',key:'fc',placeholder:'Ex: 72'},
+                      {label:'Fréquence respiratoire (/min)',key:'fr',placeholder:'Ex: 16'},
+                      {label:'Température (°C)',key:'temperature',placeholder:'Ex: 37.2'},
+                      {label:'SpO₂ (%)',key:'spo2',placeholder:'Ex: 98'},
+                      {label:'Poids (kg)',key:'poids',placeholder:'Ex: 75'},
+                      {label:'Taille (cm)',key:'taille',placeholder:'Ex: 170'},
+                    ].map(({label,key,placeholder})=>(
+                      <div key={key} style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 14px'}}>
+                        <p style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>{label}</p>
+                        <input value={constantes[key]||''} onChange={setC(key)} placeholder={placeholder} type="number" step="any"
+                          style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'14px',fontFamily:"'DM Sans',sans-serif",outline:'none',textAlign:'center'}}/>
+                      </div>
+                    ))}
+                    {/* IMC auto-calc */}
+                    {constantes.imc&&(
+                      <div style={{background:'var(--cream2)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'12px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                        <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>IMC calculé</p>
+                        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--navy)'}}>{constantes.imc}</span>
+                      </div>
+                    )}
+                    {/* EVA */}
+                    <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 14px'}}>
+                      <p style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Douleur EVA (0–10)</p>
+                      <input value={constantes.eva||''} onChange={setC('eva')} type="range" min="0" max="10" step="1"
+                        style={{width:'100%',accentColor:'var(--navy)'}}/>
+                      <div style={{display:'flex',justifyContent:'space-between',marginTop:'4px'}}>
+                        <span style={{fontSize:'10px',color:'var(--muted)'}}>0 — Aucune</span>
+                        <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18px',fontWeight:400,color:'var(--navy)'}}>{constantes.eva||0}</span>
+                        <span style={{fontSize:'10px',color:'var(--muted)'}}>10 — Max</span>
+                      </div>
+                    </div>
+                    {/* Glasgow */}
+                    <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 14px'}}>
+                      <p style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Score Glasgow (3–15)</p>
+                      <input value={constantes.glasgow||''} onChange={setC('glasgow')} placeholder="Ex: 15" type="number" min="3" max="15"
+                        style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'14px',fontFamily:"'DM Sans',sans-serif",outline:'none',textAlign:'center'}}/>
+                    </div>
+                  </div>
+
+                  {/* Résumé patient */}
+                  <div style={{borderTop:'1px solid var(--border)',paddingTop:'16px'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                      <p className="eyebrow">Résumé patient simplifié</p>
+                      <Btn variant="secondary" size="sm" onClick={genResume} loading={resumeLoading}>🤖 Générer</Btn>
+                    </div>
+                    {resumePatient?(
+                      <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'16px 18px',fontSize:'13px',color:'var(--charcoal)',lineHeight:1.7,fontWeight:300}}>
+                        {resumePatient}
+                      </div>
+                    ):(
+                      <p style={{fontSize:'12px',color:'var(--muted)',fontStyle:'italic',fontWeight:300}}>Cliquez "Générer" pour produire un résumé de la consultation en langage patient.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {tab==='prescription'&&<div className="p-5"><PrescriptionPanel consultationId={consultationId} patientAllergies={patient?.allergies}/></div>}
             </div>
           )}
         </div>

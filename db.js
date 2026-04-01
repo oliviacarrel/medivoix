@@ -106,6 +106,14 @@ try { db.exec("ALTER TABLE patients ADD COLUMN antecedents_chirurgicaux TEXT"); 
 try { db.exec("ALTER TABLE patients ADD COLUMN vaccinations TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE patients ADD COLUMN facteurs_risque TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE patients ADD COLUMN intolerances TEXT"); } catch(e) {}
+// Série 1 — Phase 1.1
+try { db.exec("ALTER TABLE patients ADD COLUMN groupe_sanguin TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN employeur TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN ayant_droit TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN medecin_referent TEXT"); } catch(e) {}
+// Série 1 — Phase 1.2
+try { db.exec("ALTER TABLE consultations ADD COLUMN constantes TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE consultations ADD COLUMN resume_patient TEXT"); } catch(e) {}
 
 // Honoraires & Tarifs
 db.exec(`

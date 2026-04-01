@@ -225,22 +225,23 @@ app.get('/api/patients/:id', auth, (req, res) => {
 });
 
 app.post('/api/patients', auth, (req, res) => {
-  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux, antecedents_chirurgicaux, vaccinations, facteurs_risque, intolerances } = req.body;
+  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux, antecedents_chirurgicaux, vaccinations, facteurs_risque, intolerances, groupe_sanguin, employeur, ayant_droit, medecin_referent } = req.body;
   const id = randomUUID();
-  db.prepare(`INSERT INTO patients (id,nom,prenom,dateNaissance,sexe,telephone,telephone2,email,adresse,typeAssurance,numAssurance,antecedents,allergies,traitements,antecedents_familiaux,antecedents_chirurgicaux,vaccinations,facteurs_risque,intolerances)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-    .run(id, nom, prenom, dateNaissance, sexe||'M', telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux||'', antecedents_chirurgicaux||'', vaccinations||'', facteurs_risque||'', intolerances||'');
+  db.prepare(`INSERT INTO patients (id,nom,prenom,dateNaissance,sexe,telephone,telephone2,email,adresse,typeAssurance,numAssurance,antecedents,allergies,traitements,antecedents_familiaux,antecedents_chirurgicaux,vaccinations,facteurs_risque,intolerances,groupe_sanguin,employeur,ayant_droit,medecin_referent)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    .run(id, nom, prenom, dateNaissance, sexe||'M', telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux||'', antecedents_chirurgicaux||'', vaccinations||'', facteurs_risque||'', intolerances||'', groupe_sanguin||'', employeur||'', ayant_droit||'', medecin_referent||'');
   audit(req, 'CREATE_PATIENT', 'patient', id, `${prenom} ${nom}`);
   res.json(db.prepare('SELECT * FROM patients WHERE id=?').get(id));
 });
 
 app.put('/api/patients/:id', auth, (req, res) => {
-  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux, antecedents_chirurgicaux, vaccinations, facteurs_risque, intolerances } = req.body;
+  const { nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux, antecedents_chirurgicaux, vaccinations, facteurs_risque, intolerances, groupe_sanguin, employeur, ayant_droit, medecin_referent } = req.body;
   const info = db.prepare(`UPDATE patients SET nom=?,prenom=?,dateNaissance=?,sexe=?,telephone=?,telephone2=?,email=?,
     adresse=?,typeAssurance=?,numAssurance=?,antecedents=?,allergies=?,traitements=?,
     antecedents_familiaux=?,antecedents_chirurgicaux=?,vaccinations=?,facteurs_risque=?,intolerances=?,
+    groupe_sanguin=?,employeur=?,ayant_droit=?,medecin_referent=?,
     updatedAt=datetime('now') WHERE id=?`)
-    .run(nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux||'', antecedents_chirurgicaux||'', vaccinations||'', facteurs_risque||'', intolerances||'', req.params.id);
+    .run(nom, prenom, dateNaissance, sexe, telephone, telephone2, email, adresse, typeAssurance, numAssurance, antecedents, allergies, traitements, antecedents_familiaux||'', antecedents_chirurgicaux||'', vaccinations||'', facteurs_risque||'', intolerances||'', groupe_sanguin||'', employeur||'', ayant_droit||'', medecin_referent||'', req.params.id);
   if (!info.changes) return res.status(404).json({ error: 'Patient non trouvé' });
   audit(req, 'UPDATE_PATIENT', 'patient', req.params.id, `${prenom} ${nom}`);
   res.json(db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id));
@@ -256,6 +257,108 @@ app.get('/api/patients/:id/prescriptions', auth, (req, res) => {
     LIMIT 10
   `).all(req.params.id);
   res.json(rows.map(r => ({ ...r, lignes: (() => { try { return JSON.parse(r.lignes); } catch { return []; } })() })));
+});
+
+// ─── Patient 360 ──────────────────────────────────────────────────────────────
+app.get('/api/patients/:id/360', auth, (req, res) => {
+  const p = db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Patient non trouvé' });
+
+  // Dernières constantes (consultation validée la plus récente avec constantes)
+  const lastConstantes = db.prepare(`
+    SELECT constantes, date, motif FROM consultations
+    WHERE patientId=? AND constantes IS NOT NULL AND constantes != ''
+    ORDER BY date DESC LIMIT 1
+  `).get(p.id);
+
+  // Timeline consultations (toutes)
+  const timeline = db.prepare(`
+    SELECT c.id, c.motif, c.date, c.statut, c.constantes, c.resume_patient,
+      u.nom as docteurNom, u.prenom as docteurPrenom, u.specialite as docteurSpec
+    FROM consultations c LEFT JOIN users u ON u.id = c.userId
+    WHERE c.patientId=? ORDER BY c.date DESC LIMIT 30
+  `).all(p.id);
+
+  // Dernières ordonnances
+  const prescriptions = db.prepare(`
+    SELECT p2.id, p2.lignes, p2.validee, p2.createdAt, c.motif, c.date, c.id as consultationId
+    FROM prescriptions p2 JOIN consultations c ON c.id = p2.consultationId
+    WHERE c.patientId=? AND p2.validee=1
+    ORDER BY c.date DESC LIMIT 5
+  `).all(p.id).map(r => ({ ...r, lignes: (() => { try { return JSON.parse(r.lignes); } catch { return []; } })() }));
+
+  // Prochains RDV
+  const rdv = db.prepare(`
+    SELECT a.id, a.date, a.heure, a.motif, a.statut,
+      u.nom as docteurNom, u.prenom as docteurPrenom
+    FROM appointments a LEFT JOIN users u ON u.id = a.userId
+    WHERE a.patientId=? AND a.date >= date('now')
+    ORDER BY a.date ASC, a.heure ASC LIMIT 5
+  `).all(p.id);
+
+  // Alertes cliniques (allergies vs traitements courants)
+  const alertes = [];
+  const allergies = (p.allergies || '').toLowerCase();
+  const traitements = (p.traitements || '').toLowerCase();
+  const intolerances = (p.intolerances || '').toLowerCase();
+  if (allergies && traitements) {
+    const allergyList = allergies.split(/[,;\n]+/).map(a => a.trim()).filter(Boolean);
+    allergyList.forEach(al => {
+      if (al && traitements.includes(al.split(' ')[0])) {
+        alertes.push({ level: 'danger', msg: `Allergie connue (${al}) détectée dans les traitements en cours` });
+      }
+    });
+  }
+  if (intolerances && traitements) {
+    const intoleranceList = intolerances.split(/[,;\n]+/).map(a => a.trim()).filter(Boolean);
+    intoleranceList.forEach(it => {
+      const keyword = it.split(/[\s(]/)[0];
+      if (keyword && traitements.includes(keyword.toLowerCase())) {
+        alertes.push({ level: 'warning', msg: `Intolérance connue (${it}) — à surveiller dans les prescriptions` });
+      }
+    });
+  }
+
+  res.json({
+    patient: p,
+    lastConstantes: lastConstantes ? { ...lastConstantes, data: (() => { try { return JSON.parse(lastConstantes.constantes); } catch { return {}; } })() } : null,
+    timeline,
+    prescriptions,
+    rdv,
+    alertes,
+  });
+});
+
+// ─── Constantes vitales ───────────────────────────────────────────────────────
+app.put('/api/consultations/:id/constantes', auth, (req, res) => {
+  const { constantes } = req.body;
+  db.prepare("UPDATE consultations SET constantes=?,updatedAt=datetime('now') WHERE id=?")
+    .run(JSON.stringify(constantes), req.params.id);
+  res.json({ ok: true });
+});
+
+// ─── Résumé patient ───────────────────────────────────────────────────────────
+app.post('/api/consultations/:id/resume-patient', auth, async (req, res) => {
+  const c = db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
+  if (!c) return res.status(404).json({ error: 'Non trouvée' });
+  const note = parseNote(c);
+  if (!note) return res.status(400).json({ error: 'Note non disponible' });
+
+  let resume;
+  if (!openai) {
+    resume = `Vous avez consulté pour : ${note.motif || 'non précisé'}.\n\nCe que nous avons constaté : ${note.examen || 'examen réalisé'}.\n\nDiagnostic : ${note.hypotheses || 'à confirmer'}.\n\nVotre traitement : ${note.prescriptions || 'voir ordonnance'}.\n\nConseils importants : ${note.conseils_patient || 'suivre les recommandations du médecin'}.\n\nSigles d'alarme — consultez immédiatement si : ${note.drapeaux_rouges || 'vous vous sentez très mal ou que vos symptômes s\'aggravent rapidement'}.`;
+  } else {
+    try {
+      const r = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [{ role: 'user', content: `Transforme cette note médicale en un résumé SIMPLE et BIENVEILLANT pour le patient (niveau lycée, sans jargon médical, en français, 150-200 mots). Utilise "vous". Structure: motif → constat → diagnostic → traitement → conseils → signes d'alarme.\n\nNote médicale:\n${JSON.stringify(note)}` }]
+      });
+      resume = r.choices[0].message.content;
+    } catch (err) { return res.status(500).json({ error: err.message }); }
+  }
+
+  db.prepare("UPDATE consultations SET resume_patient=?,updatedAt=datetime('now') WHERE id=?").run(resume, c.id);
+  res.json({ resume });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -314,7 +417,9 @@ app.post('/api/consultations/:id/generate-note', auth, async (req, res) => {
   if (!openai) {
     note = { motif:"Céphalées", histoire:"Céphalées pulsatiles depuis 3 jours, prédominance matinale, sans fièvre ni nausées. Antécédent de migraines il y a 5 ans.", examen:"TA : 160/95 mmHg. Pas d'autres anomalies.", hypotheses:"1. Céphalée sur poussée hypertensive\n2. Reprise migraineuse", conduite:"1. Bilan NFS, ionogramme, créatinine\n2. ECG\n3. MAPA\n4. Traitement antihypertenseur à discuter", prescriptions:"Paracétamol 1g si douleur, max 3g/j\nAvis cardiologique", conseils_patient:"Reposez-vous. Mesurez votre tension le matin. Revenez en urgence si douleur aggravée, troubles visuels ou faiblesse.", drapeaux_rouges:"Céphalée en coup de tonnerre, fièvre + raideur nuque, déficit neurologique focal, HTA > 180/110", cim10:{code:"R51",libelle:"Céphalée"} };
   } else {
-    const ctx = p ? `Patient : ${p.prenom} ${p.nom}, né(e) le ${p.dateNaissance}.\nAntécédents : ${p.antecedents||'aucun'}\nAllergies : ${p.allergies||'aucune'}\nTraitements : ${p.traitements||'aucun'}` : '';
+    const constantes = (() => { try { return c.constantes ? JSON.parse(c.constantes) : null; } catch { return null; } })();
+    const constStr = constantes ? `Constantes : TA ${constantes.ta_sys||'?'}/${constantes.ta_dia||'?'} mmHg, FC ${constantes.fc||'?'}/min, SpO2 ${constantes.spo2||'?'}%, T° ${constantes.temp||'?'}°C, Poids ${constantes.poids||'?'} kg, Taille ${constantes.taille||'?'} cm, IMC ${constantes.imc||'?'}, EVA ${constantes.eva||'?'}/10` : '';
+    const ctx = p ? `Patient : ${p.prenom} ${p.nom}, né(e) le ${p.dateNaissance}.\nAntécédents : ${p.antecedents||'aucun'}\nAllergies : ${p.allergies||'aucune'}\nTraitements : ${p.traitements||'aucun'}\n${constStr}` : '';
     try {
       const r = await openai.chat.completions.create({ model:'gpt-4o', messages:[{role:'user',content:`Tu es un assistant médical. Génère une note clinique JSON.\n\n${ctx}\n\nTranscription:\n"""\n${transcription}\n"""\n\nRetourne UNIQUEMENT ce JSON (cim10 = code CIM-10 le plus probable + libellé court):\n{"motif":"","histoire":"","examen":"","hypotheses":"","conduite":"","prescriptions":"","conseils_patient":"","drapeaux_rouges":"","cim10":{"code":"","libelle":""}}`}], response_format:{type:'json_object'} });
       note = JSON.parse(r.choices[0].message.content);
