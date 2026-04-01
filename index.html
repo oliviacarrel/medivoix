@@ -329,6 +329,13 @@ const Ic={
   Pill:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>,
   Rx:         p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>,
   Refresh:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>,
+  Flow:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 012-2h2a2 2 0 012 2m0-4V7a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2zm6 4v-2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>,
+  Lab:        p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>,
+  Xray:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="0" strokeWidth={1.8}/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 8v8M8 12h8"/></svg>,
+  ArrowRight: p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>,
+  ClipList:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>,
+  DoorOpen:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 21h18M9 21V5a2 2 0 012-2h4a2 2 0 012 2v16M9 10.5h.01M9 14h.01"/></svg>,
+  ChevronDown:p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>,
 };
 
 /* ── Badge ── */
@@ -356,6 +363,7 @@ function Sidebar({page,onNav,user,onLogout}){
     {id:'dashboard',label:'Tableau de bord',Icon:Ic.Home},
     {id:'patients',label:'Patients',Icon:Ic.Users},
     {id:'agenda',label:'Agenda',Icon:Ic.Calendar},
+    {id:'flowboard',label:'Circulation',Icon:Ic.Flow},
     {id:'analytics',label:'Analytiques',Icon:Ic.BarChart},
     {id:'intelligence',label:'Intelligence IA',Icon:Ic.Brain},
     {id:'honoraires',label:'Honoraires',Icon:Ic.Money},
@@ -1852,11 +1860,15 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
   const [rxExpanded,setRxExpanded]=useState(null);
   const [dossDlLoading,setDossDlLoading]=useState(false);
   const [view360,setView360]=useState(null);
+  const [dossierStatus,setDossierStatus]=useState(null);
+  const [ordresPatient,setOrdresPatient]=useState([]);
 
   useEffect(()=>{
     api.get(`/patients/${patientId}`).then(setPatient);
     api.get(`/patients/${patientId}/prescriptions`).then(setPrescriptions);
     api.get(`/patients/${patientId}/360`).then(setView360).catch(()=>{});
+    api.get(`/patients/${patientId}/dossier-status`).then(setDossierStatus).catch(()=>{});
+    api.get(`/patients/${patientId}/ordres`).then(r=>setOrdresPatient(r||[])).catch(()=>{});
   },[patientId]);
 
   const downloadDossier=async()=>{
@@ -2053,6 +2065,64 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
                   <div key={r.id} style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'12px',color:'var(--charcoal)',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'10px 14px'}}>
                     <Ic.Clock style={{width:'13px',height:'13px',color:'var(--navy)',flexShrink:0}}/>
                     <span><strong>Prochain RDV</strong> — {r.date} {r.heure&&r.heure.slice(0,5)} · {r.motif}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Dossier completeness */}
+          {dossierStatus&&(
+            <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+              <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+                <Ic.Shield style={{width:'13px',height:'13px',color:'var(--gold)'}}/>
+                <p className="eyebrow" style={{flex:1}}>Complétude du dossier</p>
+                <span style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:400,color:dossierStatus.score>=80?'var(--green)':dossierStatus.score>=50?'var(--gold)':'var(--accent)'}}>{dossierStatus.score}%</span>
+              </div>
+              <div style={{padding:'14px 20px'}}>
+                {/* Progress bar */}
+                <div style={{height:'4px',background:'var(--cream2)',marginBottom:'14px',position:'relative'}}>
+                  <div style={{height:'100%',width:`${dossierStatus.score}%`,background:dossierStatus.score>=80?'var(--green)':dossierStatus.score>=50?'var(--gold)':'var(--accent)',transition:'width .4s ease'}}/>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                  {dossierStatus.checks?.map(c=>(
+                    <div key={c.key} style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                      <span style={{width:'14px',height:'14px',display:'inline-flex',alignItems:'center',justifyContent:'center',background:c.ok?'var(--green)':'var(--cream2)',flexShrink:0}}>
+                        {c.ok?<Ic.Check style={{width:'8px',height:'8px',color:'var(--white)'}}/>:<span style={{width:'4px',height:'4px',background:'var(--light)',display:'block'}}/>}
+                      </span>
+                      <span style={{fontSize:'11px',color:c.ok?'var(--charcoal)':'var(--muted)',fontWeight:c.ok?300:300,textDecoration:c.ok?'none':'none'}}>{c.label}</span>
+                    </div>
+                  ))}
+                </div>
+                {dossierStatus.pendingOrdres>0&&(
+                  <div style={{marginTop:'12px',background:'var(--gold-pale)',border:'1px solid rgba(184,147,90,0.3)',borderLeft:'3px solid var(--gold)',padding:'8px 12px',display:'flex',alignItems:'center',gap:'6px'}}>
+                    <Ic.Lab style={{width:'12px',height:'12px',color:'var(--gold)',flexShrink:0}}/>
+                    <span style={{fontSize:'11px',color:'var(--navy)'}}>{dossierStatus.pendingOrdres} ordre(s) médical(aux) en attente de résultats</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Ordres médicaux du patient */}
+          {ordresPatient.length>0&&(
+            <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+              <div style={{padding:'14px 20px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+                <Ic.Lab style={{width:'13px',height:'13px',color:'var(--gold)'}}/>
+                <p className="eyebrow" style={{flex:1}}>Ordres médicaux récents</p>
+                <Badge color={ordresPatient.filter(o=>o.statut!=='rendu').length>0?'amber':'green'} size="xs">
+                  {ordresPatient.filter(o=>o.statut!=='rendu').length>0?`${ordresPatient.filter(o=>o.statut!=='rendu').length} en cours`:'Tous rendus'}
+                </Badge>
+              </div>
+              <div style={{padding:'12px 20px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                {ordresPatient.slice(0,5).map(o=>(
+                  <div key={o.id} style={{display:'flex',alignItems:'center',gap:'10px',padding:'8px 10px',background:'var(--cream)',border:'1px solid var(--border)'}}>
+                    <span style={{fontSize:'12px'}}>{o.type==='labo'?'🧪':'🩻'}</span>
+                    <div style={{flex:1,minWidth:0}}>
+                      <p style={{fontSize:'11px',fontWeight:400,color:'var(--navy)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{(o.catalogue||[]).slice(0,3).join(' · ')}{(o.catalogue||[]).length>3?'…':''}</p>
+                      <p style={{fontSize:'9px',color:'var(--muted)',marginTop:'1px'}}>{new Date(o.createdAt).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <Badge color={ORDRE_STATUT_COLOR[o.statut]||'gray'} size="xs">{ORDRE_STATUT_LABEL[o.statut]}</Badge>
                   </div>
                 ))}
               </div>
@@ -2588,7 +2658,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
           {/* Tabs — toujours visibles */}
           <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
             <div className="flex border-b border-slate-100">
-              {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance']].map(([k,l])=>(
+              {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance'],['ordres','🧪 Ordres']].map(([k,l])=>(
                 <button key={k} onClick={()=>setTab(k)}
                   style={tab===k?{borderBottom:'2px solid var(--gold)',color:'var(--navy)',background:'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:'13px',padding:'14px 0',flex:1}:{borderBottom:'2px solid transparent',color:'var(--muted)',background:'var(--white)',fontFamily:"'DM Sans',sans-serif",fontWeight:400,fontSize:'13px',padding:'14px 0',flex:1}}>
                   {l}
@@ -2736,6 +2806,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
               )}
 
               {tab==='prescription'&&<div className="p-5"><PrescriptionPanel consultationId={consultationId} patientAllergies={patient?.allergies}/></div>}
+              {tab==='ordres'&&<OrdresPanel consultationId={consultationId} patientId={patientId}/>}
           </div>
         </div>
       </div>
@@ -3543,6 +3614,427 @@ function AuditLog(){
 }
 
 /* ══════════════════════════════════════════════════════════════
+   SÉRIE 2 — FLOW BOARD
+══════════════════════════════════════════════════════════════ */
+const FLOW_COLS=[
+  {id:'planifie',  label:'Planifié',      color:'var(--muted)',   bg:'var(--cream)'},
+  {id:'arrive',    label:'Arrivé',         color:'var(--navy)',    bg:'#e8f4f1'},
+  {id:'tri',       label:'Tri infirmier',  color:'var(--gold)',    bg:'var(--gold-pale)'},
+  {id:'en_salle',  label:'En salle',       color:'#5b8c8c',       bg:'#e8f4f4'},
+  {id:'en_consultation',label:'En consultation',color:'var(--green)',bg:'#edf7f3'},
+  {id:'sorti',     label:'Sorti',          color:'var(--light)',   bg:'var(--white)'},
+];
+const PRIO_STYLE={P1:{bg:'var(--accent)',text:'var(--white)',label:'P1 — Urgence'},P2:{bg:'var(--gold)',text:'var(--white)',label:'P2 — Prioritaire'},P3:{bg:'var(--cream2)',text:'var(--muted)',label:'P3 — Normal'}};
+
+function FlowBoardPage(){
+  const [queue,setQueue]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [triageModal,setTriageModal]=useState(null);
+  const [trForm,setTrForm]=useState({priorite:'P3',notes_triage:''});
+  const [saving,setSaving]=useState(false);
+  const today=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+
+  const load=()=>{
+    setLoading(true);
+    api.get('/flow/today').then(r=>{setQueue(r||[]);setLoading(false);}).catch(()=>setLoading(false));
+  };
+  useEffect(()=>{load();const t=setInterval(load,30000);return()=>clearInterval(t);},[]);
+
+  const advanceFlow=async(appt,statut_flow)=>{
+    const r=await api.put(`/appointments/${appt.id}/flow`,{statut_flow});
+    setQueue(q=>q.map(x=>x.id===appt.id?{...x,...r}:x));
+  };
+
+  const openTriage=appt=>{
+    setTrForm({priorite:appt.priorite||'P3',notes_triage:appt.notes_triage||''});
+    setTriageModal(appt);
+  };
+
+  const saveTriage=async()=>{
+    setSaving(true);
+    const r=await api.put(`/appointments/${triageModal.id}/flow`,{statut_flow:'tri',...trForm});
+    setQueue(q=>q.map(x=>x.id===triageModal.id?{...x,...r}:x));
+    setSaving(false);setTriageModal(null);
+  };
+
+  const NEXT={planifie:'arrive',arrive:'tri',tri:'en_salle',en_salle:'en_consultation',en_consultation:'sorti'};
+  const NEXT_LABEL={planifie:'Check-in',arrive:'Triage',tri:'→ En salle',en_salle:'→ En consultation',en_consultation:'→ Sorti'};
+
+  const byCol=col=>queue.filter(a=>(a.statut_flow||'planifie')===col);
+
+  return(
+    <Page title="Circulation patient" subtitle={today}
+      actions={<Btn icon={Ic.Refresh} variant="secondary" onClick={load} size="sm">Actualiser</Btn>}>
+
+      {loading&&<div style={{textAlign:'center',padding:'48px',color:'var(--muted)'}}><Ic.Spin style={{width:'24px',height:'24px',margin:'0 auto'}}/></div>}
+
+      {!loading&&(
+        <div style={{display:'flex',gap:'12px',overflowX:'auto',paddingBottom:'12px',alignItems:'flex-start'}}>
+          {FLOW_COLS.map(col=>{
+            const cards=byCol(col.id);
+            return(
+              <div key={col.id} style={{minWidth:'220px',flex:'0 0 220px',background:col.bg,border:'1px solid var(--border)',display:'flex',flexDirection:'column'}}>
+                {/* Column header */}
+                <div style={{padding:'12px 14px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <div>
+                    <span style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',fontWeight:600,color:col.color}}>{col.label}</span>
+                  </div>
+                  <span style={{width:'20px',height:'20px',display:'inline-flex',alignItems:'center',justifyContent:'center',background:col.color,color:'var(--white)',fontSize:'10px',fontWeight:600}}>{cards.length}</span>
+                </div>
+                {/* Cards */}
+                <div style={{padding:'8px',display:'flex',flexDirection:'column',gap:'6px',minHeight:'120px'}}>
+                  {cards.length===0&&(
+                    <div style={{textAlign:'center',padding:'24px 8px',color:'var(--light)',fontSize:'11px',fontWeight:300}}>Aucun patient</div>
+                  )}
+                  {cards.map(a=>{
+                    const prio=PRIO_STYLE[a.priorite||'P3'];
+                    const next=NEXT[a.statut_flow||'planifie'];
+                    return(
+                      <div key={a.id} style={{background:'var(--white)',border:'1px solid var(--border)',padding:'10px 12px',position:'relative'}}>
+                        {/* Priority badge */}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'6px'}}>
+                          <span style={{fontSize:'8px',fontWeight:700,padding:'2px 6px',background:prio.bg,color:prio.text,letterSpacing:'0.1em'}}>{a.priorite||'P3'}</span>
+                          <span style={{fontSize:'9px',color:'var(--muted)',fontWeight:300}}>{a.heure}</span>
+                        </div>
+                        {/* Patient name */}
+                        <p style={{fontSize:'12px',fontWeight:500,color:'var(--navy)',marginBottom:'2px'}}>{a.prenom} {a.nom}</p>
+                        <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300,marginBottom:'2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{a.motif||'—'}</p>
+                        {a.notes_triage&&<p style={{fontSize:'9px',color:'var(--gold)',fontWeight:400,marginBottom:'4px',fontStyle:'italic',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>Triage : {a.notes_triage}</p>}
+                        <p style={{fontSize:'9px',color:'var(--light)',fontWeight:300}}>Dr. {a.medecinPrenom} {a.medecinNom}</p>
+                        {/* Action button */}
+                        {next&&(
+                          next==='tri'
+                            ? <button onClick={()=>openTriage(a)} style={{marginTop:'8px',width:'100%',background:'var(--navy)',color:'var(--gold-light)',border:'none',padding:'5px 0',fontSize:'9px',letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer',fontWeight:500}}>
+                                Triage infirmier
+                              </button>
+                            : <button onClick={()=>advanceFlow(a,next)} style={{marginTop:'8px',width:'100%',background:next==='arrive'?'var(--green)':'var(--cream2)',color:next==='arrive'?'var(--white)':'var(--charcoal)',border:'1px solid var(--border)',padding:'5px 0',fontSize:'9px',letterSpacing:'0.14em',textTransform:'uppercase',cursor:'pointer',fontWeight:500}}>
+                                {NEXT_LABEL[a.statut_flow||'planifie']}
+                              </button>
+                        )}
+                        {/* Timestamps */}
+                        {a.checkin_at&&<p style={{fontSize:'8px',color:'var(--light)',marginTop:'4px'}}>Arrivée {new Date(a.checkin_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</p>}
+                        {a.sorti_at&&<p style={{fontSize:'8px',color:'var(--light)'}}>Sorti {new Date(a.sorti_at).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</p>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Triage modal */}
+      {triageModal&&(
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50" onClick={()=>setTriageModal(null)}>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'400px',padding:0}} onClick={e=>e.stopPropagation()} className="fade-in">
+            <div style={{padding:'20px 28px',borderBottom:'1px solid var(--border)'}}>
+              <p className="eyebrow" style={{marginBottom:'4px'}}>Triage infirmier</p>
+              <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:300,color:'var(--navy)'}}>{triageModal.prenom} {triageModal.nom}</h3>
+            </div>
+            <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'16px'}}>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'10px'}}>Niveau de priorité</label>
+                <div style={{display:'flex',gap:'8px'}}>
+                  {['P1','P2','P3'].map(p=>{
+                    const s=PRIO_STYLE[p];
+                    const active=trForm.priorite===p;
+                    return(
+                      <button key={p} onClick={()=>setTrForm(f=>({...f,priorite:p}))}
+                        style={{flex:1,padding:'10px 0',fontSize:'12px',fontWeight:600,border:`2px solid ${active?s.bg:'var(--border)'}`,background:active?s.bg:'var(--white)',color:active?s.text:'var(--muted)',cursor:'pointer'}}>
+                        {p}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p style={{fontSize:'10px',color:'var(--muted)',marginTop:'6px',fontWeight:300}}>{PRIO_STYLE[trForm.priorite].label}</p>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Notes de triage</label>
+                <textarea value={trForm.notes_triage} onChange={e=>setTrForm(f=>({...f,notes_triage:e.target.value}))} rows={3} placeholder="Constantes à l'arrivée, motif aggravé, etc."
+                  style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",fontWeight:300,resize:'none',outline:'none'}}/>
+              </div>
+            </div>
+            <div style={{padding:'16px 28px',borderTop:'1px solid var(--border)',display:'flex',gap:'8px',justifyContent:'flex-end'}}>
+              <Btn variant="secondary" onClick={()=>setTriageModal(null)}>Annuler</Btn>
+              <Btn onClick={saveTriage} loading={saving}>Valider le triage</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </Page>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SÉRIE 2 — ORDRES MÉDICAUX (panel dans ConsultationScreen)
+══════════════════════════════════════════════════════════════ */
+const LAB_CATALOG=[
+  {cat:'Hématologie',exams:['NFS','VS','CRP','Hémoglobine','Plaquettes','TP/TCA','Fibrinogène']},
+  {cat:'Biochimie',exams:['Glycémie à jeun','HbA1c','Urée','Créatinine','Ionogramme','ASAT/ALAT','Bilirubine totale','Cholestérol total','LDL','HDL','Triglycérides','Protéines totales']},
+  {cat:'Infectiologie',exams:['ECBU','Hémocultures','Sérologie VIH','Sérologie HBs Ag','Sérologie VHC','GE/TDR Paludisme','TPHA/VDRL','BK crachats (×3)','Coproculture']},
+  {cat:'Hormones',exams:['TSH','T4 libre','PSA total','β-HCG','Prolactine','FSH','LH','Cortisol 8h','Insulinémie']},
+  {cat:'Cardiologie',exams:['Troponine','CPK-MB','D-Dimères','BNP','NT-proBNP','LDH']},
+  {cat:'Autres',exams:['Ferritine','Folates','Vitamine B12','Albuminémie','Protéinurie/24h','Calciurie/24h','Magnésémie','Phosphorémie']},
+];
+const IMAGING_CATALOG=[
+  {cat:'Radiologie standard',exams:['Radio thorax face','Radio abdomen sans préparation','Radio os / articulations','Radio sinus']},
+  {cat:'Échographie',exams:['Écho abdominale','Écho pelvienne','Écho obstétricale','Écho cardiaque (ETT)','Écho-Doppler vasculaire','Écho thyroïde / cervicale','Écho des parties molles']},
+  {cat:'Scanner (TDM)',exams:['Scanner cérébral','Scanner thoracique','Scanner abdomino-pelvien','Scanner des sinus','Angio-scanner pulmonaire']},
+  {cat:'IRM',exams:['IRM cérébrale','IRM rachidienne','IRM articulaire','IRM abdominale']},
+  {cat:'Fonctionnel',exams:['ECG 12 dérivations','EEG','Holter ECG 24h','Spirométrie (EFR)','Endoscopie digestive haute','Coloscopie']},
+];
+const ORDRE_STATUT_CHAIN=['demande','preleve','en_cours','valide','rendu'];
+const ORDRE_STATUT_LABEL={demande:'Demandé',preleve:'Prélevé',en_cours:'En cours',valide:'Validé',rendu:'Rendu'};
+const ORDRE_STATUT_COLOR={demande:'gray',preleve:'blue',en_cours:'amber',valide:'green',rendu:'teal'};
+
+function OrdresPanel({consultationId,patientId}){
+  const [tab,setTab]=useState('creer');
+  const [type,setType]=useState('labo');
+  const [selected,setSelected]=useState([]);
+  const [priorite,setPriorite]=useState('routine');
+  const [notes,setNotes]=useState('');
+  const [ordres,setOrdres]=useState([]);
+  const [saving,setSaving]=useState(false);
+  const [expandOrdre,setExpandOrdre]=useState(null);
+  const [resultForm,setResultForm]=useState({});
+  const [resultModal,setResultModal]=useState(null);
+
+  useEffect(()=>{
+    if(consultationId)api.get(`/consultations/${consultationId}/ordres`).then(r=>setOrdres(r||[])).catch(()=>{});
+    else if(patientId)api.get(`/patients/${patientId}/ordres`).then(r=>setOrdres(r||[])).catch(()=>{});
+  },[consultationId,patientId]);
+
+  const catalog=type==='labo'?LAB_CATALOG:IMAGING_CATALOG;
+
+  const toggleExam=ex=>{
+    setSelected(s=>s.includes(ex)?s.filter(e=>e!==ex):[...s,ex]);
+  };
+
+  const submitOrdre=async()=>{
+    if(!selected.length)return;
+    setSaving(true);
+    const r=await api.post('/ordres',{consultationId,patientId,type,catalogue:selected,priorite,notes});
+    setOrdres(o=>[r,...o]);
+    setSelected([]);setNotes('');setTab('historique');
+    setSaving(false);
+  };
+
+  const advanceStatut=async(ordreId,statut)=>{
+    const r=await api.put(`/ordres/${ordreId}/statut`,{statut});
+    setOrdres(o=>o.map(x=>x.id===ordreId?{...x,...r,catalogue:x.catalogue,resultats:x.resultats}:x));
+  };
+
+  const openResultModal=ordre=>{
+    const init={};
+    (ordre.catalogue||[]).forEach(ex=>{init[ex]={valeur:'',unite:'',interpretation:''};});
+    setResultForm(init);
+    setResultModal(ordre);
+  };
+
+  const saveResultats=async()=>{
+    await api.put(`/ordres/${resultModal.id}/resultats`,{resultats:resultForm});
+    setOrdres(o=>o.map(x=>x.id===resultModal.id?{...x,statut:'rendu',resultats:resultForm}:x));
+    setResultModal(null);
+  };
+
+  return(
+    <div style={{padding:'0'}}>
+      {/* Sub-tabs */}
+      <div style={{display:'flex',borderBottom:'1px solid var(--border)'}}>
+        {[['creer','Créer un ordre'],['historique','Historique']].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)} style={tab===k?{padding:'10px 20px',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',fontWeight:500,color:'var(--navy)',background:'var(--cream)',borderBottom:'2px solid var(--gold)',flex:1}:{padding:'10px 20px',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',fontWeight:400,color:'var(--muted)',background:'var(--white)',borderBottom:'2px solid transparent',flex:1}}>{l}</button>
+        ))}
+      </div>
+
+      {tab==='creer'&&(
+        <div style={{padding:'20px'}}>
+          {/* Type toggle */}
+          <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
+            {[['labo','🧪 Biologie'],['imagerie','🩻 Imagerie']].map(([k,l])=>(
+              <button key={k} onClick={()=>{setType(k);setSelected([]);}}
+                style={{flex:1,padding:'10px',fontSize:'12px',fontWeight:type===k?500:400,background:type===k?'var(--navy)':'var(--cream)',color:type===k?'var(--gold-light)':'var(--muted)',border:'1px solid var(--border)',cursor:'pointer'}}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Priority */}
+          <div style={{display:'flex',gap:'8px',marginBottom:'20px',alignItems:'center'}}>
+            <span style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,flexShrink:0}}>Priorité</span>
+            {[['routine','Routine'],['urgent','Urgent']].map(([k,l])=>(
+              <button key={k} onClick={()=>setPriorite(k)}
+                style={{padding:'5px 14px',fontSize:'11px',fontWeight:500,background:priorite===k?(k==='urgent'?'var(--accent)':'var(--green)'):'var(--cream)',color:priorite===k?'var(--white)':'var(--muted)',border:`1px solid ${priorite===k?(k==='urgent'?'var(--accent)':'var(--green)'):'var(--border)'}`,cursor:'pointer'}}>
+                {l}
+              </button>
+            ))}
+          </div>
+
+          {/* Catalog */}
+          {catalog.map(({cat,exams})=>(
+            <div key={cat} style={{marginBottom:'16px'}}>
+              <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>{cat}</p>
+              <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
+                {exams.map(ex=>{
+                  const on=selected.includes(ex);
+                  return(
+                    <button key={ex} onClick={()=>toggleExam(ex)}
+                      style={{padding:'4px 10px',fontSize:'11px',background:on?'var(--navy)':'var(--cream)',color:on?'var(--gold-light)':'var(--charcoal)',border:`1px solid ${on?'var(--navy)':'var(--border)'}`,cursor:'pointer',fontWeight:on?500:300}}>
+                      {ex}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Notes */}
+          <div style={{marginTop:'16px',marginBottom:'16px'}}>
+            <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Précisions cliniques</label>
+            <textarea value={notes} onChange={e=>setNotes(e.target.value)} rows={2} placeholder="Contexte clinique pour le laboratoire..."
+              style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",fontWeight:300,resize:'none',outline:'none'}}/>
+          </div>
+
+          {/* Selected summary */}
+          {selected.length>0&&(
+            <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'12px 16px',marginBottom:'12px'}}>
+              <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300,marginBottom:'6px'}}>{selected.length} examen{selected.length>1?'s':''} sélectionné{selected.length>1?'s':''} :</p>
+              <p style={{fontSize:'11px',color:'var(--navy)',fontWeight:400}}>{selected.join(' · ')}</p>
+            </div>
+          )}
+
+          <Btn onClick={submitOrdre} loading={saving} disabled={!selected.length} icon={Ic.ClipList}>
+            Soumettre l'ordre {type==='labo'?'de biologie':'d\'imagerie'}
+          </Btn>
+        </div>
+      )}
+
+      {tab==='historique'&&(
+        <div style={{padding:'20px'}}>
+          {ordres.length===0&&(
+            <div style={{textAlign:'center',padding:'48px 24px',color:'var(--muted)'}}>
+              <Ic.Lab style={{width:'32px',height:'32px',margin:'0 auto 12px',opacity:0.2,color:'var(--navy)'}}/>
+              <p style={{fontSize:'13px',fontWeight:300}}>Aucun ordre médical pour cette consultation</p>
+            </div>
+          )}
+          {ordres.map(o=>{
+            const statutColor=ORDRE_STATUT_COLOR[o.statut]||'gray';
+            const curIdx=ORDRE_STATUT_CHAIN.indexOf(o.statut);
+            const nextStatut=ORDRE_STATUT_CHAIN[curIdx+1];
+            return(
+              <div key={o.id} style={{border:'1px solid var(--border)',marginBottom:'12px',background:'var(--white)'}}>
+                <div style={{padding:'12px 16px',display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'8px',cursor:'pointer'}} onClick={()=>setExpandOrdre(expandOrdre===o.id?null:o.id)}>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                      <span style={{fontSize:'11px',fontWeight:600,color:o.type==='labo'?'var(--navy)':'var(--gold)'}}>{o.type==='labo'?'🧪 Biologie':'🩻 Imagerie'}</span>
+                      {o.priorite==='urgent'&&<span style={{fontSize:'9px',padding:'1px 6px',background:'var(--accent)',color:'var(--white)',fontWeight:700,letterSpacing:'0.1em'}}>URGENT</span>}
+                    </div>
+                    <p style={{fontSize:'11px',color:'var(--charcoal)',fontWeight:300,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{(o.catalogue||[]).join(' · ')}</p>
+                    <p style={{fontSize:'9px',color:'var(--muted)',marginTop:'3px'}}>{new Date(o.createdAt).toLocaleDateString('fr-FR')} · Dr. {o.drPrenom} {o.drNom}</p>
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:'6px',flexShrink:0}}>
+                    <Badge color={statutColor} size="xs">{ORDRE_STATUT_LABEL[o.statut]||o.statut}</Badge>
+                    <Ic.ChevronDown style={{width:'12px',height:'12px',color:'var(--muted)',transform:expandOrdre===o.id?'rotate(180deg)':'none'}}/>
+                  </div>
+                </div>
+
+                {expandOrdre===o.id&&(
+                  <div style={{borderTop:'1px solid var(--border)',padding:'12px 16px',background:'var(--cream)'}}>
+                    {/* Status pipeline */}
+                    <div style={{display:'flex',gap:'4px',marginBottom:'14px',alignItems:'center'}}>
+                      {ORDRE_STATUT_CHAIN.map((s,i)=>{
+                        const done=i<=curIdx;
+                        return(
+                          <React.Fragment key={s}>
+                            <span style={{fontSize:'8px',padding:'3px 8px',background:done?'var(--navy)':'var(--cream2)',color:done?'var(--gold-light)':'var(--light)',fontWeight:done?500:300,letterSpacing:'0.1em',whiteSpace:'nowrap'}}>
+                              {ORDRE_STATUT_LABEL[s]}
+                            </span>
+                            {i<ORDRE_STATUT_CHAIN.length-1&&<span style={{fontSize:'8px',color:'var(--light)'}}>›</span>}
+                          </React.Fragment>
+                        );
+                      })}
+                    </div>
+                    {/* Exams list */}
+                    <div style={{display:'flex',flexWrap:'wrap',gap:'4px',marginBottom:'12px'}}>
+                      {(o.catalogue||[]).map(ex=>(
+                        <span key={ex} style={{fontSize:'10px',padding:'3px 8px',background:'var(--white)',border:'1px solid var(--border)',color:'var(--charcoal)',fontWeight:300}}>{ex}</span>
+                      ))}
+                    </div>
+                    {/* Notes */}
+                    {o.notes&&<p style={{fontSize:'11px',color:'var(--muted)',fontStyle:'italic',marginBottom:'10px',fontWeight:300}}>"{o.notes}"</p>}
+                    {/* Results */}
+                    {o.resultats&&typeof o.resultats==='object'&&(
+                      <div style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:'3px solid var(--green)',padding:'10px 14px',marginBottom:'10px'}}>
+                        <p style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--green)',fontWeight:500,marginBottom:'8px'}}>Résultats</p>
+                        {Object.entries(o.resultats).map(([ex,v])=>(
+                          v.valeur?<div key={ex} style={{display:'flex',gap:'8px',alignItems:'baseline',marginBottom:'3px'}}>
+                            <span style={{fontSize:'11px',fontWeight:400,color:'var(--navy)',flex:'0 0 180px'}}>{ex}</span>
+                            <span style={{fontSize:'12px',fontWeight:500,color:'var(--charcoal)'}}>{v.valeur}{v.unite?' '+v.unite:''}</span>
+                            {v.interpretation&&<span style={{fontSize:'9px',color:v.interpretation==='N'?'var(--green)':v.interpretation==='H'||v.interpretation==='B'?'var(--accent)':'var(--muted)',fontWeight:500}}>{v.interpretation}</span>}
+                          </div>:null
+                        ))}
+                      </div>
+                    )}
+                    {/* Actions */}
+                    <div style={{display:'flex',gap:'8px'}}>
+                      {nextStatut&&nextStatut!=='rendu'&&(
+                        <Btn variant="secondary" size="sm" onClick={()=>advanceStatut(o.id,nextStatut)}>→ {ORDRE_STATUT_LABEL[nextStatut]}</Btn>
+                      )}
+                      {(o.statut==='valide'||o.statut==='en_cours'||o.statut==='preleve')&&(
+                        <Btn size="sm" icon={Ic.ClipList} onClick={()=>openResultModal(o)}>Saisir résultats</Btn>
+                      )}
+                      {o.statut==='demande'&&(
+                        <Btn variant="secondary" size="sm" onClick={()=>advanceStatut(o.id,'preleve')}>Marquer prélevé</Btn>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Result entry modal */}
+      {resultModal&&(
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={()=>setResultModal(null)}>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'560px',maxHeight:'80vh',overflow:'auto',padding:0}} onClick={e=>e.stopPropagation()} className="fade-in">
+            <div style={{padding:'20px 28px',borderBottom:'1px solid var(--border)',position:'sticky',top:0,background:'var(--white)',zIndex:1}}>
+              <p className="eyebrow" style={{marginBottom:'4px'}}>Saisie des résultats</p>
+              <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'18px',fontWeight:300,color:'var(--navy)'}}>{(resultModal.catalogue||[]).length} examen(s)</h3>
+            </div>
+            <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'12px'}}>
+              {(resultModal.catalogue||[]).map(ex=>(
+                <div key={ex} style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 16px'}}>
+                  <p style={{fontSize:'11px',fontWeight:500,color:'var(--navy)',marginBottom:'8px'}}>{ex}</p>
+                  <div style={{display:'grid',gridTemplateColumns:'1fr 80px 80px',gap:'8px'}}>
+                    <input placeholder="Valeur" value={resultForm[ex]?.valeur||''} onChange={e=>setResultForm(f=>({...f,[ex]:{...f[ex],valeur:e.target.value}}))}
+                      style={{border:'1px solid var(--border)',background:'var(--white)',padding:'6px 10px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                    <input placeholder="Unité" value={resultForm[ex]?.unite||''} onChange={e=>setResultForm(f=>({...f,[ex]:{...f[ex],unite:e.target.value}}))}
+                      style={{border:'1px solid var(--border)',background:'var(--white)',padding:'6px 10px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                    <select value={resultForm[ex]?.interpretation||''} onChange={e=>setResultForm(f=>({...f,[ex]:{...f[ex],interpretation:e.target.value}}))}
+                      style={{border:'1px solid var(--border)',background:'var(--white)',padding:'6px 8px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}>
+                      <option value="">—</option>
+                      <option value="N">N (Normal)</option>
+                      <option value="H">H (Haut)</option>
+                      <option value="B">B (Bas)</option>
+                    </select>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{padding:'16px 28px',borderTop:'1px solid var(--border)',display:'flex',gap:'8px',justifyContent:'flex-end',position:'sticky',bottom:0,background:'var(--white)'}}>
+              <Btn variant="secondary" onClick={()=>setResultModal(null)}>Annuler</Btn>
+              <Btn icon={Ic.Check} onClick={saveResultats}>Enregistrer les résultats</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
    AGENDA
 ══════════════════════════════════════════════════════════════ */
 function AgendaPage(){
@@ -3585,13 +4077,13 @@ function AgendaPage(){
   const dayAppts = (apptsByDate[selectedDate]||[]).sort((a,b)=>(a.heure||'').localeCompare(b.heure||''));
 
   const openCreate = () => {
-    setForm({patientId:'',date:selectedDate,heure:'09:00',motif:'',notes:''});
+    setForm({patientId:'',date:selectedDate,heure:'09:00',motif:'',notes:'',salle:'',site:'Principal',priorite:'P3'});
     setPatSearch('');
     setModal({mode:'create'});
   };
   const openEdit = appt => {
     const pat = patients.find(p=>p.id===appt.patientId);
-    setForm({patientId:appt.patientId,date:appt.date,heure:appt.heure||'09:00',motif:appt.motif||'',notes:appt.notes||''});
+    setForm({patientId:appt.patientId,date:appt.date,heure:appt.heure||'09:00',motif:appt.motif||'',notes:appt.notes||'',salle:appt.salle||'',site:appt.site||'Principal',priorite:appt.priorite||'P3'});
     setPatSearch(pat?`${pat.prenom} ${pat.nom}`:'');
     setModal({mode:'edit', appt});
   };
@@ -3614,6 +4106,12 @@ function AgendaPage(){
     if(!confirm('Supprimer ce rendez-vous ?'))return;
     await api.delete('/agenda/'+id);
     setAppointments(a=>a.filter(x=>x.id!==id));
+  };
+
+  const sendReminder = async (id, e) => {
+    e.stopPropagation();
+    const r = await api.post(`/appointments/${id}/reminder`,{});
+    alert(r.ok ? (r.channel==='email' ? 'Rappel envoyé par email ✓' : `Rappel journalisé (SMTP non configuré) — ${r.note||''}`) : `Erreur : ${r.error}`);
   };
 
   const statusColor = s => s==='confirme'?'bg-emerald-500':s==='annule'?'bg-rose-400':'bg-blue-500';
@@ -3703,6 +4201,11 @@ function AgendaPage(){
                         </div>
                         <div style={{display:'flex',alignItems:'center',gap:'4px',flexShrink:0}}>
                           <Badge color={statusBadge(a.statut)} size="xs">{statusLabel(a.statut)}</Badge>
+                          <button onClick={e=>sendReminder(a.id,e)} title="Envoyer rappel" style={{padding:'2px',background:'none',border:'none',cursor:'pointer',color:'var(--light)'}}
+                            onMouseEnter={e=>e.currentTarget.style.color='var(--navy)'}
+                            onMouseLeave={e=>e.currentTarget.style.color='var(--light)'}>
+                            <Ic.Bell style={{width:'11px',height:'11px'}}/>
+                          </button>
                           <button onClick={e=>{e.stopPropagation();deleteAppt(a.id);}} style={{padding:'2px',background:'none',border:'none',cursor:'pointer',color:'var(--light)'}}
                             onMouseEnter={e=>e.currentTarget.style.color='var(--accent)'}
                             onMouseLeave={e=>e.currentTarget.style.color='var(--light)'}>
@@ -3710,6 +4213,7 @@ function AgendaPage(){
                           </button>
                         </div>
                       </div>
+                      {a.statut_flow&&a.statut_flow!=='planifie'&&<div style={{marginTop:'4px',display:'flex',alignItems:'center',gap:'4px'}}><span style={{width:'5px',height:'5px',background:'var(--green)',display:'inline-block'}}></span><span style={{fontSize:'9px',color:'var(--green)',fontWeight:500,letterSpacing:'0.1em',textTransform:'uppercase'}}>{a.statut_flow==='arrive'?'Arrivé':a.statut_flow==='tri'?'En triage':a.statut_flow==='en_salle'?'En salle':a.statut_flow==='en_consultation'?'En consultation':a.statut_flow==='sorti'?'Sorti':a.statut_flow}</span></div>}
                       {a.notes&&<p style={{fontSize:'10px',color:'var(--muted)',marginTop:'4px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',fontWeight:300}}>{a.notes}</p>}
                     </div>
                   ))}
@@ -3768,6 +4272,16 @@ function AgendaPage(){
                 </div>
               </div>
               <Input label="Motif" value={form.motif} onChange={e=>setForm(f=>({...f,motif:e.target.value}))} placeholder="Ex: Consultation de suivi"/>
+              <div className="grid grid-cols-2 gap-3">
+                <Input label="Salle" value={form.salle||''} onChange={e=>setForm(f=>({...f,salle:e.target.value}))} placeholder="Ex: Salle 3"/>
+                <Input label="Site" value={form.site||'Principal'} onChange={e=>setForm(f=>({...f,site:e.target.value}))} placeholder="Ex: Principal"/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.25em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Priorité</label>
+                <div style={{display:'flex',gap:'6px'}}>
+                  {['P1','P2','P3'].map(p=><button key={p} onClick={()=>setForm(f=>({...f,priorite:p}))} style={{flex:1,padding:'7px 0',fontSize:'11px',fontWeight:600,background:(form.priorite||'P3')===p?'var(--navy)':'var(--cream)',color:(form.priorite||'P3')===p?'var(--gold-light)':'var(--muted)',border:'1px solid var(--border)',cursor:'pointer'}}>{p}</button>)}
+                </div>
+              </div>
               <Input label="Notes" value={form.notes} onChange={e=>setForm(f=>({...f,notes:e.target.value}))} textarea rows={2} placeholder="Informations complémentaires..."/>
               {modal.mode==='edit'&&(
                 <div>
@@ -4309,6 +4823,7 @@ function App(){
     if(page==='analytics')return<AnalyticsPage/>;
     if(page==='intelligence')return<IntelligencePage onViewPatient={id=>{setParams(p=>({...p,patientId:id}));nav('patient/'+id);}}/>;
     if(page==='agenda')return<AgendaPage/>;
+    if(page==='flowboard')return<FlowBoardPage/>;
     if(page==='profile')return<ProfilePage user={user} onUpdate={u=>setUser(u)}/>;
     if(page==='audit')return<AuditLog/>;
     if(page==='honoraires')return<HonorairesPage/>;

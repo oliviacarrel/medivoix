@@ -159,19 +159,19 @@ app.get('/api/agenda', auth, (req, res) => {
 });
 
 app.post('/api/agenda', auth, (req, res) => {
-  const { patientId, date, heure, motif, notes } = req.body;
+  const { patientId, date, heure, motif, notes, salle, site, priorite } = req.body;
   if (!patientId || !date) return res.status(400).json({ error: 'patientId et date requis' });
   const id = randomUUID();
-  db.prepare(`INSERT INTO appointments (id,patientId,userId,date,heure,motif,notes) VALUES (?,?,?,?,?,?,?)`)
-    .run(id, patientId, req.user.id, date, heure||'09:00', motif||'', notes||'');
+  db.prepare(`INSERT INTO appointments (id,patientId,userId,date,heure,motif,notes,salle,site,priorite) VALUES (?,?,?,?,?,?,?,?,?,?)`)
+    .run(id, patientId, req.user.id, date, heure||'09:00', motif||'', notes||'', salle||null, site||'Principal', priorite||'P3');
   audit(req, 'CREATE_APPOINTMENT', 'appointment', id, `${date} ${heure}`);
   res.json(db.prepare('SELECT a.*, p.nom, p.prenom FROM appointments a JOIN patients p ON a.patientId=p.id WHERE a.id=?').get(id));
 });
 
 app.put('/api/agenda/:id', auth, (req, res) => {
-  const { date, heure, motif, notes, statut } = req.body;
-  db.prepare(`UPDATE appointments SET date=?,heure=?,motif=?,notes=?,statut=? WHERE id=? AND userId=?`)
-    .run(date, heure, motif||'', notes||'', statut||'planifie', req.params.id, req.user.id);
+  const { date, heure, motif, notes, statut, salle, site, priorite } = req.body;
+  db.prepare(`UPDATE appointments SET date=?,heure=?,motif=?,notes=?,statut=?,salle=?,site=?,priorite=? WHERE id=? AND userId=?`)
+    .run(date, heure, motif||'', notes||'', statut||'planifie', salle||null, site||'Principal', priorite||'P3', req.params.id, req.user.id);
   audit(req, 'UPDATE_APPOINTMENT', 'appointment', req.params.id);
   res.json(db.prepare('SELECT a.*, p.nom, p.prenom FROM appointments a JOIN patients p ON a.patientId=p.id WHERE a.id=?').get(req.params.id));
 });
@@ -1479,6 +1479,166 @@ app.post('/api/discussions/:id/invite', auth, (req, res) => {
   const already = db.prepare('SELECT 1 FROM discussion_participants WHERE discussionId=? AND userId=?').get(req.params.id, userId);
   if (!already) db.prepare('INSERT INTO discussion_participants (discussionId,userId) VALUES (?,?)').run(req.params.id, userId);
   res.json({ ok: true });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 2 — PHASE 2.1 : FLOW PATIENT
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Today's patient flow queue (all doctors, all appointments today)
+app.get('/api/flow/today', auth, (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = db.prepare(`
+    SELECT a.*, p.nom, p.prenom, p.sexe, p.telephone, p.allergies,
+           u.nom as medecinNom, u.prenom as medecinPrenom, u.specialite as medecinSpec
+    FROM appointments a
+    JOIN patients p ON a.patientId = p.id
+    JOIN users u ON a.userId = u.id
+    WHERE a.date = ?
+    ORDER BY COALESCE(a.checkin_at, a.heure) ASC, a.heure ASC
+  `).all(today);
+  res.json(rows);
+});
+
+// Update appointment flow status
+app.put('/api/appointments/:id/flow', auth, (req, res) => {
+  const { statut_flow, priorite, notes_triage } = req.body;
+  const now = new Date().toISOString();
+  const timeFields = {
+    arrive: 'checkin_at',
+    tri: 'triage_at',
+    en_salle: 'en_salle_at',
+    en_consultation: 'en_consultation_at',
+    sorti: 'sorti_at',
+  };
+  const timeCol = timeFields[statut_flow];
+  let sql = `UPDATE appointments SET statut_flow=?`;
+  const args = [statut_flow];
+  if (timeCol) { sql += `,${timeCol}=COALESCE(${timeCol},?)`; args.push(now); }
+  if (priorite !== undefined) { sql += `,priorite=?`; args.push(priorite); }
+  if (notes_triage !== undefined) { sql += `,notes_triage=?`; args.push(notes_triage); }
+  sql += ` WHERE id=?`; args.push(req.params.id);
+  db.prepare(sql).run(...args);
+  audit(req, `FLOW_${statut_flow?.toUpperCase()}`, 'appointment', req.params.id, `prio=${priorite||''}`);
+  res.json(db.prepare('SELECT a.*, p.nom, p.prenom FROM appointments a JOIN patients p ON a.patientId=p.id WHERE a.id=?').get(req.params.id));
+});
+
+// Send reminder (email if SMTP configured)
+app.post('/api/appointments/:id/reminder', auth, async (req, res) => {
+  const appt = db.prepare('SELECT a.*, p.nom, p.prenom, p.email, p.telephone FROM appointments a JOIN patients p ON a.patientId=p.id WHERE a.id=?').get(req.params.id);
+  if (!appt) return res.status(404).json({ error: 'RDV introuvable' });
+  const dr = db.prepare('SELECT nom, prenom FROM users WHERE id=?').get(req.user.id);
+  if (mailer && appt.email) {
+    try {
+      await mailer.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: appt.email,
+        subject: `Rappel de rendez-vous — ${appt.date} à ${appt.heure}`,
+        text: `Bonjour ${appt.prenom} ${appt.nom},\n\nVous avez un rendez-vous le ${appt.date} à ${appt.heure} avec Dr. ${dr.prenom} ${dr.nom}.\nMotif : ${appt.motif||'Consultation'}.\n\nMerci de confirmer votre présence.\n\nMedPilot`,
+      });
+      audit(req, 'SEND_REMINDER', 'appointment', req.params.id, `email:${appt.email}`);
+      res.json({ ok: true, channel: 'email' });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+  } else {
+    audit(req, 'REMINDER_LOGGED', 'appointment', req.params.id, `no-smtp: ${appt.telephone}`);
+    res.json({ ok: true, channel: 'log', note: 'SMTP non configuré — rappel journalisé' });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 2 — PHASE 2.2 : ORDRES MÉDICAUX
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const ORDRE_STATUTS = ['demande', 'preleve', 'en_cours', 'valide', 'rendu'];
+const ORDRE_TIME_COLS = { preleve: 'preleve_at', en_cours: 'en_cours_at', valide: 'valide_at', rendu: 'rendu_at' };
+
+app.post('/api/ordres', auth, (req, res) => {
+  const { consultationId, patientId, type, catalogue, priorite, notes } = req.body;
+  if (!patientId || !type) return res.status(400).json({ error: 'patientId et type requis' });
+  const id = randomUUID();
+  db.prepare(`INSERT INTO ordres_medicaux (id,consultationId,patientId,userId,type,catalogue,priorite,notes) VALUES (?,?,?,?,?,?,?,?)`)
+    .run(id, consultationId||null, patientId, req.user.id, type, JSON.stringify(catalogue||[]), priorite||'routine', notes||'');
+  audit(req, 'CREATE_ORDRE', 'ordre', id, `type=${type} prio=${priorite}`);
+  res.json(db.prepare('SELECT * FROM ordres_medicaux WHERE id=?').get(id));
+});
+
+app.get('/api/patients/:id/ordres', auth, (req, res) => {
+  const rows = db.prepare(`SELECT o.*, u.nom as drNom, u.prenom as drPrenom FROM ordres_medicaux o JOIN users u ON u.id=o.userId WHERE o.patientId=? ORDER BY o.createdAt DESC`).all(req.params.id);
+  res.json(rows.map(o => ({ ...o, catalogue: JSON.parse(o.catalogue||'[]'), resultats: o.resultats ? JSON.parse(o.resultats) : null })));
+});
+
+app.get('/api/consultations/:id/ordres', auth, (req, res) => {
+  const rows = db.prepare(`SELECT o.*, u.nom as drNom, u.prenom as drPrenom FROM ordres_medicaux o JOIN users u ON u.id=o.userId WHERE o.consultationId=? ORDER BY o.createdAt DESC`).all(req.params.id);
+  res.json(rows.map(o => ({ ...o, catalogue: JSON.parse(o.catalogue||'[]'), resultats: o.resultats ? JSON.parse(o.resultats) : null })));
+});
+
+app.put('/api/ordres/:id/statut', auth, (req, res) => {
+  const { statut } = req.body;
+  if (!ORDRE_STATUTS.includes(statut)) return res.status(400).json({ error: 'Statut invalide' });
+  const now = new Date().toISOString();
+  const col = ORDRE_TIME_COLS[statut];
+  let sql = `UPDATE ordres_medicaux SET statut=?,updatedAt=?`;
+  const args = [statut, now];
+  if (col) { sql += `,${col}=COALESCE(${col},?)`; args.push(now); }
+  sql += ` WHERE id=?`; args.push(req.params.id);
+  db.prepare(sql).run(...args);
+  audit(req, `ORDRE_${statut.toUpperCase()}`, 'ordre', req.params.id);
+  res.json(db.prepare('SELECT * FROM ordres_medicaux WHERE id=?').get(req.params.id));
+});
+
+app.put('/api/ordres/:id/resultats', auth, (req, res) => {
+  const { resultats, notes } = req.body;
+  const now = new Date().toISOString();
+  db.prepare(`UPDATE ordres_medicaux SET resultats=?,notes=COALESCE(?,notes),statut='rendu',rendu_at=COALESCE(rendu_at,?),valide_at=COALESCE(valide_at,?),updatedAt=? WHERE id=?`)
+    .run(JSON.stringify(resultats), notes||null, now, now, now, req.params.id);
+  audit(req, 'ORDRE_RESULTATS', 'ordre', req.params.id);
+  res.json(db.prepare('SELECT * FROM ordres_medicaux WHERE id=?').get(req.params.id));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 2 — PHASE 2.3 : TRAÇABILITÉ & DOSSIER STATUS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Patient journey (timestamped steps from appointments today or recent)
+app.get('/api/patients/:id/parcours', auth, (req, res) => {
+  const appts = db.prepare(`
+    SELECT a.date, a.heure, a.statut_flow, a.priorite, a.checkin_at, a.triage_at,
+           a.en_salle_at, a.en_consultation_at, a.sorti_at, a.motif, a.notes_triage,
+           u.nom as drNom, u.prenom as drPrenom
+    FROM appointments a JOIN users u ON u.id=a.userId
+    WHERE a.patientId=? ORDER BY a.date DESC, a.heure DESC LIMIT 10
+  `).all(req.params.id);
+  const consultations = db.prepare(`
+    SELECT c.id, c.date, c.motif, c.statut, c.heureDebut, c.heureFin,
+           u.nom as drNom, u.prenom as drPrenom
+    FROM consultations c JOIN users u ON u.id=c.userId
+    WHERE c.patientId=? ORDER BY c.date DESC LIMIT 10
+  `).all(req.params.id);
+  const ordres = db.prepare(`SELECT id, type, priorite, statut, catalogue, demande_at, rendu_at FROM ordres_medicaux WHERE patientId=? ORDER BY createdAt DESC LIMIT 20`).all(req.params.id);
+  res.json({
+    appointments: appts,
+    consultations,
+    ordres: ordres.map(o => ({ ...o, catalogue: JSON.parse(o.catalogue || '[]') })),
+  });
+});
+
+// Dossier completeness check
+app.get('/api/patients/:id/dossier-status', auth, (req, res) => {
+  const p = db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Patient introuvable' });
+  const checks = [
+    { key: 'identite', label: 'Identité complète', ok: !!(p.nom && p.prenom && p.dateNaissance && p.sexe) },
+    { key: 'contact', label: 'Contact', ok: !!(p.telephone || p.email) },
+    { key: 'assurance', label: 'Assurance', ok: !!(p.typeAssurance && p.numAssurance) },
+    { key: 'antecedents', label: 'Antécédents', ok: !!(p.antecedents) },
+    { key: 'allergies', label: 'Allergies renseignées', ok: !!(p.allergies) },
+    { key: 'groupe_sanguin', label: 'Groupe sanguin', ok: !!(p.groupe_sanguin) },
+    { key: 'medecin_referent', label: 'Médecin référent', ok: !!(p.medecin_referent) },
+  ];
+  const score = Math.round(checks.filter(c => c.ok).length / checks.length * 100);
+  const lastConsult = db.prepare('SELECT date FROM consultations WHERE patientId=? ORDER BY date DESC LIMIT 1').get(req.params.id);
+  const pendingOrdres = db.prepare("SELECT COUNT(*) as n FROM ordres_medicaux WHERE patientId=? AND statut NOT IN ('rendu','valide')").get(req.params.id);
+  res.json({ score, checks, lastConsult: lastConsult?.date || null, pendingOrdres: pendingOrdres.n });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════

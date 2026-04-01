@@ -115,6 +115,41 @@ try { db.exec("ALTER TABLE patients ADD COLUMN medecin_referent TEXT"); } catch(
 try { db.exec("ALTER TABLE consultations ADD COLUMN constantes TEXT"); } catch(e) {}
 try { db.exec("ALTER TABLE consultations ADD COLUMN resume_patient TEXT"); } catch(e) {}
 
+// Série 2 — Phase 2.1 : flow patient
+try { db.exec("ALTER TABLE appointments ADD COLUMN salle TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN site TEXT DEFAULT 'Principal'"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN statut_flow TEXT DEFAULT 'planifie'"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN priorite TEXT DEFAULT 'P3'"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN notes_triage TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN checkin_at TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN triage_at TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN en_salle_at TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN en_consultation_at TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN sorti_at TEXT"); } catch(e) {}
+
+// Série 2 — Phase 2.2 : ordres médicaux
+db.exec(`
+  CREATE TABLE IF NOT EXISTS ordres_medicaux (
+    id             TEXT PRIMARY KEY,
+    consultationId TEXT REFERENCES consultations(id),
+    patientId      TEXT NOT NULL REFERENCES patients(id),
+    userId         TEXT NOT NULL REFERENCES users(id),
+    type           TEXT NOT NULL,
+    catalogue      TEXT NOT NULL DEFAULT '[]',
+    priorite       TEXT DEFAULT 'routine',
+    statut         TEXT DEFAULT 'demande',
+    resultats      TEXT,
+    notes          TEXT,
+    demande_at     TEXT DEFAULT (datetime('now')),
+    preleve_at     TEXT,
+    en_cours_at    TEXT,
+    valide_at      TEXT,
+    rendu_at       TEXT,
+    createdAt      TEXT DEFAULT (datetime('now')),
+    updatedAt      TEXT DEFAULT (datetime('now'))
+  );
+`);
+
 // Honoraires & Tarifs
 db.exec(`
   CREATE TABLE IF NOT EXISTS tarifs (
