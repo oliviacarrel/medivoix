@@ -2585,19 +2585,25 @@ function ConsultationScreen({consultationId,patientId,onBack}){
             {transcription&&note&&!validated&&<button onClick={genNote} disabled={processing} style={{fontSize:'11px',color:'var(--gold)',letterSpacing:'0.08em',textDecoration:'underline',background:'none',border:'none',cursor:'pointer',marginTop:'4px'}}>Regénérer la note</button>}
           </div>
 
-          {/* Note + Prescription tabs */}
-          {note&&(
-            <div style={{background:'var(--white)',border:'1px solid var(--border)'}} className="fade-in">
-              <div className="flex border-b border-slate-100">
-                {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance']].map(([k,l])=>(
-                  <button key={k} onClick={()=>setTab(k)}
-                    style={tab===k?{borderBottom:'2px solid var(--gold)',color:'var(--navy)',background:'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:'13px',padding:'14px 0',flex:1}:{borderBottom:'2px solid transparent',color:'var(--muted)',background:'var(--white)',fontFamily:"'DM Sans',sans-serif",fontWeight:400,fontSize:'13px',padding:'14px 0',flex:1}}>
-                    {l}
-                  </button>
-                ))}
-              </div>
+          {/* Tabs — toujours visibles */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div className="flex border-b border-slate-100">
+              {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance']].map(([k,l])=>(
+                <button key={k} onClick={()=>setTab(k)}
+                  style={tab===k?{borderBottom:'2px solid var(--gold)',color:'var(--navy)',background:'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:'13px',padding:'14px 0',flex:1}:{borderBottom:'2px solid transparent',color:'var(--muted)',background:'var(--white)',fontFamily:"'DM Sans',sans-serif",fontWeight:400,fontSize:'13px',padding:'14px 0',flex:1}}>
+                  {l}
+                </button>
+              ))}
+            </div>
 
-              {tab==='note'&&(
+              {tab==='note'&&!note&&(
+                <div style={{padding:'48px 24px',textAlign:'center',color:'var(--muted)'}}>
+                  <Ic.FileText style={{width:'36px',height:'36px',margin:'0 auto 12px',opacity:0.25,color:'var(--navy)'}}/>
+                  <p style={{fontSize:'13px',fontWeight:400,color:'var(--navy)',marginBottom:'6px'}}>Aucune note générée</p>
+                  <p style={{fontSize:'12px',fontWeight:300}}>Enregistrez la consultation et cliquez "Générer la note" pour accéder à cet onglet.</p>
+                </div>
+              )}
+              {tab==='note'&&note&&(
                 <div className="p-5">
                   {/* Header actions */}
                   <div className="flex items-center justify-between mb-4">
@@ -2730,8 +2736,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
               )}
 
               {tab==='prescription'&&<div className="p-5"><PrescriptionPanel consultationId={consultationId} patientAllergies={patient?.allergies}/></div>}
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </Page>
