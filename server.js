@@ -2890,6 +2890,14 @@ app.post('/api/admin/backup', auth, async (req, res) => {
     await runImport();
   }
 
+  // Import nomenclature CDL si la table ne contient que les ~45 actes de seed
+  const nomCount = db.prepare('SELECT COUNT(*) as n FROM nomenclature').get().n;
+  if (nomCount <= 45) {
+    console.log(`ℹ️  Nomenclature incomplète (${nomCount} actes) — import tarification CDL…`);
+    const { runNomenclatureImport } = await import('./import-nomenclature.mjs');
+    await runNomenclatureImport();
+  }
+
   app.listen(PORT, () => {
     console.log(`Serveur démarré sur http://localhost:${PORT}`);
     if (!openai) console.log('⚠️  Mode démo — ajoutez OPENAI_API_KEY dans .env');

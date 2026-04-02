@@ -153,10 +153,13 @@ db.exec(`
 // Série 3 — Facturation et complétude
 db.exec(`
   CREATE TABLE IF NOT EXISTS nomenclature (
-    code        TEXT PRIMARY KEY,
-    libelle     TEXT NOT NULL,
-    categorie   TEXT,
-    montant_base REAL DEFAULT 0
+    code                TEXT PRIMARY KEY,
+    libelle             TEXT NOT NULL,
+    categorie           TEXT,
+    montant_base        REAL DEFAULT 0,
+    tarif_cnamgs        REAL,
+    tarif_ascoma        REAL,
+    nomenclature_cnamgs TEXT
   );
 
   CREATE TABLE IF NOT EXISTS lignes_facturables (
@@ -1045,5 +1048,10 @@ try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_patients_code ON patients(c
 
 // Anti double-booking : un médecin ne peut avoir qu'un seul RDV par créneau
 try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_appointments_slot ON appointments(userId, date, heure) WHERE userId IS NOT NULL"); } catch(e) {}
+
+// Nomenclature CDL — colonnes tarifs assurance
+try { db.exec("ALTER TABLE nomenclature ADD COLUMN tarif_cnamgs REAL"); } catch(e) {}
+try { db.exec("ALTER TABLE nomenclature ADD COLUMN tarif_ascoma REAL"); } catch(e) {}
+try { db.exec("ALTER TABLE nomenclature ADD COLUMN nomenclature_cnamgs TEXT"); } catch(e) {}
 
 export default db;
