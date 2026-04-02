@@ -1,6 +1,11 @@
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'crypto';
 
-const KEY = scryptSync(process.env.JWT_SECRET || 'medivoix-dev-fallback-key', 'medivoix-salt', 32);
+const secret = process.env.JWT_SECRET;
+if (!secret && process.env.NODE_ENV === 'production') {
+  console.error('FATAL: JWT_SECRET requis pour le chiffrement des données médicales.');
+  process.exit(1);
+}
+const KEY = scryptSync(secret || 'medivox-dev-only-local', 'medivox-salt', 32);
 const MARKER = 'enc:'; // prefix to detect encrypted data
 
 export function encrypt(text) {

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediVox — Portail Patient</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="/vendor/tailwind.js"></script>
+<script src="/vendor/react.min.js"></script>
+<script src="/vendor/react-dom.min.js"></script>
+<script src="/vendor/babel.min.js"></script>
+<style>
+:root{--navy:#00725f;--gold:#B8935A;--cream:#F5F3EE;--cream2:#EDE9E0;--white:#FAFAF8;--charcoal:#3A3A3A;--muted:#8A8A8A;--border:#E8E4DC;--accent:#C5472A;--green:#4A7C6B;}
+*,*::before,*::after{box-sizing:border-box;}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--white);color:var(--charcoal);font-size:14px;line-height:1.7;font-weight:300;-webkit-font-smoothing:antialiased;}
+input,select,textarea{font-family:'DM Sans',sans-serif;font-weight:300;}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border)}
+.fade{animation:fadeUp .3s ease forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+const BASE='/api/portal';
+const api={
+  get:async(path)=>{const r=await fetch(BASE+path,{headers:{Authorization:'Bearer '+localStorage.getItem('mv_patient_token')}});if(!r.ok)throw new Error(r.status);return r.json();},
+  post:async(path,body)=>{const r=await fetch(BASE+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+localStorage.getItem('mv_patient_token')},body:JSON.stringify(body)});if(!r.ok)throw new Error(r.status);return r.json();},
+  publicPost:async(path,body)=>{const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return r.json();},
+  publicGet:async(path)=>{const r=await fetch(path);return r.json();},
+};
+
+/* ── Minimal components ── */
+function Btn({children,onClick,variant='primary',loading,disabled,style={}}) {
+  const base={padding:'10px 20px',fontSize:'11px',fontWeight:500,letterSpacing:'0.14em',textTransform:'uppercase',border:'none',cursor:loading||disabled?'not-allowed':'pointer',display:'inline-flex',alignItems:'center',justifyContent:'center',gap:'6px',opacity:loading||disabled?0.6:1,...style};
+  const variants={primary:{background:'var(--navy)',color:'var(--white)'},secondary:{background:'var(--white)',color:'var(--navy)',border:'1px solid var(--border)'}};
+  return<button onClick={onClick} disabled={loading||disabled} style={{...base,...variants[variant]}}>{loading?'…':children}</button>;
+}
+
+function Input({label,value,onChange,type='text',placeholder,required}){
+  return(
+    <div>
+      <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>{label}{required&&' *'}</label>
+      <input type={type} value={value} onChange={onChange} placeholder={placeholder} required={required}
+        style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none',background:'var(--white)'}}/>
+    </div>
+  );
+}
+
+/* ── Login portal ── */
+function LoginPortal({onLogin}){
+  const [ddn,setDdn]=useState('');
+  const [code,setCode]=useState('');
+  const [error,setError]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [showRdv,setShowRdv]=useState(false);
+
+  const login=async(e)=>{
+    e.preventDefault();setLoading(true);setError('');
+    try{
+      const r=await api.publicPost('/api/portal/auth',{dateNaissance:ddn,code});
+      if(r.token){localStorage.setItem('mv_patient_token',r.token);onLogin(r.patient);}
+      else setError(r.error||'Identifiants incorrects');
+    }catch{setError('Erreur de connexion');}
+    setLoading(false);
+  };
+
+  if(showRdv)return<RdvPublic onBack={()=>setShowRdv(false)}/>;
+
+  return(
+    <div style={{minHeight:'100vh',display:'flex'}}>
+      {/* Left panel */}
+      <div style={{flex:1,background:'var(--navy)',display:'flex',flexDirection:'column',justifyContent:'center',padding:'64px',color:'var(--white)'}} className="hidden lg:flex">
+        <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'20px'}}>MediVox</p>
+        <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'48px',fontWeight:300,lineHeight:1.15,marginBottom:'20px'}}>Votre espace<br/><em style={{color:'var(--gold)'}}>santé personnel.</em></h1>
+        <p style={{fontSize:'14px',color:'rgba(250,250,248,0.5)',lineHeight:1.9,maxWidth:'360px'}}>Consultez vos ordonnances, vos résultats d'examens et vos documents médicaux. Prenez rendez-vous en ligne et échangez avec votre médecin.</p>
+        <div style={{marginTop:'40px',display:'flex',flexDirection:'column',gap:'12px'}}>
+          {['📋 Ordonnances & résultats','📅 Prise de RDV en ligne','💬 Messagerie sécurisée','📱 Paiement Mobile Money'].map(f=>(
+            <div key={f} style={{display:'flex',alignItems:'center',gap:'10px',fontSize:'13px',color:'rgba(250,250,248,0.7)'}}><span>{f}</span></div>
+          ))}
+        </div>
+      </div>
+      {/* Right panel */}
+      <div style={{width:'100%',maxWidth:'480px',display:'flex',alignItems:'center',justifyContent:'center',padding:'40px 32px',background:'var(--white)'}}>
+        <div style={{width:'100%'}}>
+          <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'12px'}}>Portail Patient</p>
+          <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:300,color:'var(--navy)',marginBottom:'8px'}}>Connexion</h2>
+          <p style={{fontSize:'12px',color:'var(--muted)',marginBottom:'32px'}}>Utilisez votre date de naissance et le code remis par votre médecin.</p>
+
+          <form onSubmit={login} style={{display:'flex',flexDirection:'column',gap:'16px'}}>
+            {error&&<div style={{background:'#fdf5f3',border:'1px solid rgba(197,71,42,0.2)',color:'var(--accent)',fontSize:'12px',padding:'10px 14px'}}>{error}</div>}
+            <Input label="Date de naissance" type="date" value={ddn} onChange={e=>setDdn(e.target.value)} required/>
+            <div>
+              <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Code d'accès *</label>
+              <input type="text" value={code} onChange={e=>setCode(e.target.value.toUpperCase())} maxLength={6} placeholder="Ex: AB12CD"
+                style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'20px',fontWeight:700,letterSpacing:'0.3em',textAlign:'center',outline:'none',background:'var(--white)'}}/>
+            </div>
+            <Btn loading={loading} style={{width:'100%',padding:'13px'}}>Accéder à mon espace</Btn>
+          </form>
+
+          <div style={{marginTop:'24px',borderTop:'1px solid var(--border)',paddingTop:'20px',textAlign:'center'}}>
+            <button onClick={()=>setShowRdv(true)} style={{fontSize:'12px',color:'var(--navy)',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>
+              Prendre un rendez-vous sans compte →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Online RDV booking (public) ── */
+function RdvPublic({onBack}){
+  const today=new Date().toISOString().slice(0,10);
+  const [form,setForm]=useState({nom:'',prenom:'',dateNaissance:'',telephone:'',email:'',date:today,heure:'',motif:''});
+  const [slots,setSlots]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [success,setSuccess]=useState(null);
+  const [error,setError]=useState('');
+  const set=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
+
+  useEffect(()=>{
+    if(form.date){
+      api.publicGet(`/api/portal/disponibilites?date=${form.date}`).then(d=>setSlots(d.slots||[]));
+    }
+  },[form.date]);
+
+  const submit=async(e)=>{
+    e.preventDefault();setLoading(true);setError('');
+    try{
+      const r=await api.publicPost('/api/portal/rdv',form);
+      if(r.id){
+        setSuccess(r);
+      } else {
+        setError(r.error||'Erreur lors de la réservation');
+        // Créneau pris : rafraîchir les slots et désélectionner l'heure
+        if(form.date){
+          const d=await api.publicGet(`/api/portal/disponibilites?date=${form.date}`);
+          setSlots(d.slots||[]);
+          setForm(f=>({...f,heure:''}));
+        }
+      }
+    }catch{setError('Erreur de connexion au serveur');}
+    setLoading(false);
+  };
+
+  if(success)return(
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:'var(--cream)',padding:'32px'}}>
+      <div style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:'4px solid var(--green)',padding:'40px 48px',maxWidth:'440px',textAlign:'center'}}>
+        <div style={{fontSize:'48px',marginBottom:'16px'}}>✅</div>
+        <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',marginBottom:'8px'}}>Rendez-vous confirmé</h2>
+        <p style={{fontSize:'13px',color:'var(--charcoal)',lineHeight:1.7,marginBottom:'24px'}}>Votre rendez-vous du <strong>{success.date}</strong> à <strong>{success.heure}</strong> a été enregistré.<br/>Vous recevrez une confirmation.</p>
+        <Btn onClick={onBack}>Retour</Btn>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{minHeight:'100vh',background:'var(--cream)',padding:'40px 16px'}}>
+      <div style={{maxWidth:'540px',margin:'0 auto'}}>
+        <button onClick={onBack} style={{fontSize:'10px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',marginBottom:'24px'}}>← Retour</button>
+        <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>MediVox</p>
+        <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--navy)',marginBottom:'8px'}}>Prise de rendez-vous</h1>
+        <p style={{fontSize:'12px',color:'var(--muted)',marginBottom:'28px'}}>Réservez en ligne, sans inscription.</p>
+
+        <form onSubmit={submit} style={{background:'var(--white)',border:'1px solid var(--border)',padding:'32px',display:'flex',flexDirection:'column',gap:'16px'}}>
+          {error&&<div style={{background:'#fdf5f3',border:'1px solid rgba(197,71,42,0.2)',color:'var(--accent)',fontSize:'12px',padding:'10px 14px'}}>{error}</div>}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+            <Input label="Prénom" value={form.prenom} onChange={set('prenom')} required/>
+            <Input label="Nom" value={form.nom} onChange={set('nom')} required/>
+          </div>
+          <Input label="Date de naissance" type="date" value={form.dateNaissance} onChange={set('dateNaissance')}/>
+          <Input label="Téléphone" value={form.telephone} onChange={set('telephone')}/>
+          <Input label="Email" type="email" value={form.email} onChange={set('email')}/>
+          <Input label="Motif de consultation" value={form.motif} onChange={set('motif')} required/>
+          <Input label="Date souhaitée" type="date" value={form.date} onChange={set('date')} required/>
+          <div>
+            <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Heure *</label>
+            <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
+              {slots.map(s=>(
+                <button key={s} type="button" onClick={()=>setForm(f=>({...f,heure:s}))}
+                  style={{padding:'8px 14px',fontSize:'12px',border:'1px solid',borderColor:form.heure===s?'var(--navy)':'var(--border)',background:form.heure===s?'var(--navy)':'var(--white)',color:form.heure===s?'var(--white)':'var(--charcoal)',cursor:'pointer',fontWeight:form.heure===s?500:300}}>
+                  {s}
+                </button>
+              ))}
+              {slots.length===0&&<p style={{fontSize:'12px',color:'var(--muted)'}}>Aucun créneau disponible ce jour.</p>}
+            </div>
+          </div>
+          <Btn loading={loading} style={{width:'100%',padding:'13px',marginTop:'8px'}}>Confirmer le rendez-vous</Btn>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ── Patient portal dashboard ── */
+function PatientDashboard({patient,onLogout}){
+  const [tab,setTab]=useState('accueil');
+  const [consults,setConsults]=useState([]);
+  const [rxs,setRxs]=useState([]);
+  const [resultats,setResultats]=useState([]);
+  const [msgs,setMsgs]=useState([]);
+  const [newMsg,setNewMsg]=useState('');
+  const [msgLoading,setMsgLoading]=useState(false);
+  const [paiement,setPaiement]=useState({montant:'',operateur:'Airtel Money',numero:'',consultationId:''});
+  const [paiRes,setPaiRes]=useState(null);
+
+  useEffect(()=>{
+    api.get('/consultations').then(setConsults).catch(()=>{});
+    api.get('/prescriptions').then(setRxs).catch(()=>{});
+    api.get('/resultats').then(setResultats).catch(()=>{});
+  },[]);
+
+  useEffect(()=>{
+    if(tab==='messages') api.get('/messages').then(setMsgs).catch(()=>{});
+  },[tab]);
+
+  const sendMsg=async()=>{
+    if(!newMsg.trim())return;
+    setMsgLoading(true);
+    await api.post('/messages',{contenu:newMsg}).catch(()=>{});
+    const d=await api.get('/messages').catch(()=>[]);
+    setMsgs(d);setNewMsg('');setMsgLoading(false);
+  };
+
+  const initPaiement=async()=>{
+    if(!paiement.montant||!paiement.numero)return alert('Remplissez le montant et le numéro');
+    const r=await api.publicPost('/api/paiements-mobile',{...paiement,patientId:patient.id}).catch(()=>({error:'Erreur'}));
+    setPaiRes(r);
+  };
+
+  const TABS=[
+    {id:'accueil',label:'Accueil'},
+    {id:'ordonnances',label:`Ordonnances (${rxs.length})`},
+    {id:'resultats',label:`Résultats (${resultats.length})`},
+    {id:'messages',label:'Messages'},
+    {id:'paiement',label:'Paiement'},
+  ];
+
+  return(
+    <div style={{minHeight:'100vh',background:'var(--white)'}}>
+      {/* Header */}
+      <header style={{background:'var(--navy)',padding:'16px 32px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+        <div>
+          <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'20px',fontWeight:300,color:'var(--white)',letterSpacing:'-0.01em'}}>Medi<em style={{fontStyle:'italic',color:'var(--gold)'}}>Voix</em></p>
+          <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'rgba(250,250,248,0.5)',fontWeight:500}}>Portail Patient</p>
+        </div>
+        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
+          <span style={{fontSize:'13px',color:'rgba(250,250,248,0.7)'}}>Bonjour, <strong style={{color:'var(--white)'}}>{patient.prenom}</strong></span>
+          <button onClick={onLogout} style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'rgba(250,250,248,0.5)',background:'none',border:'1px solid rgba(250,250,248,0.2)',padding:'6px 12px',cursor:'pointer'}}>Déconnexion</button>
+        </div>
+      </header>
+
+      {/* Tabs */}
+      <div style={{borderBottom:'1px solid var(--border)',background:'var(--white)',padding:'0 32px',display:'flex',gap:'0',overflowX:'auto'}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            style={{padding:'14px 20px',fontSize:'11px',fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',background:'none',border:'none',borderBottom:tab===t.id?'2px solid var(--gold)':'2px solid transparent',color:tab===t.id?'var(--navy)':'var(--muted)',cursor:'pointer',marginBottom:'-1px',whiteSpace:'nowrap'}}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <main style={{padding:'32px',maxWidth:'800px',margin:'0 auto'}}>
+
+        {/* Accueil */}
+        {tab==='accueil'&&(
+          <div className="fade">
+            <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:300,color:'var(--navy)',marginBottom:'8px'}}>Bonjour, {patient.prenom} {patient.nom}</h2>
+            <p style={{fontSize:'13px',color:'var(--muted)',marginBottom:'32px'}}>Voici un résumé de votre espace santé.</p>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:'12px',marginBottom:'28px'}}>
+              {[
+                {n:consults.length,label:'Consultations',color:'var(--navy)'},
+                {n:rxs.length,label:'Ordonnances',color:'var(--gold)'},
+                {n:resultats.length,label:'Résultats',color:'var(--green)'},
+              ].map(k=>(
+                <div key={k.label} style={{background:'var(--navy)',padding:'20px',borderLeft:`3px solid ${k.color===`var(--navy)`?'var(--gold)':k.color}`}}>
+                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--gold)',lineHeight:1}}>{k.n}</div>
+                  <div style={{fontSize:'10px',letterSpacing:'0.14em',textTransform:'uppercase',color:'rgba(250,250,248,0.5)',marginTop:'6px'}}>{k.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 20px'}}>
+              <p style={{fontSize:'11px',fontWeight:500,color:'var(--navy)',marginBottom:'4px'}}>Besoin d'un RDV ?</p>
+              <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Votre médecin peut vous fixer un rendez-vous. Contactez le cabinet par téléphone ou via la messagerie sécurisée.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Ordonnances */}
+        {tab==='ordonnances'&&(
+          <div className="fade">
+            <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',marginBottom:'20px'}}>Mes ordonnances</h2>
+            {rxs.length===0&&<p style={{fontSize:'13px',color:'var(--muted)',textAlign:'center',padding:'48px 0'}}>Aucune ordonnance disponible.</p>}
+            <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+              {rxs.map(rx=>(
+                <div key={rx.id} style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 20px'}}>
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                    <div>
+                      <div style={{fontWeight:500,color:'var(--navy)'}}>Ordonnance du {new Date(rx.date).toLocaleDateString('fr-FR')}</div>
+                      <div style={{fontSize:'11px',color:'var(--muted)'}}>{rx.motif}</div>
+                    </div>
+                  </div>
+                  <div style={{display:'flex',flexDirection:'column',gap:'4px'}}>
+                    {rx.lignes.map((l,i)=>(
+                      <div key={i} style={{fontSize:'13px',color:'var(--charcoal)',padding:'4px 0',borderBottom:'1px solid var(--border)'}}>{l.medicament} {l.posologie&&<span style={{color:'var(--muted)'}}> — {l.posologie}</span>}</div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Résultats */}
+        {tab==='resultats'&&(
+          <div className="fade">
+            <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',marginBottom:'20px'}}>Mes résultats d'examens</h2>
+            {resultats.length===0&&<p style={{fontSize:'13px',color:'var(--muted)',textAlign:'center',padding:'48px 0'}}>Aucun résultat disponible.</p>}
+            <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+              {resultats.map(r=>(
+                <div key={r.id} style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:'3px solid var(--green)',padding:'16px 20px'}}>
+                  <div style={{fontWeight:500,color:'var(--navy)',marginBottom:'4px'}}>{r.catalogue}</div>
+                  <div style={{fontSize:'11px',color:'var(--muted)',marginBottom:'8px'}}>Rendu le {r.rendu_at?new Date(r.rendu_at).toLocaleDateString('fr-FR'):'—'}</div>
+                  {r.resultats&&(
+                    <div style={{background:'var(--cream)',padding:'10px 14px',fontSize:'13px',fontWeight:300}}>
+                      {r.resultats.valeur&&<div><strong>Valeur :</strong> {r.resultats.valeur} {r.resultats.unite||''}</div>}
+                      {r.resultats.interpretation&&<div style={{marginTop:'4px',color:'var(--navy)'}}>{r.resultats.interpretation}</div>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Messages */}
+        {tab==='messages'&&(
+          <div className="fade">
+            <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',marginBottom:'20px'}}>Messagerie sécurisée</h2>
+            <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderRadius:'2px',padding:'16px',marginBottom:'12px',minHeight:'300px',maxHeight:'400px',overflowY:'auto',display:'flex',flexDirection:'column',gap:'8px'}}>
+              {msgs.length===0&&<p style={{fontSize:'12px',color:'var(--muted)',textAlign:'center',padding:'32px 0'}}>Aucun message. Envoyez un message à votre médecin.</p>}
+              {msgs.map(m=>(
+                <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:m.expediteur==='patient'?'flex-end':'flex-start'}}>
+                  <div style={{background:m.expediteur==='patient'?'var(--navy)':'var(--white)',color:m.expediteur==='patient'?'var(--white)':'var(--charcoal)',border:`1px solid ${m.expediteur==='patient'?'transparent':'var(--border)'}`,padding:'10px 14px',maxWidth:'70%',fontSize:'13px',fontWeight:300,lineHeight:1.6}}>
+                    {m.contenu}
+                  </div>
+                  <span style={{fontSize:'10px',color:'var(--muted)',marginTop:'3px'}}>{new Date(m.createdAt).toLocaleString('fr-FR')}</span>
+                </div>
+              ))}
+            </div>
+            <div style={{display:'flex',gap:'8px'}}>
+              <input value={newMsg} onChange={e=>setNewMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMsg()} placeholder="Votre message…"
+                style={{flex:1,border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+              <Btn loading={msgLoading} onClick={sendMsg}>Envoyer</Btn>
+            </div>
+            <p style={{fontSize:'11px',color:'var(--muted)',marginTop:'8px'}}>⚠ Pour toute urgence médicale, appelez le 15 ou le 1515 (Gabon).</p>
+          </div>
+        )}
+
+        {/* Paiement Mobile Money */}
+        {tab==='paiement'&&(
+          <div className="fade">
+            <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',marginBottom:'8px'}}>Paiement Mobile Money</h2>
+            <p style={{fontSize:'12px',color:'var(--muted)',marginBottom:'24px'}}>Réglez vos consultations via Airtel Money, Moov Money ou d'autres opérateurs disponibles au Gabon.</p>
+
+            {paiRes?(
+              <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--green)',padding:'24px',marginBottom:'20px',textAlign:'center'}}>
+                <div style={{fontSize:'32px',marginBottom:'12px'}}>📱</div>
+                <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:300,color:'var(--navy)',marginBottom:'8px'}}>Paiement initié</h3>
+                <p style={{fontSize:'13px',color:'var(--charcoal)',marginBottom:'4px'}}>Référence : <strong>{paiRes.reference}</strong></p>
+                <p style={{fontSize:'12px',color:'var(--muted)',marginBottom:'16px'}}>{paiRes.message}</p>
+                <p style={{fontSize:'12px',color:'var(--muted)'}}>Vous recevrez une confirmation par SMS. Le statut sera mis à jour automatiquement.</p>
+                <button onClick={()=>setPaiRes(null)} style={{marginTop:'16px',fontSize:'11px',color:'var(--navy)',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>Nouveau paiement</button>
+              </div>
+            ):(
+              <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'28px',display:'flex',flexDirection:'column',gap:'16px'}}>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Opérateur</label>
+                  <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                    {['Airtel Money','Moov Money','BGFI Mobile','Western Union'].map(op=>(
+                      <button key={op} type="button" onClick={()=>setPaiement(p=>({...p,operateur:op}))}
+                        style={{padding:'8px 16px',fontSize:'12px',border:'1px solid',borderColor:paiement.operateur===op?'var(--navy)':'var(--border)',background:paiement.operateur===op?'var(--navy)':'var(--white)',color:paiement.operateur===op?'var(--white)':'var(--charcoal)',cursor:'pointer',fontWeight:paiement.operateur===op?500:300}}>
+                        {op}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Input label="Montant (XAF) *" type="number" value={paiement.montant} onChange={e=>setPaiement(p=>({...p,montant:e.target.value}))} placeholder="Ex: 25000"/>
+                <Input label="Numéro Mobile Money *" value={paiement.numero} onChange={e=>setPaiement(p=>({...p,numero:e.target.value}))} placeholder="Ex: +241 06 00 00 00"/>
+                <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'12px 14px',fontSize:'11px',color:'var(--navy)'}}>
+                  <strong>Important :</strong> Vérifiez votre numéro avant de valider. Vous recevrez une demande de confirmation sur votre téléphone.
+                </div>
+                <Btn onClick={initPaiement} style={{width:'100%',padding:'13px'}}>Initier le paiement</Btn>
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer style={{borderTop:'1px solid var(--border)',padding:'16px 32px',fontSize:'11px',color:'var(--muted)',textAlign:'center',marginTop:'48px'}}>
+        MediVox — Plateforme médicale sécurisée · Données chiffrées · Pour urgences : 1515
+      </footer>
+    </div>
+  );
+}
+
+/* ── App root ── */
+function App(){
+  const [patient,setPatient]=useState(()=>{
+    const t=localStorage.getItem('mv_patient_token');
+    if(!t)return null;
+    try{ const d=JSON.parse(atob(t.split('.')[1])); return d.role==='patient'?{id:d.patientId}:null; }catch{return null;}
+  });
+
+  const logout=()=>{localStorage.removeItem('mv_patient_token');setPatient(null);};
+
+  if(patient)return<PatientDashboard patient={patient} onLogout={logout}/>;
+  return<LoginPortal onLogin={p=>{setPatient(p);}}/>;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

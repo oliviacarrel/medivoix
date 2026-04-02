@@ -318,11 +318,11 @@ if (db.prepare('SELECT COUNT(*) as n FROM users').get().n === 0) {
   const hash = bcrypt.hashSync('demo1234', 10);
   db.prepare(`INSERT INTO users (id,email,password,nom,prenom,rpps,specialite,adresse)
     VALUES (?,?,?,?,?,?,?,?)`)
-    .run('u1','dr.maiga@medivoix.fr',hash,'MAIGA','Fatoumata','10000000001','Gynécologie','Centre Diagnostic de Libreville');
+    .run('u1','dr.maiga@medivox.fr',hash,'MAIGA','Fatoumata','10000000001','Gynécologie','Centre Diagnostic de Libreville');
   db.prepare(`INSERT INTO users (id,email,password,nom,prenom,rpps,specialite,adresse)
     VALUES (?,?,?,?,?,?,?,?)`)
-    .run('u2','dr.ekome@medpilot.fr',hash,'EKOME','Patrick','10000000002','Cardiologie','Centre Diagnostic de Libreville');
-  console.log('Médecins : dr.maiga@medivoix.fr / dr.ekome@medpilot.fr — mdp : demo1234');
+    .run('u2','dr.ekome@medivox.ga',hash,'EKOME','Patrick','10000000002','Cardiologie','Centre Diagnostic de Libreville');
+  console.log('Médecins : dr.maiga@medivox.ga / dr.ekome@medivox.ga — mdp : demo1234');
 }
 
 // Seed demo patients
@@ -436,7 +436,7 @@ try {
   if (db.prepare("SELECT COUNT(*) as n FROM users WHERE id='u2'").get().n === 0) {
     const hash2 = bcrypt.hashSync('demo1234', 10);
     db.prepare(`INSERT OR IGNORE INTO users (id,email,password,nom,prenom,rpps,specialite,adresse) VALUES (?,?,?,?,?,?,?,?)`)
-      .run('u2','dr.ekome@medpilot.fr',hash2,'EKOME','Patrick','10000000002','Cardiologie','Centre Diagnostic de Libreville');
+      .run('u2','dr.ekome@medivox.ga',hash2,'EKOME','Patrick','10000000002','Cardiologie','Centre Diagnostic de Libreville');
     console.log('Médecin u2 (dr.ekome) ajouté');
   }
 } catch(e) { console.warn('Seed u2 ignoré:', e.message); }
@@ -904,5 +904,146 @@ try {
   ins.run('h15','c2c','u1',30000,'paye','CNSS','Consultation longue (première visite)','2024-06-18','2024-06-20');
   console.log('Honoraires h4-h15 créés');
 } catch(e) { console.warn('Seed honoraires v2 ignoré:', e.message); }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 5 — EXPANSION PLATEFORME
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Phase 5.1 — Spécialité par consultation
+try { db.exec("ALTER TABLE consultations ADD COLUMN specialite TEXT DEFAULT 'Médecine générale'"); } catch(e) {}
+try { db.exec("ALTER TABLE consultations ADD COLUMN type_consult TEXT DEFAULT 'cabinet'"); } catch(e) {}
+try { db.exec("ALTER TABLE consultations ADD COLUMN video_room TEXT"); } catch(e) {}
+
+// Phase 5.3 — Portail patient
+try { db.exec("ALTER TABLE patients ADD COLUMN code_acces TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN code_acces_at TEXT"); } catch(e) {}
+
+// Phase 5.5 — Multi-sites
+try { db.exec("ALTER TABLE users ADD COLUMN siteId TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'medecin'"); } catch(e) {}
+
+// Fix 9 — Disponibilités configurables
+try { db.exec("ALTER TABLE users ADD COLUMN plages_horaires TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE users ADD COLUMN duree_rdv INTEGER DEFAULT 30"); } catch(e) {}
+try { db.exec("ALTER TABLE appointments ADD COLUMN siteId TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE consultations ADD COLUMN siteId TEXT"); } catch(e) {}
+
+db.exec(`
+  -- Phase 5.2 — Hospitalisation
+  CREATE TABLE IF NOT EXISTS hospitalisations (
+    id                  TEXT PRIMARY KEY,
+    patientId           TEXT NOT NULL REFERENCES patients(id),
+    userId              TEXT REFERENCES users(id),
+    siteId              TEXT,
+    dateEntree          TEXT NOT NULL,
+    dateSortie          TEXT,
+    diagnostic_entree   TEXT,
+    diagnostic_sortie   TEXT,
+    service             TEXT DEFAULT 'Médecine générale',
+    chambre             TEXT,
+    lit                 TEXT,
+    statut              TEXT DEFAULT 'actif',
+    motif_entree        TEXT,
+    prescriptions_hospi TEXT,
+    surveillance        TEXT,
+    compte_rendu_sortie TEXT,
+    createdAt           TEXT DEFAULT (datetime('now')),
+    updatedAt           TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS actes_hospitaliers (
+    id                TEXT PRIMARY KEY,
+    hospitalisationId TEXT NOT NULL REFERENCES hospitalisations(id),
+    date              TEXT NOT NULL DEFAULT (date('now')),
+    type              TEXT NOT NULL,
+    description       TEXT,
+    valeurs           TEXT,
+    userId            TEXT REFERENCES users(id),
+    createdAt         TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Phase 5.4 — Téléconsultation rooms log
+  CREATE TABLE IF NOT EXISTS teleconsultations (
+    id             TEXT PRIMARY KEY,
+    consultationId TEXT REFERENCES consultations(id),
+    patientId      TEXT NOT NULL REFERENCES patients(id),
+    userId         TEXT REFERENCES users(id),
+    room_url       TEXT,
+    statut         TEXT DEFAULT 'planifie',
+    debut_at       TEXT,
+    fin_at         TEXT,
+    createdAt      TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Phase 5.5 — Sites
+  CREATE TABLE IF NOT EXISTS sites (
+    id        TEXT PRIMARY KEY,
+    nom       TEXT NOT NULL,
+    adresse   TEXT,
+    telephone TEXT,
+    actif     INTEGER DEFAULT 1,
+    createdAt TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS user_sites (
+    userId TEXT NOT NULL,
+    siteId TEXT NOT NULL,
+    role   TEXT DEFAULT 'medecin',
+    PRIMARY KEY (userId, siteId)
+  );
+
+  -- Phase 5.3 — Consentements & paiements
+  CREATE TABLE IF NOT EXISTS consentements (
+    id        TEXT PRIMARY KEY,
+    patientId TEXT NOT NULL REFERENCES patients(id),
+    type      TEXT NOT NULL,
+    texte     TEXT,
+    signe     INTEGER DEFAULT 0,
+    signe_at  TEXT,
+    ip        TEXT,
+    createdAt TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS paiements_mobile (
+    id             TEXT PRIMARY KEY,
+    patientId      TEXT REFERENCES patients(id),
+    consultationId TEXT REFERENCES consultations(id),
+    montant        REAL NOT NULL,
+    operateur      TEXT,
+    numero         TEXT,
+    reference      TEXT,
+    statut         TEXT DEFAULT 'initie',
+    createdAt      TEXT DEFAULT (datetime('now')),
+    updatedAt      TEXT DEFAULT (datetime('now'))
+  );
+
+  -- Portal messages (patient ↔ médecin)
+  CREATE TABLE IF NOT EXISTS portal_messages (
+    id          TEXT PRIMARY KEY,
+    patientId   TEXT NOT NULL REFERENCES patients(id),
+    userId      TEXT REFERENCES users(id),
+    expediteur  TEXT NOT NULL,
+    contenu     TEXT NOT NULL,
+    lu          INTEGER DEFAULT 0,
+    createdAt   TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+// Seed default site
+try {
+  db.prepare("INSERT OR IGNORE INTO sites (id,nom,adresse,telephone) VALUES (?,?,?,?)").run(
+    'site1','Centre Principal','Libreville, Gabon','+241 00 00 00 00'
+  );
+} catch(e) {}
+
+// Import patients CDL — colonnes assurance/convention/code_patient
+try { db.exec("ALTER TABLE patients ADD COLUMN assurance TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN convention TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN code_patient TEXT"); } catch(e) {}
+try { db.exec("ALTER TABLE patients ADD COLUMN situation TEXT"); } catch(e) {}
+try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_patients_code ON patients(code_patient) WHERE code_patient IS NOT NULL"); } catch(e) {}
+
+// Anti double-booking : un médecin ne peut avoir qu'un seul RDV par créneau
+try { db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_appointments_slot ON appointments(userId, date, heure) WHERE userId IS NOT NULL"); } catch(e) {}
 
 export default db;

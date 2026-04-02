@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import { rateLimit } from 'express-rate-limit';
 import multer from 'multer';
 import { OpenAI } from 'openai';
 import { createReadStream, unlinkSync, existsSync, mkdirSync } from 'fs';
@@ -11,13 +12,21 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import PDFDocument from 'pdfkit';
 import nodemailer from 'nodemailer';
+import { restoreFromS3, scheduleBackup, backupToS3 } from './backup.mjs';
 import db from './db.js';
 import { encrypt, decrypt } from './crypto-utils.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const upload = multer({ dest: 'uploads/' });
-const JWT_SECRET = process.env.JWT_SECRET || 'medivoix-dev-secret-change-in-prod';
+if (!process.env.JWT_SECRET) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('FATAL: JWT_SECRET est obligatoire en production. Ajoutez-le dans les variables d\'environnement Render.');
+    process.exit(1);
+  }
+  console.warn('⚠️  JWT_SECRET non défini — clé de dev utilisée. NE PAS déployer ainsi en production.');
+}
+const JWT_SECRET = process.env.JWT_SECRET || 'medivox-dev-only-local';
 
 app.use(cors());
 app.use(express.json());
@@ -122,7 +131,7 @@ app.get('/api/dashboard', auth, (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const weekAgo = new Date(Date.now() - 7*24*3600*1000).toISOString().slice(0, 10);
 
-  const totalPatients   = db.prepare('SELECT COUNT(*) as n FROM patients').get().n;
+  const totalPatients   = db.prepare("SELECT COUNT(DISTINCT patientId) as n FROM consultations WHERE userId=?").get(req.user.id).n;
   const consultToday    = db.prepare("SELECT COUNT(*) as n FROM consultations WHERE date LIKE ? AND userId=?").get(today+'%', req.user.id).n;
   const consultWeek     = db.prepare("SELECT COUNT(*) as n FROM consultations WHERE date >= ? AND userId=?").get(weekAgo, req.user.id).n;
   const notesValidated  = db.prepare("SELECT COUNT(*) as n FROM consultations WHERE statut='validee' AND userId=?").get(req.user.id).n;
@@ -207,7 +216,22 @@ app.get('/api/search', auth, (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.get('/api/patients', auth, (req, res) => {
-  res.json(db.prepare('SELECT id,nom,prenom,dateNaissance,sexe FROM patients ORDER BY nom').all());
+  const { q, limit } = req.query;
+  const user = db.prepare("SELECT siteId FROM users WHERE id=?").get(req.user.id);
+  // Multi-site: if user assigned to a site, filter patients seen at that site
+  // Otherwise show all patients this doctor has ever seen (or all if no consultation exists yet)
+  let query, params;
+  if (q) {
+    query = "SELECT DISTINCT p.id,p.nom,p.prenom,p.dateNaissance,p.sexe,p.telephone FROM patients p WHERE (p.nom LIKE ? OR p.prenom LIKE ? OR p.telephone LIKE ?) ORDER BY p.nom LIMIT ?";
+    params = [`%${q}%`,`%${q}%`,`%${q}%`, parseInt(limit)||50];
+  } else if (user?.siteId) {
+    query = "SELECT DISTINCT p.id,p.nom,p.prenom,p.dateNaissance,p.sexe,p.telephone FROM patients p JOIN consultations c ON c.patientId=p.id WHERE c.userId=? ORDER BY p.nom LIMIT ?";
+    params = [req.user.id, parseInt(limit)||200];
+  } else {
+    query = "SELECT id,nom,prenom,dateNaissance,sexe,telephone FROM patients ORDER BY nom LIMIT ?";
+    params = [parseInt(limit)||200];
+  }
+  res.json(db.prepare(query).all(...params));
 });
 
 app.get('/api/patients/:id', auth, (req, res) => {
@@ -245,6 +269,44 @@ app.put('/api/patients/:id', auth, (req, res) => {
   if (!info.changes) return res.status(404).json({ error: 'Patient non trouvé' });
   audit(req, 'UPDATE_PATIENT', 'patient', req.params.id, `${prenom} ${nom}`);
   res.json(db.prepare('SELECT * FROM patients WHERE id=?').get(req.params.id));
+});
+
+// ── Tous les patients (registre CDL) ──────────────────────────────────────────
+app.get('/api/all-patients', auth, (req, res) => {
+  const { q, assurance, page, limit } = req.query;
+  const lim = Math.min(parseInt(limit) || 50, 200);
+  const offset = (parseInt(page) || 0) * lim;
+
+  const conditions = [];
+  const params = [];
+
+  if (q && q.trim()) {
+    conditions.push('(p.nom LIKE ? OR p.prenom LIKE ? OR p.telephone LIKE ? OR p.code_patient LIKE ?)');
+    const qp = `%${q.trim()}%`;
+    params.push(qp, qp, qp, qp);
+  }
+  if (assurance && assurance !== 'all') {
+    conditions.push('p.assurance = ?');
+    params.push(assurance);
+  }
+
+  const where = conditions.length ? 'WHERE ' + conditions.join(' AND ') : '';
+
+  const total = db.prepare(`SELECT COUNT(*) as n FROM patients p ${where}`).get(...params).n;
+  const rows  = db.prepare(`
+    SELECT p.id, p.code_patient, p.nom, p.prenom, p.dateNaissance, p.sexe,
+           p.telephone, p.adresse, p.numAssurance, p.situation,
+           p.assurance, p.convention, p.typeAssurance
+    FROM patients p ${where}
+    ORDER BY p.nom, p.prenom
+    LIMIT ? OFFSET ?
+  `).all(...params, lim, offset);
+
+  const assurances = db.prepare(
+    "SELECT DISTINCT assurance FROM patients WHERE assurance IS NOT NULL AND assurance NOT IN ('Aucune','') ORDER BY assurance"
+  ).all().map(r => r.assurance);
+
+  res.json({ rows, total, page: parseInt(page) || 0, limit: lim, assurances });
 });
 
 app.get('/api/patients/:id/prescriptions', auth, (req, res) => {
@@ -366,9 +428,10 @@ app.post('/api/consultations/:id/resume-patient', auth, async (req, res) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 app.post('/api/consultations', auth, (req, res) => {
-  const { patientId, motif } = req.body;
+  const { patientId, motif, specialite, type_consult } = req.body;
   const id = randomUUID();
-  db.prepare('INSERT INTO consultations (id,patientId,userId,motif) VALUES (?,?,?,?)').run(id, patientId, req.user.id, motif);
+  db.prepare('INSERT INTO consultations (id,patientId,userId,motif,specialite,type_consult) VALUES (?,?,?,?,?,?)')
+    .run(id, patientId, req.user.id, motif, specialite||'Médecine générale', type_consult||'cabinet');
   audit(req, 'CREATE_CONSULTATION', 'consultation', id, motif);
   res.json({ ...db.prepare('SELECT * FROM consultations WHERE id=?').get(id), note: null });
 });
@@ -442,9 +505,18 @@ app.post('/api/consultations/:id/timing', auth, (req, res) => {
 app.post('/api/consultations/:id/validate-note', auth, (req, res) => {
   const c = db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
   if (!c) return res.status(404).json({ error: 'Consultation non trouvée' });
-  const merged = { ...(parseNote(c)||{}), ...req.body.note };
-  db.prepare("UPDATE consultations SET noteJson=?,statut='validee',updatedAt=datetime('now') WHERE id=?")
-    .run(encrypt(JSON.stringify(merged)), c.id);
+  const { note, specialite, specialite_fields } = req.body;
+  // Merge note with specialty fields embedded
+  const merged = {
+    ...(parseNote(c)||{}),
+    ...note,
+    ...(specialite_fields && Object.keys(specialite_fields).length ? { specialite_fields } : {}),
+  };
+  const updates = ["noteJson=?", "statut='validee'", "updatedAt=datetime('now')"];
+  const params = [encrypt(JSON.stringify(merged))];
+  if (specialite) { updates.push("specialite=?"); params.push(specialite); }
+  params.push(c.id);
+  db.prepare(`UPDATE consultations SET ${updates.join(',')} WHERE id=?`).run(...params);
   audit(req, 'VALIDATE_NOTE', 'consultation', c.id);
   res.json({ ok: true });
 });
@@ -532,11 +604,11 @@ app.get('/api/analytics', auth, (req, res) => {
   const avgDuration    = db.prepare("SELECT AVG(dureeMinutes) as v FROM consultations WHERE dureeMinutes IS NOT NULL AND date BETWEEN ? AND ? AND userId=?").get(fromStr, toStr, req.user.id).v;
   const withPrescription = db.prepare("SELECT COUNT(DISTINCT c.id) as n FROM consultations c JOIN prescriptions p ON p.consultationId=c.id WHERE c.date BETWEEN ? AND ? AND c.userId=?").get(fromStr, toStr, req.user.id).n;
 
-  // Patient stats
-  const totalPatients  = db.prepare("SELECT COUNT(*) as n FROM patients").get().n;
-  const femmes         = db.prepare("SELECT COUNT(*) as n FROM patients WHERE sexe='F'").get().n;
-  const hommes         = db.prepare("SELECT COUNT(*) as n FROM patients WHERE sexe='M'").get().n;
-  const avgAge         = db.prepare("SELECT AVG((strftime('%Y','now') - strftime('%Y',dateNaissance))) as v FROM patients WHERE dateNaissance IS NOT NULL AND dateNaissance != ''").get().v;
+  // Patient stats — filtered to this doctor's patients
+  const totalPatients  = db.prepare("SELECT COUNT(DISTINCT patientId) as n FROM consultations WHERE userId=?").get(req.user.id).n;
+  const femmes         = db.prepare("SELECT COUNT(DISTINCT c.patientId) as n FROM consultations c JOIN patients p ON p.id=c.patientId WHERE c.userId=? AND p.sexe='F'").get(req.user.id).n;
+  const hommes         = db.prepare("SELECT COUNT(DISTINCT c.patientId) as n FROM consultations c JOIN patients p ON p.id=c.patientId WHERE c.userId=? AND p.sexe='M'").get(req.user.id).n;
+  const avgAge         = db.prepare("SELECT AVG((strftime('%Y','now') - strftime('%Y',p.dateNaissance))) as v FROM consultations c JOIN patients p ON p.id=c.patientId WHERE c.userId=? AND p.dateNaissance IS NOT NULL AND p.dateNaissance != ''").get(req.user.id).v;
 
   // Top motifs
   const topMotifs = db.prepare("SELECT motif, COUNT(*) as n FROM consultations WHERE date BETWEEN ? AND ? AND userId=? GROUP BY motif ORDER BY n DESC LIMIT 5").all(fromStr, toStr, req.user.id);
@@ -614,7 +686,7 @@ function buildConsultationPDF(doc, c) {
   const dobStr  = p?.dateNaissance ? new Date(p.dateNaissance+'T00:00:00').toLocaleDateString('fr-FR') : '';
 
   doc.rect(0,0,doc.page.width,78).fill('#2563eb');
-  doc.fillColor('white').fontSize(22).font('Helvetica-Bold').text('MedPilot',50,18);
+  doc.fillColor('white').fontSize(22).font('Helvetica-Bold').text('MediVox',50,18);
   doc.fontSize(10).font('Helvetica').text('Compte rendu de consultation médicale',50,44);
   doc.fontSize(9).text(dateStr,50,59);
 
@@ -638,7 +710,7 @@ function buildConsultationPDF(doc, c) {
     }
   }
   const fy=doc.page.height-38; doc.rect(0,fy-4,doc.page.width,42).fill('#f8fafc');
-  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MedPilot — Compte rendu validé par le médecin — Non opposable sans signature',50,fy+2,{align:'center',width:495});
+  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MediVox — Compte rendu validé par le médecin — Non opposable sans signature',50,fy+2,{align:'center',width:495});
   doc.end();
 }
 
@@ -659,7 +731,7 @@ app.get('/api/patients/:id/dossier/pdf', auth, (req, res) => {
 
   // Cover header
   doc.rect(0,0,doc.page.width,90).fill('#1e293b');
-  doc.fillColor('white').fontSize(24).font('Helvetica-Bold').text('MedPilot',50,22);
+  doc.fillColor('white').fontSize(24).font('Helvetica-Bold').text('MediVox',50,22);
   doc.fontSize(11).font('Helvetica').text('Dossier médical complet',50,50);
   doc.fontSize(9).text(`Généré le ${dateStr} — Dr. ${u?.prenom||''} ${u?.nom||''}`,50,65);
 
@@ -727,7 +799,7 @@ app.get('/api/patients/:id/dossier/pdf', auth, (req, res) => {
 
   const fy=doc.page.height-35;
   doc.rect(0,fy-2,doc.page.width,37).fill('#f8fafc');
-  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MedPilot — Dossier médical confidentiel — Généré électroniquement — Non opposable sans signature',50,fy+8,{align:'center',width:495});
+  doc.fillColor('#94a3b8').fontSize(7.5).font('Helvetica').text('MediVox — Dossier médical confidentiel — Généré électroniquement — Non opposable sans signature',50,fy+8,{align:'center',width:495});
   doc.end();
 });
 
@@ -782,7 +854,7 @@ app.get('/api/consultations/:id/prescription/pdf', auth, (req, res) => {
   doc.fontSize(8).fillColor('#94a3b8').text('Signature et cachet',350,sigY+4,{width:195,align:'center'});
   const fy2=doc.page.height-35;
   doc.rect(0,fy2,doc.page.width,35).fill('#f8fafc');
-  doc.fontSize(7).fillColor('#94a3b8').text('MedPilot — Valable 3 mois — Signature manuscrite requise',50,fy2+12,{align:'center',width:495});
+  doc.fontSize(7).fillColor('#94a3b8').text('MediVox — Valable 3 mois — Signature manuscrite requise',50,fy2+12,{align:'center',width:495});
   doc.end();
 });
 
@@ -1304,7 +1376,7 @@ function docPatient(doc, p, y) {
 function docFooter(doc) {
   const fy=doc.page.height-35;
   doc.rect(0,fy,doc.page.width,35).fill('#f8fafc');
-  doc.fontSize(7).fillColor('#94a3b8').font('Helvetica').text('MedPilot — Document médical officiel',50,fy+12,{align:'center',width:495});
+  doc.fontSize(7).fillColor('#94a3b8').font('Helvetica').text('MediVox — Document médical officiel',50,fy+12,{align:'center',width:495});
 }
 function docSig(doc, y) {
   const sigY=Math.max(y+60,620);
@@ -1534,7 +1606,7 @@ app.post('/api/appointments/:id/reminder', auth, async (req, res) => {
         from: process.env.SMTP_FROM || process.env.SMTP_USER,
         to: appt.email,
         subject: `Rappel de rendez-vous — ${appt.date} à ${appt.heure}`,
-        text: `Bonjour ${appt.prenom} ${appt.nom},\n\nVous avez un rendez-vous le ${appt.date} à ${appt.heure} avec Dr. ${dr.prenom} ${dr.nom}.\nMotif : ${appt.motif||'Consultation'}.\n\nMerci de confirmer votre présence.\n\nMedPilot`,
+        text: `Bonjour ${appt.prenom} ${appt.nom},\n\nVous avez un rendez-vous le ${appt.date} à ${appt.heure} avec Dr. ${dr.prenom} ${dr.nom}.\nMotif : ${appt.motif||'Consultation'}.\n\nMerci de confirmer votre présence.\n\nMediVox`,
       });
       audit(req, 'SEND_REMINDER', 'appointment', req.params.id, `email:${appt.email}`);
       res.json({ ok: true, channel: 'email' });
@@ -1680,28 +1752,116 @@ app.post('/api/consultations/:id/auto-facturation', auth, (req, res) => {
   // Add base consultation line
   addLine(baseCode, baseNom?.libelle || 'Consultation', baseNom?.montant_base || 15000);
 
-  // Scan note for acts keywords → suggest codes
+  // Scan note for acts keywords — word-boundary matching to avoid false positives
   if (note) {
-    const text = JSON.stringify(note).toLowerCase();
-    const keywords = [
-      { kw: ['suture','point','plaie'], code: 'PC1', libelle: 'Suture simple', montant: 10000 },
-      { kw: ['pansement'], code: 'S1', libelle: 'Pansement simple', montant: 3000 },
-      { kw: ['injection','im','iv'], code: 'I1', libelle: 'Injection intramusculaire', montant: 2000 },
-      { kw: ['perfusion'], code: 'I3', libelle: 'Pose de perfusion', montant: 5000 },
-      { kw: ['ecg','électrocardiogramme'], code: 'ECG', libelle: 'ECG 12 dérivations', montant: 12000 },
-      { kw: ['radio','radiographie','rx'], code: 'RX1', libelle: 'Radiographie', montant: 20000 },
-      { kw: ['échographie','echo','echographie'], code: 'ECH1', libelle: 'Échographie', montant: 35000 },
-      { kw: ['nfs','numération','formule'], code: 'NFS', libelle: 'Numération formule sanguine', montant: 8000 },
-      { kw: ['glycémie','glycemie','gluc'], code: 'GLY', libelle: 'Glycémie à jeun', montant: 3000 },
-      { kw: ['paludisme','malaria','ge '], code: 'GE', libelle: 'GE / TDR paludisme', montant: 5000 },
-      { kw: ['vih','hiv'], code: 'VIH', libelle: 'Test VIH', montant: 5000 },
-      { kw: ['vaccination','vaccin'], code: 'VAC', libelle: 'Vaccination', montant: 3000 },
-      { kw: ['spiromét','spirometrie','efr'], code: 'SPI', libelle: 'Spirométrie', montant: 15000 },
-      { kw: ['accouchement'], code: 'ACC', libelle: 'Accouchement', montant: 80000 },
-      { kw: ['cpn','prénatale','prenatal'], code: 'CPN', libelle: 'Consultation prénatale', montant: 15000 },
+    // Scan only relevant clinical fields, not the entire JSON (avoids matching field names)
+    const clinicalText = [
+      note.motif, note.anamnese, note.histoire_maladie,
+      note.examen_physique, note.examen_clinique,
+      note.conclusion, note.diagnostic, note.plan_therapeutique,
+      note.actes_realises, note.gestes, note.soins,
+      note.bilan, note.examens_demandes, note.paraclinique,
+      note.observations, note.evolution,
+      // also scan prescription drug names for implied acts
+      Array.isArray(note.prescriptions)
+        ? note.prescriptions.map(p => p.medicament||'').join(' ')
+        : '',
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    // Helper: match keyword with word boundaries
+    // Short words (≤4 chars): strict boundary required to avoid substring matches
+    // Longer words: simple substring (medical terms rarely embed in other words)
+    const match = (keywords) => keywords.some(kw => {
+      const esc = kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const re = kw.length <= 5
+        ? new RegExp(`(?<![a-zàâäéèêëîïôùûü])${esc}(?![a-zàâäéèêëîïôùûü])`, 'i')
+        : new RegExp(esc, 'i');
+      return re.test(clinicalText);
+    });
+
+    const ACTS = [
+      // ── Chirurgie ambulatoire ──────────────────────────────────────────────
+      { code:'PC1', libelle:'Suture simple (< 5 points)', montant:10000,
+        kw:['suture','sutures','suturer','point de suture','points de suture','plaie suturée','plaie suturée','fils de suture'] },
+      { code:'PC2', libelle:'Suture complexe (≥ 5 points)', montant:18000,
+        kw:['suture complexe','sutures multiples','plan profond','plan musculaire'] },
+      { code:'PC3', libelle:'Incision / drainage d\'abcès', montant:12000,
+        kw:['abcès','abces','incision','drainage','drainé','ponction évacuatrice','débridement'] },
+      // ── Soins infirmiers ───────────────────────────────────────────────────
+      { code:'S1', libelle:'Pansement simple', montant:3000,
+        kw:['pansement','pansements','soin de plaie','soins de plaie','refaire le pansement','pansé'] },
+      { code:'I1', libelle:'Injection intramusculaire', montant:2000,
+        kw:['injection im','intramusculaire','voie im','administré en im','administrée en im'] },
+      { code:'I2', libelle:'Injection intraveineuse directe', montant:3000,
+        kw:['injection iv','injection intraveineuse','voie iv','ivd','bolus iv'] },
+      { code:'I3', libelle:'Pose de perfusion', montant:5000,
+        kw:['perfusion','perf','soluté','ringer','sérum glucosé','réhydratation iv','voie veineuse','vvp'] },
+      { code:'PR', libelle:'Prise de sang / prélèvement', montant:3000,
+        kw:['prise de sang','prélèvement sanguin','prélevé','bilan sanguin','prélèvement veineux'] },
+      // ── Imagerie ──────────────────────────────────────────────────────────
+      { code:'ECG', libelle:'ECG 12 dérivations', montant:12000,
+        kw:['ecg','électrocardiogramme','electrocardiogramme','tracé cardiaque','tracé ecg'] },
+      { code:'RX1', libelle:'Radiographie pulmonaire', montant:20000,
+        kw:['radio pulmonaire','radiographie pulmonaire','rx thorax','radiographie du thorax','rx pulmonaire','cliché thoracique','rx du poumon'] },
+      { code:'RX2', libelle:'Radiographie osseuse / articulaire', montant:18000,
+        kw:['radio osseuse','radiographie osseuse','rx du genou','rx du pied','rx du poignet','rx de la cheville','rx de la hanche','rx vertébrale','radio articulaire'] },
+      { code:'ECH1', libelle:'Échographie abdominale', montant:35000,
+        kw:['échographie abdominale','echo abdominale','échographie de l\'abdomen','echo abdo','us abdominal'] },
+      { code:'ECH2', libelle:'Échographie obstétricale', montant:30000,
+        kw:['échographie obstétricale','echo obstétricale','échographie de grossesse','datation','morphologie foetale','biométrie foetale'] },
+      { code:'ECH3', libelle:'Échographie cardiaque', montant:45000,
+        kw:['échographie cardiaque','echo cardiaque','echocardiographie','ETT','fraction d\'éjection'] },
+      { code:'ECH4', libelle:'Écho-Doppler vasculaire', montant:40000,
+        kw:['doppler','écho-doppler','echo doppler','angiodoppler','TSA','artères rénales'] },
+      // ── Biologie ──────────────────────────────────────────────────────────
+      { code:'NFS', libelle:'Numération formule sanguine', montant:8000,
+        kw:['nfs','numération formule','formule sanguine','hémogramme','numération globulaire','gb','gr','plaquettes'] },
+      { code:'GLY', libelle:'Glycémie à jeun', montant:3000,
+        kw:['glycémie','glycemie','dextro','glycosurie','glucose sanguin','bilan glucidique'] },
+      { code:'HBA1C', libelle:'Hémoglobine glyquée', montant:15000,
+        kw:['hba1c','hémoglobine glyquée','hemoglobine glyquee','glycémie à 3 mois'] },
+      { code:'BHC', libelle:'Bilan hépatique', montant:25000,
+        kw:['bilan hépatique','transaminases','asat','alat','bilirubine','gamma gt','phosphatases alcalines','bilan foie'] },
+      { code:'LIPID', libelle:'Bilan lipidique', montant:12000,
+        kw:['bilan lipidique','cholestérol','triglycérides','ldl','hdl','lipides'] },
+      { code:'CREA', libelle:'Créatinine / urée', montant:8000,
+        kw:['créatinine','creatinine','urée','uree','bilan rénal','fonction rénale','clairance'] },
+      { code:'GE', libelle:'GE / TDR paludisme', montant:5000,
+        kw:['goutte épaisse','tdr paludisme','tdr palu','test paludisme','frottis sanguin','plasmodium','malaria','paludisme','gouttelette épaisse'] },
+      { code:'VIH', libelle:'Test VIH', montant:5000,
+        kw:['vih','hiv','sérologie vih','test vih','dépistage vih','charge virale'] },
+      { code:'TPHA', libelle:'Sérologie syphilis', montant:6000,
+        kw:['tpha','vdrl','syphilis','sérologie syphilis','tréponème'] },
+      { code:'HBS', libelle:'Ag HBs / sérologie hépatite B', montant:8000,
+        kw:['ag hbs','antigène hbs','hépatite b','hbsag','sérologie hépatite','antigène hb'] },
+      { code:'URIN', libelle:'ECBU / bandelette urinaire', montant:6000,
+        kw:['ecbu','bandelette urinaire','examen cytobactériologique','infection urinaire confirmée','analyse d\'urine','protéinurie'] },
+      // ── Spécialités ───────────────────────────────────────────────────────
+      { code:'VAC', libelle:'Vaccination', montant:3000,
+        kw:['vaccination','vaccin','vacciné','rappel vaccinal','immunisation'] },
+      { code:'SPI', libelle:'Spirométrie / EFR', montant:15000,
+        kw:['spirométrie','spirometrie','efr','exploration fonctionnelle','vems','capacité vitale','tiffeneau'] },
+      { code:'ACC', libelle:'Accouchement eutocique', montant:80000,
+        kw:['accouchement','accouché','parturiente','délivrance','expulsion','épisiotomie','voie basse'] },
+      { code:'CPN', libelle:'Consultation prénatale', montant:15000,
+        kw:['consultation prénatale','cpn','prénatal','gestante','grossesse en cours','suivi de grossesse'] },
+      { code:'CS-URG', libelle:'Consultation urgence', montant:30000,
+        kw:['urgence','urgences','admis en urgence','pris en charge en urgence'] },
     ];
-    for (const { kw, code, libelle, montant } of keywords) {
-      if (kw.some(k => text.includes(k))) addLine(code, libelle, montant);
+
+    for (const { kw, code, libelle, montant } of ACTS) {
+      if (match(kw)) addLine(code, libelle, montant);
+    }
+
+    // ── Prescription-based inference ─────────────────────────────────────────
+    // If antiparasitic drugs prescribed, likely a GE was done
+    const rx = Array.isArray(note.prescriptions) ? note.prescriptions.map(p=>(p.medicament||'').toLowerCase()).join(' ') : '';
+    if (!existingCodes.includes('GE') && /coartem|artemether|lumefantrine|artesunate|quinine|chloroquine/i.test(rx)) {
+      addLine('GE', 'GE / TDR paludisme (déduit de l\'ordonnance)', 5000);
+    }
+    // Anticoagulants → likely IV access
+    if (!existingCodes.includes('I3') && /héparine|enoxaparine|lovenox/i.test(rx)) {
+      addLine('I3', 'Pose de perfusion (déduit de l\'ordonnance)', 5000);
     }
   }
 
@@ -1938,12 +2098,794 @@ app.get('/api/consultations/:id/completude', auth, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 4 — INTELLIGENCE ET PILOTAGE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Phase 4.1 — Dashboard médico-économique ───────────────────────────────────
+app.get('/api/analytics/medico-eco', auth, (req, res) => {
+  const uid = req.user.id;
+
+  // Revenue by nomenclature category
+  const byCategorie = db.prepare(`
+    SELECT n.categorie, SUM(lf.montant * lf.quantite) as ca, COUNT(*) as actes
+    FROM lignes_facturables lf
+    LEFT JOIN nomenclature n ON n.code = lf.codeActe
+    WHERE lf.userId=? AND lf.statut != 'annule'
+    GROUP BY n.categorie ORDER BY ca DESC
+  `).all(uid);
+
+  // Revenue by billing status
+  const byStatut = db.prepare(`
+    SELECT statut, SUM(montant*quantite) as total, COUNT(*) as n
+    FROM lignes_facturables WHERE userId=? GROUP BY statut
+  `).all(uid);
+
+  // Unbilled acts (non_facture lines with montant)
+  const nonFacture = db.prepare(`
+    SELECT SUM(montant*quantite) as total, COUNT(*) as n
+    FROM lignes_facturables WHERE userId=? AND statut='non_facture'
+  `).get(uid);
+
+  // Payment mix by caisse (from dossiers assurance)
+  const byCaisse = db.prepare(`
+    SELECT caisse, COUNT(*) as n, SUM(montantDemande) as montant
+    FROM dossiers_assurance WHERE userId=? GROUP BY caisse ORDER BY n DESC
+  `).all(uid);
+
+  // Conversion: consults with labo ordres / total consults
+  const totalConsults = db.prepare("SELECT COUNT(*) as n FROM consultations WHERE userId=?").get(uid)?.n || 0;
+  const withLabo = db.prepare("SELECT COUNT(DISTINCT consultationId) as n FROM ordres_medicaux WHERE userId=? AND type='labo'").get(uid)?.n || 0;
+  const withImagerie = db.prepare("SELECT COUNT(DISTINCT consultationId) as n FROM ordres_medicaux WHERE userId=? AND type='imagerie'").get(uid)?.n || 0;
+  const withFacturation = db.prepare("SELECT COUNT(DISTINCT consultationId) as n FROM lignes_facturables WHERE userId=?").get(uid)?.n || 0;
+
+  // Productivity by day-of-week (0=Sun..6=Sat)
+  const byDow = db.prepare(`
+    SELECT CAST(strftime('%w', date) AS INTEGER) as dow, COUNT(*) as n
+    FROM consultations WHERE userId=? GROUP BY dow ORDER BY dow
+  `).all(uid);
+
+  // Average wait times by flow step (across all appointments with timestamps)
+  const waitTimes = db.prepare(`
+    SELECT
+      AVG(CASE WHEN checkin_at IS NOT NULL AND date IS NOT NULL
+        THEN (julianday(checkin_at) - julianday(date)) * 1440 ELSE NULL END) as attente_arrivee,
+      AVG(CASE WHEN triage_at IS NOT NULL AND checkin_at IS NOT NULL
+        THEN (julianday(triage_at) - julianday(checkin_at)) * 1440 ELSE NULL END) as attente_triage,
+      AVG(CASE WHEN en_salle_at IS NOT NULL AND triage_at IS NOT NULL
+        THEN (julianday(en_salle_at) - julianday(triage_at)) * 1440 ELSE NULL END) as attente_salle,
+      AVG(CASE WHEN en_consultation_at IS NOT NULL AND en_salle_at IS NOT NULL
+        THEN (julianday(en_consultation_at) - julianday(en_salle_at)) * 1440 ELSE NULL END) as attente_consultation,
+      AVG(CASE WHEN sorti_at IS NOT NULL AND en_consultation_at IS NOT NULL
+        THEN (julianday(sorti_at) - julianday(en_consultation_at)) * 1440 ELSE NULL END) as duree_consultation
+    FROM appointments WHERE userId=?
+  `).get(uid);
+
+  // Monthly revenue last 12 months
+  const monthlyCA = db.prepare(`
+    SELECT strftime('%Y-%m', createdAt) as month, SUM(montant*quantite) as ca, COUNT(*) as actes
+    FROM lignes_facturables WHERE userId=? AND statut != 'annule'
+    GROUP BY month ORDER BY month DESC LIMIT 12
+  `).all(uid).reverse();
+
+  // Top 10 most billed acts
+  const topActes = db.prepare(`
+    SELECT codeActe, libelleActe, COUNT(*) as n, SUM(montant*quantite) as ca
+    FROM lignes_facturables WHERE userId=? AND statut != 'annule'
+    GROUP BY codeActe ORDER BY ca DESC LIMIT 10
+  `).all(uid);
+
+  const totalCA = byStatut.reduce((s,r) => r.statut !== 'annule' ? s + (r.total||0) : s, 0);
+  const caEncaisse = byStatut.find(r=>r.statut==='encaisse')?.total || 0;
+  const caFacture = byStatut.find(r=>r.statut==='facture')?.total || 0;
+
+  res.json({
+    kpi: {
+      totalCA, caEncaisse, caFacture,
+      tauxRecouvrement: totalCA > 0 ? Math.round(caEncaisse / totalCA * 100) : 0,
+      nonFactureTotal: nonFacture?.total || 0,
+      nonFactureN: nonFacture?.n || 0,
+      totalConsults, withLabo, withImagerie, withFacturation,
+      txConvLabo: totalConsults > 0 ? Math.round(withLabo/totalConsults*100) : 0,
+      txConvImagerie: totalConsults > 0 ? Math.round(withImagerie/totalConsults*100) : 0,
+      txConvFacturation: totalConsults > 0 ? Math.round(withFacturation/totalConsults*100) : 0,
+    },
+    byCategorie,
+    byStatut,
+    byCaisse,
+    byDow,
+    waitTimes: {
+      arrivee: waitTimes?.attente_arrivee ? Math.round(waitTimes.attente_arrivee) : null,
+      triage: waitTimes?.attente_triage ? Math.round(waitTimes.attente_triage) : null,
+      salle: waitTimes?.attente_salle ? Math.round(waitTimes.attente_salle) : null,
+      consultation: waitTimes?.attente_consultation ? Math.round(waitTimes.attente_consultation) : null,
+      dureeConsultation: waitTimes?.duree_consultation ? Math.round(waitTimes.duree_consultation) : null,
+    },
+    monthlyCA,
+    topActes,
+  });
+});
+
+// ── Phase 4.2 — Moteur de protocoles cliniques ────────────────────────────────
+const PROTOCOL_DEFS = {
+  hta: {
+    label: 'HTA — Bilan initial',
+    labo: ['NFS','ionogramme','créatininémie','uricémie','glycémie jeun','cholestérol total','triglycérides','ECBU'],
+    imagerie: ['ECG 12 dérivations','Fond d\'œil','Radiographie thorax'],
+    prescription: 'Amlodipine 5mg — 1cp/j le matin\nPerindopril 5mg — 1cp/j le matin\nAspégic 75mg — 1cp/j (si risque CV ≥ modéré)',
+    rdvDelai: 30, adressage: 'Cardiologue si HTA stade 2 ou résistante',
+  },
+  diabete: {
+    label: 'Diabète type 2 — Bilan trimestriel',
+    labo: ['HbA1c','glycémie jeun','créatininémie','microalbuminurie/créatinurie','NFS','bilan lipidique complet','ECBU'],
+    imagerie: ['ECG 12 dérivations','Fond d\'œil (annuel)'],
+    prescription: 'Metformine 850mg — 1cp x2/j aux repas\nGliclazide LP 30mg — 1cp/j le matin (si HbA1c > 7.5%)',
+    rdvDelai: 90, adressage: 'Endocrinologue si HbA1c > 9% après 3 mois',
+  },
+  grossesse_t1: {
+    label: 'Grossesse T1 — Bilan 1er trimestre',
+    labo: ['NFS','groupe sanguin Rhésus','RAI','sérologie rubéole','sérologie toxoplasmose','sérologie syphilis','Ag HBs','VIH','glycémie jeun','ECBU','TSH'],
+    imagerie: ['Échographie T1 (11-13 SA)'],
+    prescription: 'Acide folique 5mg — 1cp/j\nFer — selon NFS\nVitamine D3 100 000 UI — 1 ampoule si déficite',
+    rdvDelai: 28, adressage: 'Obstétricien / Maternité niveau adapté',
+  },
+  grossesse_t2: {
+    label: 'Grossesse T2 — Bilan 2ème trimestre',
+    labo: ['NFS','RAI','glycémie jeun','HGPO 75g (24-28 SA)','ECBU','sérologie toxoplasmose si négative'],
+    imagerie: ['Échographie T2 morphologique (20-24 SA)'],
+    prescription: 'Continuer acide folique si T2 précoce\nFer si NFS < 11g/dL\nVitamine D3 à 28 SA',
+    rdvDelai: 28, adressage: 'Sage-femme pour suivi de grossesse',
+  },
+  grossesse_t3: {
+    label: 'Grossesse T3 — Bilan 3ème trimestre',
+    labo: ['NFS','RAI','sérologie toxoplasmose si négative','ECBU','prélèvement vaginal streptocoque B (35-37 SA)','bilan préop si césarienne prévue'],
+    imagerie: ['Échographie T3 (32-36 SA)','Monitoring fœtal (CTG)'],
+    prescription: 'Vitamine K1 2mg/j à partir de 36 SA\nFer si carence\nMagnésium si crampes',
+    rdvDelai: 14, adressage: 'Maternité — hospitalisation si signe alarmant',
+  },
+  douleur_thoracique: {
+    label: 'Douleur thoracique — Bilan urgent',
+    labo: ['Troponine I ultra-sensible (répéter H3)','D-Dimères','NFS','ionogramme','créatininémie','glycémie','TP/TCA','groupe sanguin'],
+    imagerie: ['ECG 12 dérivations (immédiat)','Radiographie thorax F+P','Angio-scanner thoracique si EP suspectée'],
+    prescription: 'Aspirine 500mg PO si SCA suspecté (sans contre-indication)\nO2 si SpO2 < 94%\nMorphine 5mg IV si douleur EVA ≥ 7',
+    rdvDelai: 0, adressage: 'SAMU / Urgences cardiologiques si troponine +',
+  },
+  preop: {
+    label: 'Bilan préopératoire standard',
+    labo: ['NFS','TP/TCA/fibrinogène','groupe sanguin Rhésus RAI','ionogramme','créatininémie','glycémie','ECG','albumine si nutrition précaire'],
+    imagerie: ['ECG 12 dérivations','Radiographie thorax si > 50 ans'],
+    prescription: 'Arrêter anticoagulants selon protocole\nArrêter aspirine 5j avant\nJeûne 6h solides / 2h liquides clairs',
+    rdvDelai: 7, adressage: 'Anesthésiste — consultation pré-anesthésie obligatoire',
+  },
+  checkup: {
+    label: 'Check-up entreprise annuel',
+    labo: ['NFS','glycémie jeun','cholestérol total','LDL/HDL/triglycérides','créatininémie','uricémie','ASAT/ALAT','GGT','TSH','ECBU'],
+    imagerie: ['ECG 12 dérivations si > 40 ans','Radiographie thorax'],
+    prescription: 'Conseils hygiéno-diététiques personnalisés selon résultats',
+    rdvDelai: 365, adressage: 'Ophtalmologue si diabète ou HTA · Dentiste annuel',
+  },
+  pediatrie: {
+    label: 'Bilan pédiatrique — enfant 0–15 ans',
+    labo: ['NFS','ferritine','glycémie','créatininémie','ECBU si symptômes','sérologies vaccins si doute'],
+    imagerie: ['Radiographie main-poignet si retard statural'],
+    prescription: 'Vitamine D3 1000 UI/j jusqu\'à 5 ans\nFer si ferritine < 12\nZinc si alimentation pauvre',
+    rdvDelai: 90, adressage: 'Pédiatre spécialisé si retard développemental',
+  },
+};
+
+app.post('/api/consultations/:id/protocol', auth, (req, res) => {
+  const { protocol } = req.body;
+  const def = PROTOCOL_DEFS[protocol];
+  if (!def) return res.status(400).json({ error: 'Protocole inconnu' });
+
+  const c = db.prepare("SELECT * FROM consultations WHERE id=? AND userId=?").get(req.params.id, req.user.id);
+  if (!c) return res.status(404).json({ error: 'Consultation introuvable' });
+
+  const now = new Date().toISOString();
+  const created = [];
+
+  // Create labo ordres
+  for (const exam of def.labo) {
+    const stmt = db.prepare(`INSERT INTO ordres_medicaux (id,consultationId,patientId,userId,type,catalogue,priorite,statut,demande_at,createdAt,updatedAt)
+      VALUES (?,?,?,?,'labo',?,?,?,?,?,?)`);
+    const id = `ord_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+    stmt.run(id, c.id, c.patientId, req.user.id, exam, 'routine', 'demande', now, now, now);
+    created.push({ id, type: 'labo', exam });
+  }
+
+  // Create imagerie ordres
+  for (const exam of def.imagerie) {
+    const stmt = db.prepare(`INSERT INTO ordres_medicaux (id,consultationId,patientId,userId,type,catalogue,priorite,statut,demande_at,createdAt,updatedAt)
+      VALUES (?,?,?,?,'imagerie',?,?,?,?,?,?)`);
+    const id = `ord_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+    stmt.run(id, c.id, c.patientId, req.user.id, exam, 'routine', 'demande', now, now, now);
+    created.push({ id, type: 'imagerie', exam });
+  }
+
+  res.json({
+    created: created.length,
+    ordres: created,
+    prescription: def.prescription,
+    rdvDelai: def.rdvDelai,
+    adressage: def.adressage,
+    label: def.label,
+  });
+});
+
+// ── Phase 4.3 — Perdus de vue ─────────────────────────────────────────────────
+app.get('/api/intelligence/perdus-de-vue', auth, (req, res) => {
+  const mois = parseInt(req.query.mois) || 6;
+  const cutoff = new Date(Date.now() - mois * 30 * 864e5).toISOString().slice(0, 10);
+
+  // Patients with at least 2 past consultations but no consult since cutoff
+  const rows = db.prepare(`
+    SELECT p.id, p.nom, p.prenom, p.dateNaissance, p.telephone, p.email, p.typeAssurance,
+      COUNT(c.id) as totalConsults,
+      MAX(c.date) as derniere_consult,
+      CAST((julianday('now') - julianday(MAX(c.date))) AS INTEGER) as jours_absence
+    FROM patients p
+    JOIN consultations c ON c.patientId = p.id AND c.userId = ?
+    GROUP BY p.id
+    HAVING MAX(c.date) < ? AND COUNT(c.id) >= 2
+    ORDER BY jours_absence DESC
+    LIMIT 100
+  `).all(req.user.id, cutoff);
+
+  // Enrich with CIM-10 codes (last consult)
+  const enriched = rows.map(p => {
+    const lastNote = db.prepare("SELECT noteJson FROM consultations WHERE patientId=? AND userId=? AND statut='validee' ORDER BY date DESC LIMIT 1").get(p.id, req.user.id);
+    let pathologies = [];
+    if (lastNote) {
+      try {
+        const n = JSON.parse(decrypt(lastNote.noteJson) || lastNote.noteJson || '{}');
+        if (n.cim10?.libelle) pathologies = [n.cim10.libelle];
+      } catch {}
+    }
+    const age = p.dateNaissance ? new Date().getFullYear() - new Date(p.dateNaissance + 'T00:00:00').getFullYear() : null;
+    return { ...p, age, pathologies };
+  });
+
+  res.json({ patients: enriched, mois, cutoff });
+});
+
+app.post('/api/intelligence/rappel/:patientId', auth, async (req, res) => {
+  const p = db.prepare("SELECT * FROM patients WHERE id=?").get(req.params.patientId);
+  if (!p) return res.status(404).json({ error: 'Patient introuvable' });
+
+  const { message } = req.body;
+  const nom = `${p.prenom} ${p.nom}`;
+  const defaultMsg = message || `Bonjour ${p.prenom},\n\nNous n'avons pas eu de vos nouvelles depuis plusieurs mois. N'hésitez pas à nous contacter pour planifier un suivi.\n\nCordialement,\nVotre médecin`;
+
+  if (mailer && p.email) {
+    try {
+      await mailer.sendMail({
+        from: process.env.SMTP_FROM || process.env.SMTP_USER,
+        to: p.email,
+        subject: `Rappel de suivi médical — ${nom}`,
+        text: defaultMsg,
+      });
+      return res.json({ sent: true, channel: 'email', to: p.email });
+    } catch (e) {
+      console.error('Rappel email error:', e.message);
+    }
+  }
+
+  // Fallback — log only
+  console.log(`[RAPPEL] Patient ${nom} (${p.id}) — ${p.telephone || 'pas de téléphone'} — ${defaultMsg.slice(0,60)}…`);
+  res.json({ sent: false, channel: 'log', message: defaultMsg });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 5 — EXPANSION PLATEFORME
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ── Phase 5.1 — Spécialité sur consultation ──────────────────────────────────
+// (specialite & type_consult added to existing consultation POST/PUT below via ALTER)
+// The consultation creation endpoint already handles extra fields via body
+
+// ── Phase 5.2 — Hospitalisation ──────────────────────────────────────────────
+app.post('/api/hospitalisations', auth, (req, res) => {
+  const { patientId, dateEntree, diagnostic_entree, service, chambre, lit, motif_entree, siteId } = req.body;
+  if (!patientId || !dateEntree) return res.status(400).json({ error: 'patientId et dateEntree requis' });
+  const id = `hosp_${Date.now()}`;
+  const now = new Date().toISOString();
+  db.prepare(`INSERT INTO hospitalisations (id,patientId,userId,siteId,dateEntree,diagnostic_entree,service,chambre,lit,motif_entree,statut,createdAt,updatedAt)
+    VALUES (?,?,?,?,?,?,?,?,?,?,'actif',?,?)`)
+    .run(id, patientId, req.user.id, siteId||null, dateEntree, diagnostic_entree||null, service||'Médecine générale', chambre||null, lit||null, motif_entree||null, now, now);
+  res.json(db.prepare("SELECT h.*,p.nom,p.prenom FROM hospitalisations h JOIN patients p ON p.id=h.patientId WHERE h.id=?").get(id));
+});
+
+app.get('/api/hospitalisations', auth, (req, res) => {
+  const { statut, patientId } = req.query;
+  let q = "SELECT h.*,p.nom,p.prenom,p.dateNaissance FROM hospitalisations h JOIN patients p ON p.id=h.patientId WHERE h.userId=?";
+  const params = [req.user.id];
+  if (statut) { q += " AND h.statut=?"; params.push(statut); }
+  if (patientId) { q += " AND h.patientId=?"; params.push(patientId); }
+  q += " ORDER BY h.dateEntree DESC";
+  res.json(db.prepare(q).all(...params));
+});
+
+app.get('/api/hospitalisations/:id', auth, (req, res) => {
+  const h = db.prepare("SELECT h.*,p.nom,p.prenom,p.dateNaissance,p.sexe FROM hospitalisations h JOIN patients p ON p.id=h.patientId WHERE h.id=? AND h.userId=?").get(req.params.id, req.user.id);
+  if (!h) return res.status(404).json({ error: 'Non trouvé' });
+  const actes = db.prepare("SELECT * FROM actes_hospitaliers WHERE hospitalisationId=? ORDER BY date DESC,createdAt DESC").all(req.params.id);
+  res.json({ ...h, actes });
+});
+
+app.put('/api/hospitalisations/:id', auth, (req, res) => {
+  const now = new Date().toISOString();
+  const { diagnostic_entree, diagnostic_sortie, service, chambre, lit, prescriptions_hospi, surveillance, compte_rendu_sortie, statut, dateSortie } = req.body;
+  db.prepare(`UPDATE hospitalisations SET diagnostic_entree=COALESCE(?,diagnostic_entree), diagnostic_sortie=COALESCE(?,diagnostic_sortie),
+    service=COALESCE(?,service), chambre=COALESCE(?,chambre), lit=COALESCE(?,lit),
+    prescriptions_hospi=COALESCE(?,prescriptions_hospi), surveillance=COALESCE(?,surveillance),
+    compte_rendu_sortie=COALESCE(?,compte_rendu_sortie), statut=COALESCE(?,statut),
+    dateSortie=COALESCE(?,dateSortie), updatedAt=? WHERE id=? AND userId=?`)
+    .run(diagnostic_entree||null, diagnostic_sortie||null, service||null, chambre||null, lit||null,
+      prescriptions_hospi||null, surveillance||null, compte_rendu_sortie||null, statut||null,
+      dateSortie||null, now, req.params.id, req.user.id);
+  res.json(db.prepare("SELECT * FROM hospitalisations WHERE id=?").get(req.params.id));
+});
+
+app.post('/api/hospitalisations/:id/actes', auth, (req, res) => {
+  const { date, type, description, valeurs } = req.body;
+  const id = `acte_${Date.now()}`;
+  const now = new Date().toISOString();
+  db.prepare("INSERT INTO actes_hospitaliers (id,hospitalisationId,date,type,description,valeurs,userId,createdAt) VALUES (?,?,?,?,?,?,?,?)")
+    .run(id, req.params.id, date||now.slice(0,10), type, description||null, valeurs ? JSON.stringify(valeurs) : null, req.user.id, now);
+  res.json(db.prepare("SELECT * FROM actes_hospitaliers WHERE id=?").get(id));
+});
+
+app.get('/api/hospitalisations/:id/actes', auth, (req, res) => {
+  res.json(db.prepare("SELECT * FROM actes_hospitaliers WHERE hospitalisationId=? ORDER BY date DESC,createdAt DESC").all(req.params.id));
+});
+
+// Discharge summary PDF
+app.get('/api/hospitalisations/:id/pdf', auth, async (req, res) => {
+  const h = db.prepare("SELECT h.*,p.nom,p.prenom,p.dateNaissance,p.sexe FROM hospitalisations h JOIN patients p ON p.id=h.patientId WHERE h.id=? AND h.userId=?").get(req.params.id, req.user.id);
+  if (!h) return res.status(404).json({ error: 'Non trouvé' });
+  const dr = db.prepare("SELECT * FROM users WHERE id=?").get(req.user.id);
+  const PDFDocument = (await import('pdfkit')).default;
+  const doc = new PDFDocument({ margin: 50, size: 'A4' });
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="compte-rendu-hospitalisation-${h.id}.pdf"`);
+  doc.pipe(res);
+  doc.rect(0,0,595,80).fill('#00725f');
+  doc.fillColor('white').fontSize(20).font('Helvetica-Bold').text('MediVox',50,22);
+  doc.fontSize(10).font('Helvetica').text('Compte Rendu d\'Hospitalisation',50,50);
+  doc.fillColor('#3A3A3A').fontSize(12).font('Helvetica-Bold').text(`${h.prenom} ${h.nom}`,50,110);
+  doc.fontSize(10).font('Helvetica').text(`Né(e) : ${h.dateNaissance||'—'} · Service : ${h.service||'—'}`,50,130);
+  doc.text(`Entrée : ${h.dateEntree} · Sortie : ${h.dateSortie||'En cours'}`,50,148);
+  doc.moveDown(2);
+  if (h.diagnostic_entree) { doc.fontSize(11).font('Helvetica-Bold').text('Diagnostic d\'entrée :'); doc.fontSize(10).font('Helvetica').text(h.diagnostic_entree); doc.moveDown(); }
+  if (h.diagnostic_sortie) { doc.fontSize(11).font('Helvetica-Bold').text('Diagnostic de sortie :'); doc.fontSize(10).font('Helvetica').text(h.diagnostic_sortie); doc.moveDown(); }
+  if (h.compte_rendu_sortie) { doc.fontSize(11).font('Helvetica-Bold').text('Compte rendu de sortie :'); doc.fontSize(10).font('Helvetica').text(h.compte_rendu_sortie); doc.moveDown(); }
+  if (h.prescriptions_hospi) { doc.fontSize(11).font('Helvetica-Bold').text('Traitement de sortie :'); doc.fontSize(10).font('Helvetica').text(h.prescriptions_hospi); }
+  doc.fontSize(8).fillColor('#94a3b8').text(`MediVox — Dr. ${dr?.prenom||''} ${dr?.nom||''} — Document confidentiel`,50,780,{align:'center',width:495});
+  doc.end();
+});
+
+// ── Phase 5.3 — Portail patient ──────────────────────────────────────────────
+
+// Generate patient access code (called by doctor)
+app.post('/api/patients/:id/portail/code', auth, (req, res) => {
+  const code = Math.random().toString(36).slice(2,8).toUpperCase();
+  const now = new Date().toISOString();
+  db.prepare("UPDATE patients SET code_acces=?,code_acces_at=? WHERE id=?").run(code, now, req.params.id);
+  res.json({ code });
+});
+
+// Rate limiter: max 10 attempts per 15min per IP on portal auth
+const portalAuthLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Trop de tentatives. Réessayez dans 15 minutes.' },
+  skipSuccessfulRequests: true,
+});
+
+// Public: patient authenticates with (dateNaissance + code_acces)
+app.post('/api/portal/auth', portalAuthLimiter, (req, res) => {
+  const { dateNaissance, code } = req.body;
+  const p = db.prepare("SELECT * FROM patients WHERE dateNaissance=? AND code_acces=?").get(dateNaissance, code?.toUpperCase());
+  if (!p) return res.status(401).json({ error: 'Code ou date de naissance incorrects' });
+  const token = jwt.sign({ patientId: p.id, role: 'patient' }, JWT_SECRET, { expiresIn: '24h' });
+  res.json({ token, patient: { id: p.id, nom: p.nom, prenom: p.prenom, email: p.email } });
+});
+
+const authPortal = (req, res, next) => {
+  const h = req.headers.authorization;
+  if (!h?.startsWith('Bearer ')) return res.status(401).json({ error: 'Non autorisé' });
+  try {
+    const d = jwt.verify(h.slice(7), JWT_SECRET);
+    if (d.role !== 'patient') return res.status(403).json({ error: 'Accès refusé' });
+    req.patient = d;
+    next();
+  } catch { res.status(401).json({ error: 'Token invalide' }); }
+};
+
+// Doctor: get own disponibilités config
+app.get('/api/profile/disponibilites', auth, (req, res) => {
+  const u = db.prepare("SELECT plages_horaires,duree_rdv FROM users WHERE id=?").get(req.user.id);
+  const defaultPlages = {
+    lun: { actif: true,  debut: '08:00', fin: '18:00' },
+    mar: { actif: true,  debut: '08:00', fin: '18:00' },
+    mer: { actif: true,  debut: '08:00', fin: '13:00' },
+    jeu: { actif: true,  debut: '08:00', fin: '18:00' },
+    ven: { actif: true,  debut: '08:00', fin: '17:00' },
+    sam: { actif: false, debut: '08:00', fin: '12:00' },
+    dim: { actif: false, debut: '08:00', fin: '12:00' },
+  };
+  const plages = u?.plages_horaires ? JSON.parse(u.plages_horaires) : defaultPlages;
+  res.json({ plages, duree_rdv: u?.duree_rdv || 30 });
+});
+
+app.put('/api/profile/disponibilites', auth, (req, res) => {
+  const { plages, duree_rdv } = req.body;
+  db.prepare("UPDATE users SET plages_horaires=?,duree_rdv=? WHERE id=?")
+    .run(JSON.stringify(plages), parseInt(duree_rdv)||30, req.user.id);
+  res.json({ ok: true });
+});
+
+// Public: available slots for online booking (uses real doctor schedule)
+app.get('/api/portal/disponibilites', (req, res) => {
+  const { date, userId } = req.query;
+  if (!date) return res.json({ slots: [], taken: [] });
+
+  // Get day of week
+  const dow = new Date(date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short' }).slice(0, 3).toLowerCase();
+  const dowMap = { lun:'lun', mar:'mar', mer:'mer', jeu:'jeu', ven:'ven', sam:'sam', dim:'dim' };
+  const dowKey = { '0':'dim','1':'lun','2':'mar','3':'mer','4':'jeu','5':'ven','6':'sam' }[new Date(date + 'T12:00:00').getDay()];
+
+  // Get doctor's schedule if userId provided
+  let slots = [];
+  let duree = 30;
+  if (userId) {
+    const u = db.prepare("SELECT plages_horaires,duree_rdv FROM users WHERE id=?").get(userId);
+    duree = u?.duree_rdv || 30;
+    const defaultPlages = {
+      lun: { actif: true, debut: '08:00', fin: '18:00' },
+      mar: { actif: true, debut: '08:00', fin: '18:00' },
+      mer: { actif: true, debut: '08:00', fin: '13:00' },
+      jeu: { actif: true, debut: '08:00', fin: '18:00' },
+      ven: { actif: true, debut: '08:00', fin: '17:00' },
+      sam: { actif: false, debut: '08:00', fin: '12:00' },
+      dim: { actif: false, debut: '08:00', fin: '12:00' },
+    };
+    const plages = u?.plages_horaires ? JSON.parse(u.plages_horaires) : defaultPlages;
+    const plage = plages[dowKey];
+    if (plage?.actif) {
+      // Generate slots between debut and fin at duree intervals
+      const [dh, dm] = plage.debut.split(':').map(Number);
+      const [fh, fm] = plage.fin.split(':').map(Number);
+      let cur = dh * 60 + dm;
+      const end = fh * 60 + fm;
+      while (cur + duree <= end) {
+        const h = String(Math.floor(cur/60)).padStart(2,'0');
+        const m = String(cur%60).padStart(2,'0');
+        slots.push(`${h}:${m}`);
+        cur += duree;
+      }
+    }
+  } else {
+    // Fallback: generic slots if no userId
+    slots = ['08:00','08:30','09:00','09:30','10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
+  }
+
+  // Remove taken slots
+  const booked = db.prepare("SELECT heure FROM appointments WHERE date=? AND (userId=? OR ?='')")
+    .all(date, userId||'', userId||'');
+  const taken = booked.map(b => b.heure);
+  res.json({ slots: slots.filter(s => !taken.includes(s)), taken, duree });
+});
+
+// Public: book an appointment (portal)
+app.post('/api/portal/rdv', (req, res) => {
+  const { nom, prenom, dateNaissance, telephone, email, date, heure, motif, userId } = req.body;
+  if (!nom||!prenom||!date||!heure) return res.status(400).json({ error: 'Champs requis manquants' });
+
+  try {
+    const result = db.transaction(() => {
+      // ── Anti double-booking : vérification atomique dans la transaction ──
+      const taken = userId
+        ? db.prepare("SELECT id FROM appointments WHERE userId=? AND date=? AND heure=?").get(userId, date, heure)
+        : db.prepare("SELECT id FROM appointments WHERE date=? AND heure=? AND (userId IS NULL OR userId='')").get(date, heure);
+      if (taken) {
+        throw Object.assign(new Error('Ce créneau vient d\'être réservé. Veuillez choisir un autre horaire.'), { status: 409 });
+      }
+
+      // Find or create patient
+      let p = db.prepare("SELECT * FROM patients WHERE nom=? AND prenom=? AND dateNaissance=?")
+                .get(nom.trim(), prenom.trim(), dateNaissance||'');
+      if (!p) {
+        const pid = `pat_portal_${Date.now()}`;
+        db.prepare("INSERT INTO patients (id,nom,prenom,dateNaissance,telephone,email,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,?)")
+          .run(pid, nom.trim(), prenom.trim(), dateNaissance||null, telephone||null, email||null, new Date().toISOString(), new Date().toISOString());
+        p = db.prepare("SELECT * FROM patients WHERE id=?").get(pid);
+      }
+
+      const aid = `apt_portal_${Date.now()}`;
+      db.prepare("INSERT INTO appointments (id,patientId,userId,date,heure,motif,statut,createdAt) VALUES (?,?,?,?,?,?,'confirme',?)")
+        .run(aid, p.id, userId||null, date, heure, motif||'Consultation', new Date().toISOString());
+
+      return { id: aid, patientId: p.id, date, heure, message: 'Rendez-vous enregistré' };
+    })();
+
+    res.json(result);
+  } catch (err) {
+    const status = err.status || (err.message?.includes('UNIQUE') ? 409 : 500);
+    res.status(status).json({ error: err.message || 'Erreur lors de la réservation' });
+  }
+});
+
+// Patient: get their documents (consultations validées)
+app.get('/api/portal/consultations', authPortal, (req, res) => {
+  const consults = db.prepare("SELECT id,date,motif,statut FROM consultations WHERE patientId=? AND statut='validee' ORDER BY date DESC LIMIT 20").all(req.patient.patientId);
+  res.json(consults);
+});
+
+// Patient: get their prescriptions
+app.get('/api/portal/prescriptions', authPortal, (req, res) => {
+  const rxs = db.prepare("SELECT p.*,c.date,c.motif FROM prescriptions p JOIN consultations c ON c.id=p.consultationId WHERE c.patientId=? AND p.validee=1 ORDER BY c.date DESC LIMIT 10").all(req.patient.patientId);
+  res.json(rxs.map(r=>({...r, lignes: JSON.parse(r.lignes||'[]')})));
+});
+
+// Patient: get their labo results
+app.get('/api/portal/resultats', authPortal, (req, res) => {
+  const ords = db.prepare("SELECT * FROM ordres_medicaux WHERE patientId=? AND statut='rendu' ORDER BY rendu_at DESC LIMIT 20").all(req.patient.patientId);
+  res.json(ords.map(o=>({...o, resultats: o.resultats ? JSON.parse(o.resultats) : null})));
+});
+
+// Patient: portal messaging
+app.get('/api/portal/messages', authPortal, (req, res) => {
+  const msgs = db.prepare("SELECT * FROM portal_messages WHERE patientId=? ORDER BY createdAt DESC LIMIT 50").all(req.patient.patientId);
+  // Mark as read
+  db.prepare("UPDATE portal_messages SET lu=1 WHERE patientId=? AND expediteur='medecin'").run(req.patient.patientId);
+  res.json(msgs.reverse());
+});
+
+app.post('/api/portal/messages', authPortal, (req, res) => {
+  const { contenu } = req.body;
+  if (!contenu?.trim()) return res.status(400).json({ error: 'Contenu vide' });
+  const id = `pm_${Date.now()}`;
+  db.prepare("INSERT INTO portal_messages (id,patientId,expediteur,contenu,createdAt) VALUES (?,?,?,?,?)")
+    .run(id, req.patient.patientId, 'patient', contenu.trim(), new Date().toISOString());
+  res.json(db.prepare("SELECT * FROM portal_messages WHERE id=?").get(id));
+});
+
+// Doctor: see portal messages from a patient
+app.get('/api/patients/:id/portal-messages', auth, (req, res) => {
+  const msgs = db.prepare("SELECT * FROM portal_messages WHERE patientId=? ORDER BY createdAt ASC").all(req.params.id);
+  res.json(msgs);
+});
+
+app.post('/api/patients/:id/portal-messages', auth, (req, res) => {
+  const { contenu } = req.body;
+  if (!contenu?.trim()) return res.status(400).json({ error: 'Contenu vide' });
+  const id = `pm_${Date.now()}`;
+  db.prepare("INSERT INTO portal_messages (id,patientId,userId,expediteur,contenu,createdAt) VALUES (?,?,?,?,?,?)")
+    .run(id, req.params.id, req.user.id, 'medecin', contenu.trim(), new Date().toISOString());
+  res.json(db.prepare("SELECT * FROM portal_messages WHERE id=?").get(id));
+});
+
+// Electronic consent
+app.post('/api/patients/:id/consentements', authPortal, (req, res) => {
+  const { type, texte, signe } = req.body;
+  const id = `cons_${Date.now()}`;
+  const now = new Date().toISOString();
+  db.prepare("INSERT INTO consentements (id,patientId,type,texte,signe,signe_at,ip,createdAt) VALUES (?,?,?,?,?,?,?,?)")
+    .run(id, req.params.id, type, texte||null, signe?1:0, signe?now:null, req.ip, now);
+  res.json({ id, signe });
+});
+
+// Mobile money payment initiation
+app.post('/api/paiements-mobile', auth, (req, res) => {
+  const { patientId, consultationId, montant, operateur, numero } = req.body;
+  if (!montant||!operateur||!numero) return res.status(400).json({ error: 'Champs requis manquants' });
+  const id = `pay_${Date.now()}`;
+  const reference = `MV${Date.now().toString().slice(-8)}`;
+  const now = new Date().toISOString();
+  db.prepare("INSERT INTO paiements_mobile (id,patientId,consultationId,montant,operateur,numero,reference,statut,createdAt,updatedAt) VALUES (?,?,?,?,?,?,?,'initie',?,?)")
+    .run(id, patientId||null, consultationId||null, montant, operateur, numero, reference, now, now);
+  // In production: call Mobile Money API (Airtel Money, Moov Money, etc.)
+  // For now simulate success after delay
+  setTimeout(()=>{
+    db.prepare("UPDATE paiements_mobile SET statut='confirme',updatedAt=? WHERE id=?").run(new Date().toISOString(), id);
+  }, 3000);
+  res.json({ id, reference, statut: 'initie', message: `Paiement de ${montant} XAF initié via ${operateur} au ${numero}` });
+});
+
+app.get('/api/paiements-mobile/:id', auth, (req, res) => {
+  const p = db.prepare("SELECT * FROM paiements_mobile WHERE id=?").get(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Non trouvé' });
+  res.json(p);
+});
+
+// ── Phase 5.4 — Téléconsultation ─────────────────────────────────────────────
+app.post('/api/teleconsultations', auth, (req, res) => {
+  const { consultationId, patientId } = req.body;
+  if (!patientId) return res.status(400).json({ error: 'patientId requis' });
+  const id = `tc_${Date.now()}`;
+  const roomName = `medivox-${id}`;
+  // Jitsi meet room (no API key needed, free)
+  const room_url = `https://meet.jit.si/${roomName}`;
+  const now = new Date().toISOString();
+  db.prepare("INSERT INTO teleconsultations (id,consultationId,patientId,userId,room_url,statut,createdAt) VALUES (?,?,?,?,?,'planifie',?)")
+    .run(id, consultationId||null, patientId, req.user.id, room_url, now);
+  if (consultationId) {
+    db.prepare("UPDATE consultations SET video_room=?,type_consult='teleconsultation' WHERE id=?").run(room_url, consultationId);
+  }
+  const pat = db.prepare("SELECT nom,prenom,telephone FROM patients WHERE id=?").get(patientId);
+  res.json({ id, room_url, roomName, nom: pat?.nom, prenom: pat?.prenom, telephone: pat?.telephone });
+});
+
+app.get('/api/teleconsultations', auth, (req, res) => {
+  const rows = db.prepare(`SELECT tc.*,p.nom,p.prenom,p.telephone FROM teleconsultations tc JOIN patients p ON p.id=tc.patientId WHERE tc.userId=? ORDER BY tc.createdAt DESC LIMIT 30`).all(req.user.id);
+  res.json(rows);
+});
+
+// ── Phase 5.5 — Multi-sites & FHIR ──────────────────────────────────────────
+app.get('/api/sites', auth, (req, res) => {
+  res.json(db.prepare("SELECT * FROM sites WHERE actif=1 ORDER BY nom").all());
+});
+
+app.post('/api/sites', auth, (req, res) => {
+  const { nom, adresse, telephone } = req.body;
+  if (!nom) return res.status(400).json({ error: 'Nom requis' });
+  const id = `site_${Date.now()}`;
+  db.prepare("INSERT INTO sites (id,nom,adresse,telephone) VALUES (?,?,?,?)").run(id, nom, adresse||null, telephone||null);
+  res.json(db.prepare("SELECT * FROM sites WHERE id=?").get(id));
+});
+
+// FHIR R4 — Patient resource
+app.get('/fhir/Patient', auth, (req, res) => {
+  const { name, birthdate, _count } = req.query;
+  let q = "SELECT * FROM patients WHERE 1=1";
+  const params = [];
+  if (name) { q += " AND (nom LIKE ? OR prenom LIKE ?)"; params.push(`%${name}%`, `%${name}%`); }
+  if (birthdate) { q += " AND dateNaissance=?"; params.push(birthdate); }
+  q += ` LIMIT ${Math.min(parseInt(_count)||20, 100)}`;
+  const patients = db.prepare(q).all(...params);
+  res.json({
+    resourceType: 'Bundle', type: 'searchset', total: patients.length,
+    entry: patients.map(p => ({
+      resource: {
+        resourceType: 'Patient', id: p.id,
+        name: [{ family: p.nom, given: [p.prenom] }],
+        birthDate: p.dateNaissance,
+        gender: p.sexe === 'M' ? 'male' : p.sexe === 'F' ? 'female' : 'unknown',
+        telecom: p.telephone ? [{ system: 'phone', value: p.telephone }] : [],
+        address: p.adresse ? [{ text: p.adresse }] : [],
+      }
+    }))
+  });
+});
+
+app.get('/fhir/Patient/:id', auth, (req, res) => {
+  const p = db.prepare("SELECT * FROM patients WHERE id=?").get(req.params.id);
+  if (!p) return res.status(404).json({ resourceType: 'OperationOutcome', issue: [{ severity: 'error', code: 'not-found' }] });
+  res.json({
+    resourceType: 'Patient', id: p.id,
+    meta: { lastUpdated: p.updatedAt },
+    name: [{ family: p.nom, given: [p.prenom] }],
+    birthDate: p.dateNaissance,
+    gender: p.sexe === 'M' ? 'male' : p.sexe === 'F' ? 'female' : 'unknown',
+    telecom: [
+      ...(p.telephone ? [{ system: 'phone', value: p.telephone, use: 'mobile' }] : []),
+      ...(p.email ? [{ system: 'email', value: p.email }] : []),
+    ],
+    address: p.adresse ? [{ text: p.adresse }] : [],
+    extension: [
+      { url: 'https://medivox.fr/fhir/StructureDefinition/assurance', valueString: p.typeAssurance||'' },
+      { url: 'https://medivox.fr/fhir/StructureDefinition/groupe-sanguin', valueString: p.groupe_sanguin||'' },
+    ],
+  });
+});
+
+app.get('/fhir/Encounter', auth, (req, res) => {
+  const { patient, _count } = req.query;
+  let q = "SELECT c.*,p.nom,p.prenom FROM consultations c JOIN patients p ON p.id=c.patientId WHERE c.userId=?";
+  const params = [req.user.id];
+  if (patient) { q += " AND c.patientId=?"; params.push(patient); }
+  q += ` ORDER BY c.date DESC LIMIT ${Math.min(parseInt(_count)||20, 100)}`;
+  const consults = db.prepare(q).all(...params);
+  res.json({
+    resourceType: 'Bundle', type: 'searchset', total: consults.length,
+    entry: consults.map(c => ({
+      resource: {
+        resourceType: 'Encounter', id: c.id,
+        status: c.statut === 'validee' ? 'finished' : 'in-progress',
+        class: { system: 'http://terminology.hl7.org/CodeSystem/v3-ActCode', code: 'AMB', display: 'Ambulatoire' },
+        subject: { reference: `Patient/${c.patientId}`, display: `${c.prenom} ${c.nom}` },
+        period: { start: c.date },
+        reasonCode: c.motif ? [{ text: c.motif }] : [],
+      }
+    }))
+  });
+});
+
+app.get('/fhir/Observation', auth, (req, res) => {
+  // Return vitals from consultations
+  const { patient, _count } = req.query;
+  let q = "SELECT c.id,c.date,c.patientId,c.constantes,p.nom,p.prenom FROM consultations c JOIN patients p ON p.id=c.patientId WHERE c.userId=? AND c.constantes IS NOT NULL";
+  const params = [req.user.id];
+  if (patient) { q += " AND c.patientId=?"; params.push(patient); }
+  q += ` ORDER BY c.date DESC LIMIT ${Math.min(parseInt(_count)||20, 100)}`;
+  const rows = db.prepare(q).all(...params);
+  const observations = [];
+  for (const r of rows) {
+    let cst = {};
+    try { cst = JSON.parse(r.constantes||'{}'); } catch {}
+    const map = { ta_sys:'Pression artérielle systolique', fc:'Fréquence cardiaque', temperature:'Température', spo2:'SpO2', poids:'Poids', taille:'Taille' };
+    for (const [key, display] of Object.entries(map)) {
+      if (cst[key]) observations.push({
+        resource: {
+          resourceType: 'Observation', id: `${r.id}_${key}`,
+          status: 'final',
+          subject: { reference: `Patient/${r.patientId}`, display: `${r.prenom} ${r.nom}` },
+          encounter: { reference: `Encounter/${r.id}` },
+          effectiveDateTime: r.date,
+          code: { text: display },
+          valueQuantity: { value: parseFloat(cst[key]) },
+        }
+      });
+    }
+  }
+  res.json({ resourceType: 'Bundle', type: 'searchset', total: observations.length, entry: observations });
+});
+
+// FHIR metadata / capability statement
+app.get('/fhir/metadata', (req, res) => {
+  res.json({
+    resourceType: 'CapabilityStatement',
+    status: 'active', date: new Date().toISOString(),
+    kind: 'instance', fhirVersion: '4.0.1',
+    name: 'MediVoxFHIR', title: 'MediVox FHIR R4 API',
+    description: 'API FHIR R4 — MediVox plateforme médicale',
+    rest: [{
+      mode: 'server',
+      resource: [
+        { type: 'Patient', interaction: [{ code: 'read' }, { code: 'search-type' }] },
+        { type: 'Encounter', interaction: [{ code: 'read' }, { code: 'search-type' }] },
+        { type: 'Observation', interaction: [{ code: 'search-type' }] },
+      ]
+    }]
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`Serveur démarré sur http://localhost:${PORT}`);
-  if (!openai) console.log('⚠️  Mode démo — ajoutez OPENAI_API_KEY dans .env');
-  if (!mailer)  console.log('ℹ️  Email désactivé — ajoutez SMTP_HOST dans .env');
+
+// Endpoint admin : déclenche un backup manuel
+app.post('/api/admin/backup', auth, async (req, res) => {
+  try {
+    const result = await backupToS3(db);
+    res.json(result.skipped
+      ? { message: 'Backup ignoré — variables AWS non configurées' }
+      : { message: 'Backup réussi', key: result.key, size: result.size });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
+
+// Démarrage : restore depuis S3 si la DB locale est absente, puis schedule
+(async () => {
+  const { existsSync, statSync } = await import('fs');
+  const { DB_PATH } = await import('./backup.mjs');
+
+  // Restore uniquement si la DB n'existe pas ou est vide (ex: redémarrage Render)
+  const dbMissing = !existsSync(DB_PATH) || statSync(DB_PATH).size < 4096;
+  if (dbMissing) {
+    console.log('⚠️  DB locale absente ou vide — tentative de restauration S3…');
+    await restoreFromS3().catch(e => console.error('Restore S3 échoué:', e.message));
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Serveur démarré sur http://localhost:${PORT}`);
+    if (!openai) console.log('⚠️  Mode démo — ajoutez OPENAI_API_KEY dans .env');
+    if (!mailer)  console.log('ℹ️  Email désactivé — ajoutez SMTP_HOST dans .env');
+    scheduleBackup(db);
+  });
+})();

@@ -8,3 +8,6 @@ uploads/
 temporary screenshots/
 prisma/dev.db
 prisma/migrations/
+medivoix.db
+assets/*.mov
+assets/*.mp4

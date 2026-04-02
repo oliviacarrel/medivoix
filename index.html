@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedPilot</title>
+<title>MediVox</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -340,6 +340,14 @@ const Ic={
   Folder:     p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>,
   Percent:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19" strokeWidth={2} strokeLinecap="round"/><circle cx="6.5" cy="6.5" r="2.5" strokeWidth={1.8}/><circle cx="17.5" cy="17.5" r="2.5" strokeWidth={1.8}/></svg>,
   Bolt:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
+  Bed:        p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 12V8a1 1 0 011-1h6a1 1 0 011 1v4M3 12h18M3 16v-4h18v4M3 16h18M5 20H3v-4M21 20h-2v-4"/></svg>,
+  Video:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 10l4.553-2.069A1 1 0 0121 8.869v6.262a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>,
+  Globe:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" strokeWidth={1.8}/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>,
+  Building:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0H5m0 0H3m4-10h2m-2 4h2m6-4h2m-2 4h2M9 3h6"/></svg>,
+  QRCode:     p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" strokeWidth={1.8}/><rect x="14" y="3" width="7" height="7" strokeWidth={1.8}/><rect x="3" y="14" width="7" height="7" strokeWidth={1.8}/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M14 14h1v1h-1zm2 0h1v1h-1zm2 0h1v1h-1zm-4 2h1v1h-1zm2 2h1v1h-1zm2-2h1v1h-1zm0 2h1v1h-1z"/></svg>,
+  Key:        p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>,
+  Phone:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>,
+  Database:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.8}/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 12c0 1.657-4.03 3-9 3s-9-1.343-9-3"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/></svg>,
 };
 
 /* ── Badge ── */
@@ -366,12 +374,17 @@ function Sidebar({page,onNav,user,onLogout}){
   const nav=[
     {id:'dashboard',label:'Tableau de bord',Icon:Ic.Home},
     {id:'patients',label:'Patients',Icon:Ic.Users},
+    {id:'tous-patients',label:'Tous les patients',Icon:Ic.Database},
     {id:'agenda',label:'Agenda',Icon:Ic.Calendar},
     {id:'flowboard',label:'Circulation',Icon:Ic.Flow},
     {id:'analytics',label:'Analytiques',Icon:Ic.BarChart},
     {id:'intelligence',label:'Intelligence IA',Icon:Ic.Brain},
     {id:'honoraires',label:'Honoraires',Icon:Ic.Money},
     {id:'facturation',label:'Facturation',Icon:Ic.ClipList},
+    {id:'hospitalisations',label:'Hospitalisations',Icon:Ic.Bed},
+    {id:'teleconsultations',label:'Téléconsultation',Icon:Ic.Video},
+    {id:'portail',label:'Portail patient',Icon:Ic.Globe},
+    {id:'multisite',label:'Multi-sites',Icon:Ic.Building},
     {id:'profile',label:'Mon profil',Icon:Ic.User},
     {id:'audit',label:'Journal d\'audit',Icon:Ic.Shield},
   ];
@@ -379,7 +392,7 @@ function Sidebar({page,onNav,user,onLogout}){
     <aside className="fixed left-0 top-0 h-screen flex flex-col z-20" style={{width:'240px',background:'var(--white)',borderRight:'1px solid var(--border)'}}>
       {/* Logo */}
       <div style={{padding:'32px 28px 28px',borderBottom:'1px solid var(--border)'}}>
-        <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--navy)',letterSpacing:'-0.01em',lineHeight:1.1}}>Med<em style={{fontStyle:'italic',color:'var(--gold)'}}>Pilot</em></p>
+        <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:400,color:'var(--navy)',letterSpacing:'-0.01em',lineHeight:1.1}}>Medi<em style={{fontStyle:'italic',color:'var(--gold)'}}>Voix</em></p>
         <p style={{fontSize:'9px',letterSpacing:'0.28em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500,marginTop:'5px'}}>Espace médecin</p>
       </div>
 
@@ -497,8 +510,8 @@ function RegisterPage({onLogin, onBack}){
           <div style={{width:'48px',height:'48px',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'32px',background:'rgba(184,147,90,0.15)',border:'1px solid rgba(184,147,90,0.3)'}}>
             <Ic.Steth style={{width:'22px',height:'22px',color:'var(--gold)'}}/>
           </div>
-          <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'16px'}}>MedPilot</p>
-          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(32px,3vw,44px)',fontWeight:300,color:'var(--white)',letterSpacing:'-0.01em',lineHeight:1.15,marginBottom:'16px'}}>Rejoignez<br/><em style={{fontStyle:'italic',color:'var(--gold-light)'}}>MedPilot.</em></h1>
+          <p style={{fontSize:'10px',letterSpacing:'0.3em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'16px'}}>MediVox</p>
+          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(32px,3vw,44px)',fontWeight:300,color:'var(--white)',letterSpacing:'-0.01em',lineHeight:1.15,marginBottom:'16px'}}>Rejoignez<br/><em style={{fontStyle:'italic',color:'var(--gold-light)'}}>MediVox.</em></h1>
           <p style={{fontSize:'14px',color:'rgba(250,250,248,0.5)',lineHeight:1.8,fontWeight:300}}>Créez votre accès praticien en moins d'une minute.</p>
         </div>
       </div>
@@ -541,7 +554,7 @@ function RegisterPage({onLogin, onBack}){
 ══════════════════════════════════════════════════════════════ */
 function LoginPage({onLogin}){
   const [showRegister, setShowRegister] = useState(false);
-  const [email,setEmail]=useState('dr.maiga@medivoix.fr');
+  const [email,setEmail]=useState('dr.maiga@medivox.fr');
   const [password,setPassword]=useState('demo1234');
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState('');
@@ -557,7 +570,7 @@ function LoginPage({onLogin}){
 
   const FEATURES=[
     {icon:'🩺',title:'Dossiers patients',desc:'Historique complet, allergies, traitements — en un coup d\'œil'},
-    {icon:'🎙',title:'Notes IA en temps réel',desc:'Dictez votre consultation. MedPilot rédige la note clinique.'},
+    {icon:'🎙',title:'Notes IA en temps réel',desc:'Dictez votre consultation. MediVox rédige la note clinique.'},
     {icon:'📊',title:'Pilotez votre activité',desc:'Honoraires, agenda, analytiques — tout sur un seul tableau.'},
   ];
 
@@ -618,7 +631,7 @@ function LoginPage({onLogin}){
           {/* Mobile logo */}
           <div className="lg:hidden" style={{marginBottom:'40px',textAlign:'center'}}>
             <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:400,color:'var(--navy)'}}>
-              Med<em style={{fontStyle:'italic',color:'var(--gold)'}}>Pilot</em>
+              Medi<em style={{fontStyle:'italic',color:'var(--gold)'}}>Voix</em>
             </p>
           </div>
 
@@ -648,7 +661,7 @@ function LoginPage({onLogin}){
             <span style={{fontSize:'18px',flexShrink:0}}>🔑</span>
             <div>
               <p className="eyebrow" style={{marginBottom:'4px'}}>Accès démo</p>
-              <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,fontFamily:'monospace',lineHeight:1.6}}>dr.maiga@medivoix.fr<br/>demo1234</p>
+              <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,fontFamily:'monospace',lineHeight:1.6}}>dr.maiga@medivox.fr<br/>demo1234</p>
             </div>
           </div>
 
@@ -656,7 +669,7 @@ function LoginPage({onLogin}){
             <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>
               Nouveau praticien ?{' '}
               <button onClick={()=>setShowRegister(true)} style={{color:'var(--navy)',fontWeight:500,background:'none',border:'none',cursor:'pointer',fontSize:'12px',textDecoration:'underline',textDecorationColor:'var(--gold)',textUnderlineOffset:'3px'}}>
-                Rejoindre MedPilot
+                Rejoindre MediVox
               </button>
             </p>
           </div>
@@ -1176,6 +1189,106 @@ function PatientForm({patientId,onSave,onBack}){
 }
 
 /* ══════════════════════════════════════════════════════════════
+   PORTAL MESSAGE PANEL (chat médecin ↔ patient via portail)
+══════════════════════════════════════════════════════════════ */
+function PortalMessagePanel({patientId}){
+  const [msgs,setMsgs]=useState([]);
+  const [text,setText]=useState('');
+  const [sending,setSending]=useState(false);
+  const [open,setOpen]=useState(false);
+  const msgEnd=useRef(null);
+  const pollRef=useRef(null);
+
+  const load=()=>api.get(`/patients/${patientId}/portal-messages`).then(r=>setMsgs(Array.isArray(r)?r:[])).catch(()=>{});
+
+  useEffect(()=>{
+    load();
+    pollRef.current=setInterval(load,8000);
+    return()=>clearInterval(pollRef.current);
+  },[patientId]);
+
+  useEffect(()=>{if(open) msgEnd.current?.scrollIntoView({behavior:'smooth'});},[msgs,open]);
+
+  const send=async()=>{
+    if(!text.trim()||sending) return;
+    setSending(true);
+    try{
+      const m=await api.post(`/patients/${patientId}/portal-messages`,{contenu:text.trim()});
+      setMsgs(prev=>[...prev,m]);
+      setText('');
+    }finally{setSending(false);}
+  };
+
+  const unread=msgs.filter(m=>m.expediteur==='patient').length;
+
+  return(
+    <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+      {/* Header */}
+      <button onClick={()=>setOpen(o=>!o)} style={{width:'100%',padding:'14px 20px',display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer',borderBottom:open?'1px solid var(--border)':'none'}}>
+        <div style={{width:'30px',height:'30px',background:'var(--navy)',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+          <Ic.Chat style={{width:'14px',height:'14px',color:'var(--gold)'}}/>
+        </div>
+        <div style={{flex:1,textAlign:'left'}}>
+          <p className="eyebrow">Messagerie portail patient</p>
+          <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>
+            {msgs.length===0?'Aucun message':`${msgs.length} message${msgs.length>1?'s':''}`}
+            {unread>0&&<span style={{marginLeft:'6px',background:'var(--accent)',color:'var(--white)',padding:'1px 6px',borderRadius:'8px',fontSize:'9px',fontWeight:600}}>{unread} patient</span>}
+          </p>
+        </div>
+        <Ic.ChevronDown style={{width:'14px',height:'14px',color:'var(--muted)',transform:open?'rotate(180deg)':'none'}}/>
+      </button>
+
+      {open&&(
+        <>
+          {/* Messages */}
+          <div style={{maxHeight:'320px',overflowY:'auto',padding:'16px 20px',display:'flex',flexDirection:'column',gap:'10px',background:'var(--cream)'}}>
+            {msgs.length===0?(
+              <p style={{fontSize:'12px',color:'var(--muted)',textAlign:'center',fontStyle:'italic',fontWeight:300,padding:'24px 0'}}>
+                Aucun message — le patient n'a pas encore activé son portail ou n'a pas écrit.
+              </p>
+            ):msgs.map(m=>{
+              const isMed=m.expediteur==='medecin';
+              return(
+                <div key={m.id} style={{display:'flex',justifyContent:isMed?'flex-end':'flex-start'}}>
+                  <div style={{
+                    maxWidth:'75%',padding:'9px 14px',
+                    background:isMed?'var(--navy)':'var(--white)',
+                    color:isMed?'var(--white)':'var(--charcoal)',
+                    borderRadius:isMed?'12px 12px 2px 12px':'12px 12px 12px 2px',
+                    border:isMed?'none':'1px solid var(--border)',
+                    boxShadow:'0 1px 2px rgba(0,0,0,0.06)',
+                  }}>
+                    <p style={{fontSize:'12px',fontWeight:300,lineHeight:1.6}}>{m.contenu}</p>
+                    <p style={{fontSize:'9px',opacity:0.6,marginTop:'4px',textAlign:'right',letterSpacing:'0.05em'}}>
+                      {isMed?'Médecin':'Patient'} · {new Date(m.createdAt).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            <div ref={msgEnd}/>
+          </div>
+
+          {/* Compose */}
+          <div style={{padding:'12px 20px',borderTop:'1px solid var(--border)',display:'flex',gap:'10px',alignItems:'flex-end'}}>
+            <textarea value={text} onChange={e=>setText(e.target.value)}
+              onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}}
+              placeholder="Message au patient… (Entrée pour envoyer)"
+              rows={2}
+              style={{flex:1,padding:'9px 12px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'12px',color:'var(--charcoal)',resize:'none',outline:'none',fontFamily:'inherit',lineHeight:1.5,background:'var(--white)'}}/>
+            <button onClick={send} disabled={!text.trim()||sending}
+              style={{width:'36px',height:'36px',background:text.trim()?'var(--navy)':'var(--cream2)',border:'none',borderRadius:'4px',display:'flex',alignItems:'center',justifyContent:'center',cursor:text.trim()?'pointer':'not-allowed',flexShrink:0}}>
+              {sending?<Ic.Spin style={{width:'14px',height:'14px',color:'var(--white)'}}/>
+                      :<Ic.Send style={{width:'14px',height:'14px',color:text.trim()?'var(--gold)':'var(--muted)'}}/>}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
    DISCUSSION PANEL (chat inter-médecins par patient)
 ══════════════════════════════════════════════════════════════ */
 function DiscussionPanel({patientId,userId}){
@@ -1653,7 +1766,7 @@ function DocumentsHub({patient,user}){
 
   const openWhatsApp=(consultId)=>{
     if(!phone){alert('Numéro de téléphone non renseigné pour ce patient');return;}
-    const msg=encodeURIComponent(`Bonjour ${patient?.prenom},\n\nVotre compte rendu médical a été généré par Dr. ${user?.nom||''}. Vous le recevrez également par email.\n\nN'hésitez pas à nous contacter si vous avez des questions.\n\nCentre Diagnostic de Libreville — MedPilot`);
+    const msg=encodeURIComponent(`Bonjour ${patient?.prenom},\n\nVotre compte rendu médical a été généré par Dr. ${user?.nom||''}. Vous le recevrez également par email.\n\nN'hésitez pas à nous contacter si vous avez des questions.\n\nCentre Diagnostic de Libreville — MediVox`);
     window.open(`https://wa.me/${phone}?text=${msg}`,'_blank');
   };
 
@@ -1858,6 +1971,8 @@ function DocumentsHub({patient,user}){
 function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
   const [patient,setPatient]=useState(null);
   const [motif,setMotif]=useState('');
+  const [newConsultSpecialite,setNewConsultSpecialite]=useState('Médecine générale');
+  const [newConsultType,setNewConsultType]=useState('cabinet');
   const [starting,setStarting]=useState(false);
   const [showForm,setShowForm]=useState(false);
   const [noteModal,setNoteModal]=useState(null);
@@ -1886,7 +2001,13 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
     setDossDlLoading(false);
   };
 
-  const start=async()=>{if(!motif.trim())return;setStarting(true);const c=await api.post('/consultations',{patientId,motif});setStarting(false);onConsultation(c.id,patientId);};
+  const start=async()=>{
+    if(!motif.trim())return;
+    setStarting(true);
+    const c=await api.post('/consultations',{patientId,motif,specialite:newConsultSpecialite,type_consult:newConsultType});
+    setStarting(false);
+    onConsultation(c.id,patientId);
+  };
   if(!patient)return<div className="flex justify-center py-20"><Ic.Spin className="w-6 h-6 text-slate-400"/></div>;
 
   const statusInfo=s=>s==='validee'?{l:'Validée',c:'green'}:s==='note_generee'?{l:'Note générée',c:'blue'}:{l:'En cours',c:'amber'};
@@ -2148,8 +2269,27 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
                 <Ic.Plus style={{width:'14px',height:'14px'}}/>Ouvrir une consultation
               </button>
             ):(
-              <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
+              <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
                 <Input value={motif} onChange={e=>setMotif(e.target.value)} placeholder="Motif de consultation (ex: céphalées, suivi diabète, renouvellement ordonnance…)"/>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px'}}>
+                  <div>
+                    <label style={{display:'block',fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'5px'}}>Spécialité</label>
+                    <select value={newConsultSpecialite} onChange={e=>setNewConsultSpecialite(e.target.value)}
+                      style={{width:'100%',border:'1px solid var(--border)',padding:'7px 10px',fontSize:'12px',background:'var(--white)',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}>
+                      {['Médecine générale','Gynécologie-obstétrique','Pédiatrie','Cardiologie','Ophtalmologie','Imagerie','Laboratoire','Urgences','Médecine du travail','Check-up / Prévention'].map(s=><option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{display:'block',fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'5px'}}>Type</label>
+                    <select value={newConsultType} onChange={e=>setNewConsultType(e.target.value)}
+                      style={{width:'100%',border:'1px solid var(--border)',padding:'7px 10px',fontSize:'12px',background:'var(--white)',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}>
+                      <option value="cabinet">Cabinet</option>
+                      <option value="teleconsultation">Téléconsultation</option>
+                      <option value="domicile">Domicile</option>
+                      <option value="urgence">Urgence</option>
+                    </select>
+                  </div>
+                </div>
                 <div style={{display:'flex',gap:'8px'}}>
                   <Btn variant="secondary" onClick={()=>setShowForm(false)} size="sm">Annuler</Btn>
                   <Btn variant="primary" onClick={start} loading={starting} icon={Ic.Mic} disabled={!motif.trim()}>Ouvrir la consultation</Btn>
@@ -2214,7 +2354,10 @@ function PatientFile({patientId,userId,user,onConsultation,onEdit,onBack}){
             <Btn variant="secondary" icon={Ic.Download} onClick={downloadDossier} loading={dossDlLoading} size="sm">Télécharger</Btn>
           </div>
 
-          {/* Discussions */}
+          {/* Messagerie portail patient */}
+          <PortalMessagePanel patientId={patientId}/>
+
+          {/* Discussions inter-médecins */}
           {userId&&<DiscussionPanel patientId={patientId} userId={userId}/>}
         </div>
       </div>
@@ -2457,12 +2600,14 @@ function ConsultationScreen({consultationId,patientId,onBack}){
   const [docModal,setDocModal]=useState(false);
   const [realtimeOk]=useState(typeof window!=='undefined'&&('SpeechRecognition' in window||'webkitSpeechRecognition' in window));
   const [heureDebut,setHeureDebut]=useState(null);
+  const [specialite,setSpecialite]=useState('Médecine générale');
+  const [specialiteFields,setSpecialiteFields]=useState({});
 
   const mrRef=useRef(),chunksRef=useRef([]),streamRef=useRef(),timerRef=useRef(),recRef=useRef(),txRef=useRef(''),recordingRef=useRef(false);
 
   useEffect(()=>{
     api.get(`/patients/${patientId}`).then(setPatient);
-    api.get(`/consultations/${consultationId}`).then(c=>{setConsultation(c);setTranscription(c.transcription||'');txRef.current=c.transcription||'';if(c.note){setNote(c.note);setNoteEdit({...c.note});}if(c.statut==='validee')setValidated(true);if(c.constantes){try{const cv=typeof c.constantes==='string'?JSON.parse(c.constantes):c.constantes;setConstantes(cv);}catch(e){}}if(c.resume_patient)setResumePatient(c.resume_patient);});
+    api.get(`/consultations/${consultationId}`).then(c=>{setConsultation(c);setTranscription(c.transcription||'');txRef.current=c.transcription||'';if(c.note){setNote(c.note);setNoteEdit({...c.note});}if(c.statut==='validee')setValidated(true);if(c.constantes){try{const cv=typeof c.constantes==='string'?JSON.parse(c.constantes):c.constantes;setConstantes(cv);}catch(e){}}if(c.resume_patient)setResumePatient(c.resume_patient);if(c.specialite&&c.specialite!=='Médecine générale')setSpecialite(c.specialite);});
     return ()=>{recRef.current?.stop();mrRef.current?.stop();streamRef.current?.getTracks().forEach(t=>t.stop());clearInterval(timerRef.current);};
   },[]);
 
@@ -2525,7 +2670,14 @@ function ConsultationScreen({consultationId,patientId,onBack}){
   const genNoteRef=useRef();
   const genNote=async()=>{setProcessing(true);const r=await api.post(`/consultations/${consultationId}/generate-note`,{});if(r.note){setNote(r.note);setNoteEdit({...r.note});}setProcessing(false);};
   genNoteRef.current=genNote;
-  const valNote=async()=>{await api.post(`/consultations/${consultationId}/validate-note`,{note:noteEdit});setNote(noteEdit);setValidated(true);};
+  const valNote=async()=>{
+    await api.post(`/consultations/${consultationId}/validate-note`,{
+      note:noteEdit,
+      specialite,
+      specialite_fields: Object.keys(specialiteFields).length ? specialiteFields : undefined,
+    });
+    setNote(noteEdit);setValidated(true);
+  };
   const speak=async txt=>{setTtsLoad(true);try{const r=await fetch(`${API}/tts`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({text:txt,voice:'nova'})});if(!r.ok){alert('TTS non disponible');return;}new Audio(URL.createObjectURL(await r.blob())).play();}catch{alert('Erreur synthèse vocale');}finally{setTtsLoad(false);}};
   const dlPdf=async()=>{setPdfLoad(true);const r=await fetch(`${API}/consultations/${consultationId}/pdf`,{headers:{Authorization:`Bearer ${getToken()}`}});const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download='consultation.pdf';a.click();setPdfLoad(false);};
   const deleteConsult=async()=>{if(!confirm('Supprimer cette consultation ?'))return;await api.delete(`/consultations/${consultationId}`);onBack();};
@@ -2582,7 +2734,25 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                   <p style={{fontSize:'11px',color:'var(--muted)',marginTop:'2px'}}>{ageStr(patient.dateNaissance)}</p>
                 </div>
               </div>
-              {consultation?.motif&&<div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'8px 12px',marginBottom:'12px'}}><p style={{fontSize:'12px',color:'var(--navy)',fontWeight:500}}>Motif : {consultation.motif}</p>{consultation?.dureeMinutes&&<span style={{fontSize:'11px',color:'var(--muted)'}}>Durée : {consultation.dureeMinutes} min</span>}</div>}
+              {consultation?.motif&&<div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'8px 12px',marginBottom:'8px'}}><p style={{fontSize:'12px',color:'var(--navy)',fontWeight:500}}>Motif : {consultation.motif}</p>{consultation?.dureeMinutes&&<span style={{fontSize:'11px',color:'var(--muted)'}}>Durée : {consultation.dureeMinutes} min</span>}</div>}
+              {/* Video room banner — teleconsultation */}
+              {consultation?.video_room&&(
+                <div style={{background:'rgba(0,114,95,0.06)',border:'1px solid rgba(0,114,95,0.25)',borderLeft:'3px solid var(--navy)',padding:'10px 14px',marginBottom:'8px',display:'flex',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
+                  <Ic.Video style={{width:'14px',height:'14px',color:'var(--navy)',flexShrink:0}}/>
+                  <span style={{fontSize:'12px',color:'var(--navy)',fontWeight:500,flex:1}}>Téléconsultation active</span>
+                  <Btn variant="primary" size="sm" icon={Ic.Video} onClick={()=>window.open(consultation.video_room,'_blank','width=1100,height=700')}>Rejoindre la vidéo</Btn>
+                  <button onClick={()=>{navigator.clipboard.writeText(consultation.video_room);alert('Lien copié pour le patient !');}}
+                    style={{fontSize:'10px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',letterSpacing:'0.1em',textTransform:'uppercase'}}>Copier lien patient</button>
+                </div>
+              )}
+              {/* Specialty selector */}
+              <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'8px'}}>
+                <span style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>Spécialité</span>
+                <select value={specialite} onChange={e=>setSpecialite(e.target.value)} disabled={validated}
+                  style={{flex:1,border:'1px solid var(--border)',padding:'5px 10px',fontSize:'12px',background:'var(--white)',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300,color:'var(--charcoal)'}}>
+                  {['Médecine générale','Gynécologie-obstétrique','Pédiatrie','Cardiologie','Ophtalmologie','Imagerie','Laboratoire','Urgences','Médecine du travail','Check-up / Prévention'].map(s=><option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
               {patient.allergies&&<div style={{display:'flex',alignItems:'flex-start',gap:'8px',fontSize:'12px',color:'var(--accent)',background:'#fdf5f3',border:'1px solid rgba(180,60,40,0.2)',borderLeft:'3px solid var(--accent)',padding:'8px 12px'}}><Ic.Warn style={{width:'12px',height:'12px',flexShrink:0,marginTop:'1px'}}/><span><strong>Allergies : </strong>{patient.allergies}</span></div>}
               {patient.traitements&&<p style={{fontSize:'11px',color:'var(--muted)',marginTop:'8px'}}><strong>Traitements : </strong>{patient.traitements}</p>}
             </div>
@@ -2663,7 +2833,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
           {/* Tabs — toujours visibles */}
           <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
             <div className="flex border-b border-slate-100">
-              {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance'],['ordres','🧪 Ordres']].map(([k,l])=>(
+              {[['note','📋 Note clinique'],['constantes','📊 Constantes'],['prescription','💊 Ordonnance'],['ordres','🧪 Ordres'],['protocoles','🧬 Protocoles']].map(([k,l])=>(
                 <button key={k} onClick={()=>setTab(k)}
                   style={tab===k?{borderBottom:'2px solid var(--gold)',color:'var(--navy)',background:'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:500,fontSize:'13px',padding:'14px 0',flex:1}:{borderBottom:'2px solid transparent',color:'var(--muted)',background:'var(--white)',fontFamily:"'DM Sans',sans-serif",fontWeight:400,fontSize:'13px',padding:'14px 0',flex:1}}>
                   {l}
@@ -2731,10 +2901,13 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                     <NF label="⚠ Signes d'alarme" field="drapeaux_rouges" alert/>
                     {noteEdit?.conseils_patient&&(
                       <div style={{marginTop:'16px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'16px 20px'}}>
-                        <p className="eyebrow" style={{marginBottom:'8px'}}>Recommandations MedPilot</p>
+                        <p className="eyebrow" style={{marginBottom:'8px'}}>Recommandations MediVox</p>
                         <p style={{fontSize:'13px',color:'var(--text)',lineHeight:1.6}}>{noteEdit.conseils_patient}</p>
                       </div>
                     )}
+                    {/* Specialty-specific fields */}
+                    <SpecialitePanel specialite={specialite} values={specialiteFields}
+                      onChange={(k,v)=>setSpecialiteFields(f=>({...f,[k]:v}))}/>
                   </div>
                 </div>
               )}
@@ -2814,10 +2987,962 @@ function ConsultationScreen({consultationId,patientId,onBack}){
 
               {tab==='prescription'&&<div className="p-5"><PrescriptionPanel consultationId={consultationId} patientAllergies={patient?.allergies}/></div>}
               {tab==='ordres'&&<OrdresPanel consultationId={consultationId} patientId={patientId}/>}
+              {tab==='protocoles'&&<ProtocolPanel consultationId={consultationId} patientId={patientId}/>}
           </div>
         </div>
       </div>
     </Page>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SÉRIE 5 — SPÉCIALITÉS & NOUVEAUX MODULES
+══════════════════════════════════════════════════════════════ */
+
+const SPECIALITE_TEMPLATES={
+  'Gynécologie-obstétrique':{
+    sections:['Motif','Anamnèse','Date des dernières règles','Gestité / Parité','Examen obstétrical','Examen gynécologique','Col','Annexes','Conclusion','Conduite à tenir'],
+    fields:[{key:'ddr',label:'DDR (date dernières règles)',type:'date'},{key:'gestite',label:'Gestité',type:'number'},{key:'parite',label:'Parité',type:'number'},{key:'terme',label:'Terme (SA)',type:'number'},{key:'col',label:'État du col'},{key:'hauteur_uterine',label:'Hauteur utérine (cm)',type:'number'}],
+    icon:'🤰',color:'#ec4899'
+  },
+  'Pédiatrie':{
+    sections:['Motif','Anamnèse','Antécédents néonataux','Carnet de vaccination','Développement psychomoteur','Examen pédiatrique','Courbes de croissance','Conclusion','Conduite à tenir'],
+    fields:[{key:'poids_naissance',label:'Poids de naissance (g)',type:'number'},{key:'terme_naissance',label:'Terme de naissance (SA)',type:'number'},{key:'vaccins',label:'Vaccins à jour',type:'select',options:['Oui','Non','Partiel']},{key:'perimetre_cranien',label:'Périmètre crânien (cm)',type:'number'},{key:'score_apgar',label:'Score Apgar',type:'number'}],
+    icon:'👶',color:'#6366F1'
+  },
+  'Cardiologie':{
+    sections:['Motif','Anamnèse','Facteurs de risque cardiovasculaire','Examen cardiovasculaire','Auscultation cardiaque','TA bilatérale','ECG','Échocardiographie','Conclusion','Conduite à tenir'],
+    fields:[{key:'ta_gauche',label:'TA bras gauche'},{key:'ta_droite',label:'TA bras droit'},{key:'rythme_ecg',label:'Rythme ECG',type:'select',options:['Sinusal','Fibrillation auriculaire','Flutter','Autre']},{key:'fc_ecg',label:'FC à l\'ECG',type:'number'},{key:'fraction_ejection',label:'FEVG (%)',type:'number'},{key:'nyha',label:'Classification NYHA (1-4)',type:'number'}],
+    icon:'❤️',color:'#C5472A'
+  },
+  'Ophtalmologie':{
+    sections:['Motif','Anamnèse','Antécédents ophtalmologiques','Acuité visuelle','Examen à la lampe à fente','Fond d\'œil','Tension oculaire','Conclusion','Conduite à tenir'],
+    fields:[{key:'av_od_sc',label:'AV OD SC (sans correction)'},{key:'av_og_sc',label:'AV OG SC'},{key:'av_od_ac',label:'AV OD AC (avec correction)'},{key:'av_og_ac',label:'AV OG AC'},{key:'to_od',label:'TO OD (mmHg)',type:'number'},{key:'to_og',label:'TO OG (mmHg)',type:'number'}],
+    icon:'👁️',color:'#0EA5E9'
+  },
+  'Imagerie':{
+    sections:['Type d\'examen','Indication clinique','Technique','Description','Conclusion','Recommandations'],
+    fields:[{key:'type_exam',label:'Type d\'examen',type:'select',options:['Radiographie','Échographie','Scanner','IRM','Mammographie','Autre']},{key:'region',label:'Région anatomique'},{key:'injection',label:'Injection de contraste',type:'select',options:['Non','Iode','Gadolinium']},{key:'cliche',label:'Nombre de clichés',type:'number'}],
+    icon:'🔬',color:'#8B5CF6'
+  },
+  'Laboratoire':{
+    sections:['Prescription','Prélèvements effectués','Résultats','Interprétation','Commentaires biologiste'],
+    fields:[{key:'prescripteur',label:'Médecin prescripteur'},{key:'urgence',label:'Urgence',type:'select',options:['Routine','Urgent','Très urgent']},{key:'jeun',label:'À jeun',type:'select',options:['Oui','Non','Non précisé']}],
+    icon:'🧪',color:'#14B8A6'
+  },
+  'Urgences':{
+    sections:['Motif d\'admission','Anamnèse','Triage','Constantes initiales','Bilan réalisé','Traitement instauré','Évolution','Orientation','Compte rendu'],
+    fields:[{key:'triage',label:'Triage CCMU',type:'select',options:['CCMU 1 — Stable','CCMU 2 — Peut s\'aggraver','CCMU 3 — Instable','CCMU 4 — En détresse','CCMU 5 — Décès imminent']},{key:'heure_arrivee',label:'Heure d\'arrivée',type:'time'},{key:'orientation',label:'Orientation',type:'select',options:['Retour domicile','Hospitalisation','Chirurgie','Réanimation','Autre']}],
+    icon:'🚨',color:'#C5472A'
+  },
+  'Médecine du travail':{
+    sections:['Poste de travail','Risques professionnels','Examen clinique','Aptitude','Aménagement de poste','Orientations'],
+    fields:[{key:'entreprise',label:'Entreprise'},{key:'poste',label:'Poste de travail'},{key:'aptitude',label:'Aptitude',type:'select',options:['Apte','Apte avec restrictions','Inapte temporaire','Inapte définitif']},{key:'risques',label:'Risques identifiés'}],
+    icon:'🏭',color:'#6B7280'
+  },
+  'Check-up / Prévention':{
+    sections:['Motif du bilan','Antécédents','Mode de vie','Examen clinique','Bilan biologique','Résultats','Recommandations préventives','Plan de suivi'],
+    fields:[{key:'tabac',label:'Tabagisme',type:'select',options:['Non-fumeur','Ex-fumeur','Fumeur actif']},{key:'alcool',label:'Consommation alcool',type:'select',options:['Abstinent','Occasionnel','Régulier','Excessif']},{key:'activite',label:'Activité physique',type:'select',options:['Sédentaire','Légère','Modérée','Intense']},{key:'imc_eval',label:'IMC / Évaluation'}],
+    icon:'✅',color:'#4A7C6B'
+  },
+};
+
+// ── Specialty fields panel (used in ConsultationScreen) ──
+function SpecialitePanel({specialite,values,onChange}){
+  const tmpl=SPECIALITE_TEMPLATES[specialite];
+  if(!tmpl)return null;
+  return(
+    <div style={{marginTop:'16px',padding:'16px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:`3px solid ${tmpl.color}`}}>
+      <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:tmpl.color,fontWeight:500,marginBottom:'12px'}}>{tmpl.icon} Champs spécifiques — {specialite}</p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(180px,1fr))',gap:'10px'}}>
+        {tmpl.fields.map(f=>(
+          <div key={f.key}>
+            <label style={{display:'block',fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>{f.label}</label>
+            {f.type==='select'?(
+              <select value={values?.[f.key]||''} onChange={e=>onChange(f.key,e.target.value)}
+                style={{width:'100%',border:'1px solid var(--border)',padding:'8px 10px',fontSize:'13px',background:'var(--white)',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}>
+                <option value="">—</option>
+                {f.options.map(o=><option key={o} value={o}>{o}</option>)}
+              </select>
+            ):(
+              <input type={f.type||'text'} value={values?.[f.key]||''} onChange={e=>onChange(f.key,e.target.value)}
+                style={{width:'100%',border:'1px solid var(--border)',padding:'8px 10px',fontSize:'13px',background:'var(--white)',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}/>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HOSPITALISATIONS — Phase 5.2
+══════════════════════════════════════════════════════════════ */
+const SERVICES_HOSPI=['Médecine générale','Chirurgie','Cardiologie','Gynécologie-obstétrique','Pédiatrie','Neurologie','Réanimation','Urgences','Ophtalmologie','ORL','Orthopédie','Dermatologie'];
+
+function HospitalisationsPage(){
+  const [tab,setTab]=useState('actives');
+  const [list,setList]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const [showModal,setShowModal]=useState(false);
+  const [selected,setSelected]=useState(null);
+  const [patients,setPatients]=useState([]);
+  const [form,setForm]=useState({patientId:'',dateEntree:new Date().toISOString().slice(0,10),service:'Médecine générale',chambre:'',lit:'',motif_entree:'',diagnostic_entree:''});
+  const [detail,setDetail]=useState(null);
+  const [acteForm,setActeForm]=useState({date:new Date().toISOString().slice(0,10),type:'Évolution clinique',description:'',valeurs:''});
+  const [sortieForm,setSortieForm]=useState({diagnostic_sortie:'',compte_rendu_sortie:'',prescriptions_hospi:'',dateSortie:new Date().toISOString().slice(0,10)});
+
+  const load=async(statut)=>{
+    setLoading(true);
+    const d=await api.get(`/hospitalisations?statut=${statut}`);
+    setList(d);setLoading(false);
+  };
+
+  useEffect(()=>{
+    load(tab==='actives'?'actif':tab==='sorties'?'sorti':'actif');
+    api.get('/patients?limit=200').then(d=>setPatients(d.patients||d)).catch(()=>{});
+  },[tab]);
+
+  const openDetail=async(id)=>{
+    const d=await api.get(`/hospitalisations/${id}`);
+    setDetail(d);
+  };
+
+  const admit=async()=>{
+    await api.post('/hospitalisations',form);
+    setShowModal(false);
+    setForm({patientId:'',dateEntree:new Date().toISOString().slice(0,10),service:'Médecine générale',chambre:'',lit:'',motif_entree:'',diagnostic_entree:''});
+    load('actif');
+  };
+
+  const addActe=async()=>{
+    await api.post(`/hospitalisations/${detail.id}/actes`,{...acteForm,valeurs:acteForm.valeurs?{libre:acteForm.valeurs}:undefined});
+    const d=await api.get(`/hospitalisations/${detail.id}`);setDetail(d);
+    setActeForm({date:new Date().toISOString().slice(0,10),type:'Évolution clinique',description:'',valeurs:''});
+  };
+
+  const sortir=async()=>{
+    await api.put(`/hospitalisations/${detail.id}`,{...sortieForm,statut:'sorti'});
+    const d=await api.get(`/hospitalisations/${detail.id}`);setDetail(d);
+    load('actif');
+  };
+
+  const calcDuree=(dateEntree,dateSortie)=>{
+    const d1=new Date(dateEntree),d2=dateSortie?new Date(dateSortie):new Date();
+    return Math.max(0,Math.round((d2-d1)/864e5));
+  };
+
+  if(detail)return(
+    <div style={{padding:'36px 48px',maxWidth:'1000px'}}>
+      <button onClick={()=>setDetail(null)} style={{fontSize:'10px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',marginBottom:'20px',display:'flex',alignItems:'center',gap:'6px'}}><Ic.Back style={{width:'12px',height:'12px'}}/> Retour</button>
+      <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:'16px',marginBottom:'24px',flexWrap:'wrap'}}>
+        <div>
+          <p className="eyebrow" style={{marginBottom:'4px'}}>Hospitalisation — {detail.service}</p>
+          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'32px',fontWeight:300,color:'var(--navy)'}}>{detail.prenom} {detail.nom}</h1>
+          <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Entrée : {detail.dateEntree} · Chambre {detail.chambre||'—'} · Lit {detail.lit||'—'} · {calcDuree(detail.dateEntree,detail.dateSortie)}j</p>
+        </div>
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+          {detail.statut==='actif'&&<Btn variant="secondary" onClick={()=>window.open(`/api/hospitalisations/${detail.id}/pdf`,'_blank')}>PDF</Btn>}
+          {detail.statut==='sorti'&&<span style={{fontSize:'10px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--green)',fontWeight:500,padding:'8px 12px',border:'1px solid rgba(74,124,107,0.3)',background:'rgba(74,124,107,0.05)'}}>Sorti le {detail.dateSortie}</span>}
+        </div>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+        {/* Diagnostic */}
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+          <p className="eyebrow" style={{marginBottom:'12px'}}>Diagnostics</p>
+          <div style={{marginBottom:'12px'}}>
+            <label style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Diagnostic d'entrée</label>
+            <textarea rows={3} defaultValue={detail.diagnostic_entree||''} onBlur={async e=>{await api.put(`/hospitalisations/${detail.id}`,{diagnostic_entree:e.target.value});}}
+              style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',resize:'vertical',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
+          </div>
+          <div>
+            <label style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Diagnostic de sortie</label>
+            <textarea rows={3} defaultValue={detail.diagnostic_sortie||''} onBlur={async e=>{await api.put(`/hospitalisations/${detail.id}`,{diagnostic_sortie:e.target.value});}}
+              style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',resize:'vertical',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
+          </div>
+        </div>
+
+        {/* Prescriptions hospi */}
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+          <p className="eyebrow" style={{marginBottom:'12px'}}>Prescriptions d'hospitalisation</p>
+          <textarea rows={8} defaultValue={detail.prescriptions_hospi||''} placeholder="Ex: NaCl 0.9% 500mL IV 2x/j&#10;Paracétamol 1g x4/j PO&#10;Héparine 5000 UI SC 2x/j" onBlur={async e=>{await api.put(`/hospitalisations/${detail.id}`,{prescriptions_hospi:e.target.value});}}
+            style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',resize:'vertical',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
+        </div>
+      </div>
+
+      {/* Actes journaliers */}
+      <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px',marginBottom:'16px'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'16px'}}>
+          <p className="eyebrow">Évolution clinique & actes journaliers</p>
+        </div>
+        {/* Ajouter un acte */}
+        <div style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'14px 16px',marginBottom:'16px',display:'flex',gap:'10px',flexWrap:'wrap',alignItems:'flex-end'}}>
+          <div style={{flex:'0 0 120px'}}>
+            <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Date</label>
+            <input type="date" value={acteForm.date} onChange={e=>setActeForm(f=>({...f,date:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'8px 10px',fontSize:'13px',outline:'none'}}/>
+          </div>
+          <div style={{flex:'0 0 160px'}}>
+            <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Type</label>
+            <select value={acteForm.type} onChange={e=>setActeForm(f=>({...f,type:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'8px 10px',fontSize:'13px',outline:'none',background:'var(--white)'}}>
+              {['Évolution clinique','Constantes','Traitement administré','Examen complémentaire','Procédure','Consultation spécialisée','Incident'].map(t=><option key={t}>{t}</option>)}
+            </select>
+          </div>
+          <div style={{flex:1,minWidth:'200px'}}>
+            <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Description</label>
+            <input value={acteForm.description} onChange={e=>setActeForm(f=>({...f,description:e.target.value}))} placeholder="Description de l'acte…"
+              style={{width:'100%',border:'1px solid var(--border)',padding:'8px 10px',fontSize:'13px',outline:'none'}}/>
+          </div>
+          <Btn variant="primary" onClick={addActe} size="sm">+ Ajouter</Btn>
+        </div>
+        <div style={{display:'flex',flexDirection:'column',gap:'6px',maxHeight:'300px',overflowY:'auto'}}>
+          {(detail.actes||[]).length===0&&<p style={{fontSize:'12px',color:'var(--muted)',fontStyle:'italic'}}>Aucun acte enregistré.</p>}
+          {(detail.actes||[]).map(a=>(
+            <div key={a.id} style={{display:'flex',gap:'12px',padding:'10px 12px',background:'var(--cream)',borderLeft:'3px solid var(--navy)'}}>
+              <span style={{fontSize:'11px',color:'var(--muted)',minWidth:'80px',flexShrink:0}}>{a.date}</span>
+              <span style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',color:'var(--navy)',fontWeight:500,minWidth:'120px',flexShrink:0}}>{a.type}</span>
+              <span style={{fontSize:'13px',color:'var(--charcoal)',fontWeight:300,flex:1}}>{a.description}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Compte rendu de sortie */}
+      {detail.statut==='actif'&&(
+        <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--gold)',padding:'20px'}}>
+          <p className="eyebrow" style={{marginBottom:'16px'}}>Sortie du patient</p>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'12px'}}>
+            <div>
+              <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Date de sortie</label>
+              <input type="date" value={sortieForm.dateSortie} onChange={e=>setSortieForm(f=>({...f,dateSortie:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',outline:'none'}}/>
+            </div>
+            <div>
+              <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Diagnostic de sortie</label>
+              <input value={sortieForm.diagnostic_sortie} onChange={e=>setSortieForm(f=>({...f,diagnostic_sortie:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',outline:'none'}}/>
+            </div>
+          </div>
+          <div style={{marginBottom:'12px'}}>
+            <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Traitement de sortie</label>
+            <textarea rows={3} value={sortieForm.prescriptions_hospi} onChange={e=>setSortieForm(f=>({...f,prescriptions_hospi:e.target.value}))} placeholder="Traitement prescrit à la sortie…" style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',resize:'vertical',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
+          </div>
+          <div style={{marginBottom:'16px'}}>
+            <label style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,display:'block',marginBottom:'6px'}}>Compte rendu de sortie</label>
+            <textarea rows={5} value={sortieForm.compte_rendu_sortie} onChange={e=>setSortieForm(f=>({...f,compte_rendu_sortie:e.target.value}))} placeholder="Résumé du séjour, évolution, recommandations…" style={{width:'100%',border:'1px solid var(--border)',padding:'8px 12px',fontSize:'13px',resize:'vertical',fontFamily:"'DM Sans',sans-serif",fontWeight:300,outline:'none'}}/>
+          </div>
+          <Btn variant="primary" onClick={sortir}>Valider la sortie</Btn>
+        </div>
+      )}
+    </div>
+  );
+
+  return(
+    <div style={{padding:'36px 48px',maxWidth:'1100px'}}>
+      <div className="page-header" style={{padding:'28px 0 24px',marginBottom:'32px'}}>
+        <p className="eyebrow" style={{marginBottom:'8px'}}>Gestion des séjours</p>
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:'16px'}}>
+          <div>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(28px,2.5vw,38px)',fontWeight:300,color:'var(--navy)',lineHeight:1.15}}>Hospitalisations</h1>
+            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>Admission, surveillance, actes journaliers et sorties</p>
+          </div>
+          <Btn variant="primary" icon={Ic.Plus} onClick={()=>setShowModal(true)}>Admettre un patient</Btn>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:'flex',borderBottom:'1px solid var(--border)',marginBottom:'24px'}}>
+        {[['actives','Séjours actifs'],['sorties','Sorties']].map(([k,l])=>(
+          <button key={k} onClick={()=>setTab(k)}
+            style={{padding:'12px 24px',fontSize:'11px',fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',background:'none',border:'none',borderBottom:tab===k?'2px solid var(--gold)':'2px solid transparent',color:tab===k?'var(--navy)':'var(--muted)',cursor:'pointer',marginBottom:'-1px'}}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {/* KPI strip */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'24px'}}>
+        <div className="stat-block"><span className="stat-n">{list.filter(h=>h.statut==='actif').length}</span><span className="stat-l">Patients hospitalisés</span></div>
+        <div className="stat-block"><span className="stat-n">{list.length>0?Math.round(list.reduce((s,h)=>s+calcDuree(h.dateEntree,h.dateSortie),0)/list.length):0}j</span><span className="stat-l">DMS moyenne</span></div>
+        <div className="stat-block"><span className="stat-n">{[...new Set(list.map(h=>h.service))].length}</span><span className="stat-l">Services actifs</span></div>
+      </div>
+
+      {loading&&<div style={{fontSize:'12px',color:'var(--muted)',textAlign:'center',padding:'32px'}}>Chargement…</div>}
+      <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+        {list.length===0&&!loading&&<div style={{textAlign:'center',padding:'48px',fontSize:'13px',color:'var(--muted)'}}>Aucune hospitalisation {tab==='actives'?'en cours':'à afficher'}.</div>}
+        {list.map(h=>(
+          <div key={h.id} onClick={()=>openDetail(h.id)}
+            style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:`3px solid ${h.statut==='actif'?'var(--navy)':'var(--green)'}`,padding:'16px 20px',cursor:'pointer',display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap'}}>
+            <div style={{flex:1,minWidth:'160px'}}>
+              <div style={{fontWeight:500,color:'var(--charcoal)',fontSize:'14px'}}>{h.prenom} {h.nom}</div>
+              <div style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>{h.service} · Ch.{h.chambre||'—'} · Lit {h.lit||'—'}</div>
+              {h.diagnostic_entree&&<div style={{fontSize:'11px',color:'var(--navy)',marginTop:'4px'}}>{h.diagnostic_entree.slice(0,60)}{h.diagnostic_entree.length>60?'…':''}</div>}
+            </div>
+            <div style={{textAlign:'right'}}>
+              <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:300,color:'var(--navy)',lineHeight:1}}>{calcDuree(h.dateEntree,h.dateSortie)}j</div>
+              <div style={{fontSize:'9px',color:'var(--muted)',letterSpacing:'0.12em',textTransform:'uppercase'}}>depuis {new Date(h.dateEntree).toLocaleDateString('fr-FR')}</div>
+            </div>
+            <Ic.ArrowRight style={{width:'14px',height:'14px',color:'var(--muted)',flexShrink:0}}/>
+          </div>
+        ))}
+      </div>
+
+      {/* Admission modal */}
+      {showModal&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'520px',padding:'32px',boxShadow:'0 20px 60px rgba(0,0,0,0.15)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'24px'}}>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'26px',fontWeight:300,color:'var(--navy)'}}>Admission patient</h2>
+              <button onClick={()=>setShowModal(false)} style={{fontSize:'18px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}>✕</button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Patient *</label>
+                <select value={form.patientId} onChange={e=>setForm(f=>({...f,patientId:e.target.value}))}
+                  style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none',background:'var(--white)'}}>
+                  <option value="">Choisir un patient…</option>
+                  {patients.map(p=><option key={p.id} value={p.id}>{p.prenom} {p.nom}</option>)}
+                </select>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Date d'entrée *</label>
+                  <input type="date" value={form.dateEntree} onChange={e=>setForm(f=>({...f,dateEntree:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Service</label>
+                  <select value={form.service} onChange={e=>setForm(f=>({...f,service:e.target.value}))}
+                    style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none',background:'var(--white)'}}>
+                    {SERVICES_HOSPI.map(s=><option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Chambre</label>
+                  <input value={form.chambre} onChange={e=>setForm(f=>({...f,chambre:e.target.value}))} placeholder="Ex: 12A" style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Lit</label>
+                  <input value={form.lit} onChange={e=>setForm(f=>({...f,lit:e.target.value}))} placeholder="Ex: 1" style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+                </div>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Motif d'admission</label>
+                <input value={form.motif_entree} onChange={e=>setForm(f=>({...f,motif_entree:e.target.value}))} placeholder="Motif d'entrée…" style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Diagnostic d'entrée</label>
+                <input value={form.diagnostic_entree} onChange={e=>setForm(f=>({...f,diagnostic_entree:e.target.value}))} placeholder="Diagnostic présumé…" style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+              </div>
+              <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+                <Btn variant="primary" onClick={admit} style={{flex:1}}>Admettre</Btn>
+                <Btn variant="secondary" onClick={()=>setShowModal(false)}>Annuler</Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TÉLÉCONSULTATION — Phase 5.4
+══════════════════════════════════════════════════════════════ */
+function TeleconsultationsPage(){
+  const [list,setList]=useState([]);
+  const [patients,setPatients]=useState([]);
+  const [showModal,setShowModal]=useState(false);
+  const [form,setForm]=useState({patientId:'',consultationId:''});
+  const [newRoom,setNewRoom]=useState(null);
+  const [loading,setLoading]=useState(false);
+
+  // Normalise un numéro gabonais en format international (sans +)
+  const waPhone=tel=>{
+    if(!tel) return null;
+    const d=String(tel).replace(/\D/g,'');
+    if(d.startsWith('241')) return d;
+    if(d.startsWith('0'))   return '241'+d.slice(1);
+    return '241'+d;
+  };
+
+  const waLink=(tel,url,prenom)=>{
+    const phone=waPhone(tel);
+    if(!phone) return null;
+    const msg=`Bonjour ${prenom||''},\n\nVotre médecin vous invite à votre téléconsultation MediVox.\n\n👉 ${url}\n\nCliquez sur le lien depuis votre smartphone ou ordinateur (aucune installation requise).\n\nBonne consultation !`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  };
+
+  useEffect(()=>{
+    api.get('/teleconsultations').then(setList).catch(()=>{});
+    api.get('/patients?limit=200').then(d=>setPatients(d.patients||d)).catch(()=>{});
+  },[]);
+
+  const create=async()=>{
+    setLoading(true);
+    try{
+      const r=await api.post('/teleconsultations',form);
+      setNewRoom(r);setList(l=>[r,...l]);
+    }catch{}
+    setLoading(false);setShowModal(false);
+  };
+
+  const STATUT_COLOR={planifie:'var(--gold)',en_cours:'var(--green)',termine:'var(--muted)'};
+
+  return(
+    <div style={{padding:'36px 48px',maxWidth:'1000px'}}>
+      <div className="page-header" style={{padding:'28px 0 24px',marginBottom:'32px'}}>
+        <p className="eyebrow" style={{marginBottom:'8px'}}>Consultations à distance</p>
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:'16px'}}>
+          <div>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(28px,2.5vw,38px)',fontWeight:300,color:'var(--navy)',lineHeight:1.15}}>Téléconsultation</h1>
+            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>Vidéo intégrée · Documentation identique · Facturation standard</p>
+          </div>
+          <Btn variant="primary" icon={Ic.Video} onClick={()=>setShowModal(true)}>Nouvelle session</Btn>
+        </div>
+      </div>
+
+      {/* Info banner */}
+      <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'14px 18px',marginBottom:'24px',fontSize:'12px',color:'var(--navy)'}}>
+        <strong>Technologie :</strong> Jitsi Meet intégré (chiffré de bout en bout, sans installation). Partagez le lien avec le patient — il rejoint depuis son navigateur ou smartphone.
+        La consultation est documentée comme une consultation standard avec transcription IA, ordonnance et facturation.
+      </div>
+
+      {/* New room created */}
+      {newRoom&&(
+        <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--green)',padding:'16px 20px',marginBottom:'20px'}}>
+          <p style={{fontSize:'11px',letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--green)',fontWeight:500,marginBottom:'8px'}}>Session créée</p>
+          <p style={{fontSize:'13px',fontWeight:300,marginBottom:'10px',wordBreak:'break-all'}}>{newRoom.room_url}</p>
+          <div style={{display:'flex',gap:'8px',flexWrap:'wrap',alignItems:'center'}}>
+            <Btn variant="primary" icon={Ic.Video} onClick={()=>window.open(newRoom.room_url,'_blank',`width=1100,height=700`)}>Rejoindre</Btn>
+            <Btn variant="secondary" onClick={()=>{navigator.clipboard.writeText(newRoom.room_url);alert('Lien copié !');}}>Copier le lien</Btn>
+            {waLink(newRoom.telephone,newRoom.room_url,newRoom.prenom)&&(
+              <a href={waLink(newRoom.telephone,newRoom.room_url,newRoom.prenom)} target="_blank" rel="noreferrer"
+                style={{display:'inline-flex',alignItems:'center',gap:'7px',padding:'8px 16px',background:'#25D366',color:'#fff',fontSize:'11px',fontWeight:500,letterSpacing:'0.1em',textTransform:'uppercase',textDecoration:'none',borderRadius:'2px'}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                Envoyer WhatsApp
+              </a>
+            )}
+            <button onClick={()=>setNewRoom(null)} style={{fontSize:'16px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',marginLeft:'4px'}}>✕</button>
+          </div>
+        </div>
+      )}
+
+      {/* Sessions list */}
+      <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+        {list.length===0&&<div style={{textAlign:'center',padding:'48px',fontSize:'13px',color:'var(--muted)'}}>Aucune session de téléconsultation.</div>}
+        {list.map(tc=>(
+          <div key={tc.id} style={{background:'var(--white)',border:'1px solid var(--border)',padding:'16px 20px',display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap'}}>
+            <div style={{flex:1,minWidth:'160px'}}>
+              <div style={{fontWeight:500,color:'var(--charcoal)',fontSize:'14px'}}>{tc.prenom} {tc.nom}</div>
+              <div style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>{new Date(tc.createdAt).toLocaleString('fr-FR')}</div>
+            </div>
+            <span style={{fontSize:'9px',letterSpacing:'0.15em',textTransform:'uppercase',fontWeight:500,color:STATUT_COLOR[tc.statut]||'var(--muted)',padding:'4px 10px',border:`1px solid ${STATUT_COLOR[tc.statut]||'var(--muted)'}`,opacity:0.8}}>{tc.statut}</span>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+              <Btn variant="primary" icon={Ic.Video} size="sm" onClick={()=>window.open(tc.room_url,'_blank',`width=1100,height=700`)}>Rejoindre</Btn>
+              <Btn variant="secondary" size="sm" onClick={()=>{navigator.clipboard.writeText(tc.room_url);alert('Lien copié !');}}>Copier</Btn>
+              {waLink(tc.telephone,tc.room_url,tc.prenom)&&(
+                <a href={waLink(tc.telephone,tc.room_url,tc.prenom)} target="_blank" rel="noreferrer"
+                  style={{display:'inline-flex',alignItems:'center',gap:'6px',padding:'6px 12px',background:'#25D366',color:'#fff',fontSize:'10px',fontWeight:500,letterSpacing:'0.1em',textTransform:'uppercase',textDecoration:'none',borderRadius:'2px'}}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                  WhatsApp
+                </a>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Create modal */}
+      {showModal&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'420px',padding:'32px',boxShadow:'0 20px 60px rgba(0,0,0,0.15)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'24px'}}>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:300,color:'var(--navy)'}}>Nouvelle session</h2>
+              <button onClick={()=>setShowModal(false)} style={{fontSize:'18px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}>✕</button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Patient *</label>
+                <select value={form.patientId} onChange={e=>setForm(f=>({...f,patientId:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none',background:'var(--white)'}}>
+                  <option value="">Choisir…</option>
+                  {patients.map(p=><option key={p.id} value={p.id}>{p.prenom} {p.nom}</option>)}
+                </select>
+              </div>
+              <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+                <Btn variant="primary" onClick={create} loading={loading} style={{flex:1}}>Créer la session</Btn>
+                <Btn variant="secondary" onClick={()=>setShowModal(false)}>Annuler</Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PORTAIL PATIENT — Phase 5.3
+══════════════════════════════════════════════════════════════ */
+function PortailAdminPage(){
+  const [patients,setPatients]=useState([]);
+  const [search,setSearch]=useState('');
+  const [codes,setCodes]=useState({});
+  const [msgs,setMsgs]=useState(null);
+  const [selPat,setSelPat]=useState(null);
+  const [newMsg,setNewMsg]=useState('');
+  const [pmLoading,setPmLoading]=useState(false);
+
+  useEffect(()=>{
+    api.get('/patients?limit=200').then(d=>setPatients(d.patients||d)).catch(()=>{});
+  },[]);
+
+  const genCode=async(patId)=>{
+    const r=await api.post(`/patients/${patId}/portail/code`,{});
+    setCodes(c=>({...c,[patId]:r.code}));
+  };
+
+  const openMsgs=async(p)=>{
+    setSelPat(p);
+    const d=await api.get(`/patients/${p.id}/portal-messages`);
+    setMsgs(d);
+  };
+
+  const sendMsg=async()=>{
+    if(!newMsg.trim())return;
+    setPmLoading(true);
+    await api.post(`/patients/${selPat.id}/portal-messages`,{contenu:newMsg});
+    const d=await api.get(`/patients/${selPat.id}/portal-messages`);
+    setMsgs(d);setNewMsg('');setPmLoading(false);
+  };
+
+  const filtered=patients.filter(p=>`${p.prenom} ${p.nom}`.toLowerCase().includes(search.toLowerCase()));
+
+  if(selPat)return(
+    <div style={{padding:'36px 48px',maxWidth:'700px'}}>
+      <button onClick={()=>{setSelPat(null);setMsgs(null);}} style={{fontSize:'10px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',marginBottom:'20px',display:'flex',alignItems:'center',gap:'6px'}}><Ic.Back style={{width:'12px',height:'12px'}}/> Retour</button>
+      <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',marginBottom:'4px'}}>Messagerie — {selPat.prenom} {selPat.nom}</h2>
+      <p style={{fontSize:'12px',color:'var(--muted)',marginBottom:'20px'}}>Communication sécurisée médecin-patient</p>
+      <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderRadius:'2px',padding:'16px',marginBottom:'12px',maxHeight:'400px',overflowY:'auto',display:'flex',flexDirection:'column',gap:'8px'}}>
+        {(!msgs||msgs.length===0)&&<p style={{fontSize:'12px',color:'var(--muted)',textAlign:'center',padding:'24px'}}>Aucun message.</p>}
+        {(msgs||[]).map(m=>(
+          <div key={m.id} style={{display:'flex',flexDirection:'column',alignItems:m.expediteur==='medecin'?'flex-end':'flex-start'}}>
+            <div style={{background:m.expediteur==='medecin'?'var(--navy)':'var(--white)',color:m.expediteur==='medecin'?'var(--white)':'var(--charcoal)',border:`1px solid ${m.expediteur==='medecin'?'transparent':'var(--border)'}`,padding:'10px 14px',maxWidth:'70%',fontSize:'13px',fontWeight:300,lineHeight:1.6}}>
+              {m.contenu}
+            </div>
+            <span style={{fontSize:'10px',color:'var(--muted)',marginTop:'3px'}}>{new Date(m.createdAt).toLocaleString('fr-FR')}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{display:'flex',gap:'8px'}}>
+        <input value={newMsg} onChange={e=>setNewMsg(e.target.value)} onKeyDown={e=>e.key==='Enter'&&sendMsg()} placeholder="Écrire un message…"
+          style={{flex:1,border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}/>
+        <Btn variant="primary" loading={pmLoading} onClick={sendMsg}>Envoyer</Btn>
+      </div>
+    </div>
+  );
+
+  return(
+    <div style={{padding:'36px 48px',maxWidth:'1000px'}}>
+      <div className="page-header" style={{padding:'28px 0 24px',marginBottom:'32px'}}>
+        <p className="eyebrow" style={{marginBottom:'8px'}}>Accès patient sécurisé</p>
+        <div>
+          <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(28px,2.5vw,38px)',fontWeight:300,color:'var(--navy)',lineHeight:1.15}}>Portail Patient</h1>
+          <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>Générez un code d'accès sécurisé pour permettre à vos patients de consulter leurs documents, résultats et messages.</p>
+        </div>
+      </div>
+
+      {/* Info */}
+      <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'14px 18px',marginBottom:'24px',fontSize:'12px',color:'var(--navy)'}}>
+        <strong>Fonctionnalités patient :</strong> Consultation des ordonnances · Résultats de labo · Prise de RDV en ligne · Messagerie sécurisée médecin-patient · Consentements électroniques · Paiement Mobile Money
+        <br/><strong style={{marginTop:'6px',display:'block'}}>URL portail :</strong> <code style={{background:'rgba(0,0,0,0.05)',padding:'2px 6px'}}>https://votre-domaine.com/portail.html</code>
+      </div>
+
+      {/* Search */}
+      <div style={{position:'relative',marginBottom:'20px'}}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher un patient…"
+          style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px 10px 38px',fontSize:'13px',outline:'none',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}/>
+        <Ic.Search style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',width:'14px',height:'14px',color:'var(--muted)'}}/>
+      </div>
+
+      <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+        {filtered.slice(0,30).map(p=>(
+          <div key={p.id} style={{background:'var(--white)',border:'1px solid var(--border)',padding:'14px 18px',display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap'}}>
+            <div style={{flex:1,minWidth:'160px'}}>
+              <div style={{fontWeight:500,color:'var(--charcoal)',fontSize:'14px'}}>{p.prenom} {p.nom}</div>
+              <div style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>{p.telephone||p.email||'—'}</div>
+            </div>
+            {codes[p.id]&&(
+              <div style={{display:'flex',alignItems:'center',gap:'8px',background:'var(--cream)',border:'1px solid var(--border)',padding:'8px 14px'}}>
+                <Ic.Key style={{width:'12px',height:'12px',color:'var(--gold)'}}/>
+                <code style={{fontSize:'16px',fontWeight:700,letterSpacing:'0.2em',color:'var(--navy)'}}>{codes[p.id]}</code>
+                <span style={{fontSize:'10px',color:'var(--muted)'}}>Code valide 24h</span>
+              </div>
+            )}
+            <div style={{display:'flex',gap:'8px'}}>
+              <Btn variant="secondary" size="sm" icon={Ic.Key} onClick={()=>genCode(p.id)}>Code d'accès</Btn>
+              <Btn variant="secondary" size="sm" icon={Ic.Mail} onClick={()=>openMsgs(p)}>Messages</Btn>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TOUS LES PATIENTS — Registre CDL
+══════════════════════════════════════════════════════════════ */
+function TousPatientsPage(){
+  const [rows,setRows]=useState([]);
+  const [total,setTotal]=useState(0);
+  const [page,setPage]=useState(0);
+  const [q,setQ]=useState('');
+  const [assuranceFilter,setAssuranceFilter]=useState('all');
+  const [assurances,setAssurances]=useState([]);
+  const [loading,setLoading]=useState(false);
+  const LIMIT=50;
+
+  const load=async(pg=0,search=q,aFilter=assuranceFilter)=>{
+    setLoading(true);
+    try{
+      const params=new URLSearchParams({page:pg,limit:LIMIT});
+      if(search.trim()) params.set('q',search.trim());
+      if(aFilter&&aFilter!=='all') params.set('assurance',aFilter);
+      const d=await api.get('/all-patients?'+params);
+      setRows(d.rows||[]);
+      setTotal(d.total||0);
+      setPage(pg);
+      if(d.assurances&&assurances.length===0) setAssurances(d.assurances);
+    }finally{setLoading(false);}
+  };
+
+  useEffect(()=>{load(0);},[]);
+
+  const doSearch=()=>load(0,q,assuranceFilter);
+  const totalPages=Math.ceil(total/LIMIT);
+
+  const sexeBadge=s=>s==='F'
+    ?<span style={{background:'#f7e2ea',color:'#8a3a55',padding:'2px 7px',borderRadius:'3px',fontSize:'10px',fontWeight:500,letterSpacing:'0.06em'}}>F</span>
+    :<span style={{background:'#deeaf7',color:'#2a5a8a',padding:'2px 7px',borderRadius:'3px',fontSize:'10px',fontWeight:500,letterSpacing:'0.06em'}}>M</span>;
+
+  const assuranceBadge=a=>{
+    if(!a||a==='Aucune') return<span style={{color:'var(--muted)',fontSize:'11px'}}>—</span>;
+    const colors={
+      CNAMGS:{bg:'#e6f7f2',c:'#00725f'},AXA:{bg:'#e8eef8',c:'#1a3a6e'},
+      ASCOMA:{bg:'#fdf3e3',c:'#8a5a00'},GRAS_SAVOYE:{bg:'#f3f0fa',c:'#5a3a8a'},
+      VMA:{bg:'#f0f7e6',c:'#3a6a1a'},VME:{bg:'#f0f4f7',c:'#2a4a5a'},
+    };
+    const key=a.replace(/\s+/g,'_').toUpperCase();
+    const col=colors[key]||{bg:'var(--cream2)',c:'var(--charcoal)'};
+    return<span style={{background:col.bg,color:col.c,padding:'2px 8px',borderRadius:'3px',fontSize:'10px',fontWeight:500,whiteSpace:'nowrap'}}>{a}</span>;
+  };
+
+  return(
+    <Page title="Tous les patients" subtitle={`${total.toLocaleString('fr-FR')} patients dans le registre CDL`}
+      breadcrumb="REGISTRE · CENTRE DE LA LUMIÈRE">
+      {/* Barre de recherche + filtres */}
+      <div style={{padding:'0 48px 20px',display:'flex',gap:'12px',alignItems:'center',flexWrap:'wrap'}}>
+        <div style={{position:'relative',flex:'1',minWidth:'240px',maxWidth:'420px'}}>
+          <Ic.Search style={{position:'absolute',left:'12px',top:'50%',transform:'translateY(-50%)',width:'14px',height:'14px',color:'var(--muted)',pointerEvents:'none'}}/>
+          <input value={q} onChange={e=>setQ(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&doSearch()}
+            placeholder="Nom, prénom, téléphone ou code…"
+            style={{width:'100%',paddingLeft:'36px',paddingRight:'12px',paddingTop:'9px',paddingBottom:'9px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'12px',color:'var(--charcoal)',outline:'none',background:'var(--white)'}}/>
+        </div>
+        <select value={assuranceFilter} onChange={e=>{setAssuranceFilter(e.target.value);load(0,q,e.target.value);}}
+          style={{padding:'9px 12px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'12px',color:'var(--charcoal)',background:'var(--white)',minWidth:'180px'}}>
+          <option value="all">Toutes les assurances</option>
+          {assurances.map(a=><option key={a} value={a}>{a}</option>)}
+        </select>
+        <Btn onClick={doSearch} loading={loading}>Rechercher</Btn>
+        {(q||assuranceFilter!=='all')&&(
+          <button onClick={()=>{setQ('');setAssuranceFilter('all');load(0,'','all');}}
+            style={{fontSize:'11px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer',textDecoration:'underline'}}>
+            Effacer les filtres
+          </button>
+        )}
+      </div>
+
+      {/* Tableau */}
+      <div style={{padding:'0 48px 48px',overflowX:'auto'}}>
+        <table style={{width:'100%',borderCollapse:'collapse',fontSize:'12px'}}>
+          <thead>
+            <tr style={{borderBottom:'2px solid var(--border)'}}>
+              {['Code','Nom','Prénom','Naissance','Sexe','Téléphone','Adresse','Situation','N° SS','Assurance','Convention'].map(h=>(
+                <th key={h} style={{padding:'10px 12px',textAlign:'left',fontSize:'10px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--muted)',whiteSpace:'nowrap'}}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loading?(
+              <tr><td colSpan={11} style={{textAlign:'center',padding:'48px',color:'var(--muted)'}}>
+                <Ic.Spin style={{width:'20px',height:'20px',margin:'0 auto'}}/>
+              </td></tr>
+            ):rows.length===0?(
+              <tr><td colSpan={11} style={{textAlign:'center',padding:'48px',color:'var(--muted)',fontSize:'13px'}}>
+                Aucun patient trouvé
+              </td></tr>
+            ):rows.map((r,i)=>(
+              <tr key={r.id} style={{borderBottom:'1px solid var(--border)',background:i%2===0?'transparent':'var(--cream)'}}>
+                <td style={{padding:'9px 12px',color:'var(--muted)',fontFamily:'monospace',fontSize:'11px'}}>{r.code_patient||'—'}</td>
+                <td style={{padding:'9px 12px',fontWeight:500,color:'var(--navy)',whiteSpace:'nowrap'}}>{r.nom}</td>
+                <td style={{padding:'9px 12px',color:'var(--charcoal)',whiteSpace:'nowrap'}}>{r.prenom}</td>
+                <td style={{padding:'9px 12px',color:'var(--charcoal)',whiteSpace:'nowrap'}}>{r.dateNaissance||'—'}</td>
+                <td style={{padding:'9px 12px'}}>{sexeBadge(r.sexe)}</td>
+                <td style={{padding:'9px 12px',color:'var(--charcoal)',fontFamily:'monospace',fontSize:'11px'}}>{r.telephone||'—'}</td>
+                <td style={{padding:'9px 12px',color:'var(--charcoal)',maxWidth:'140px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={r.adresse||''}>{r.adresse||'—'}</td>
+                <td style={{padding:'9px 12px',color:'var(--charcoal)'}}>{r.situation||'—'}</td>
+                <td style={{padding:'9px 12px',color:'var(--muted)',fontFamily:'monospace',fontSize:'11px'}}>{r.numAssurance||'—'}</td>
+                <td style={{padding:'9px 12px'}}>{assuranceBadge(r.assurance)}</td>
+                <td style={{padding:'9px 12px',color:'var(--charcoal)',whiteSpace:'nowrap'}}>{r.convention&&r.convention!=='-'?r.convention:'—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Pagination */}
+        {totalPages>1&&(
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginTop:'20px',paddingTop:'16px',borderTop:'1px solid var(--border)'}}>
+            <span style={{fontSize:'12px',color:'var(--muted)'}}>
+              Page {page+1} / {totalPages} — {total.toLocaleString('fr-FR')} patients
+            </span>
+            <div style={{display:'flex',gap:'8px'}}>
+              <button disabled={page===0} onClick={()=>load(0)}
+                style={{padding:'6px 12px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'11px',cursor:page===0?'not-allowed':'pointer',opacity:page===0?.4:1,background:'var(--white)'}}>
+                ««
+              </button>
+              <button disabled={page===0} onClick={()=>load(page-1)}
+                style={{padding:'6px 14px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'11px',cursor:page===0?'not-allowed':'pointer',opacity:page===0?.4:1,background:'var(--white)'}}>
+                ‹ Précédent
+              </button>
+              <button disabled={page>=totalPages-1} onClick={()=>load(page+1)}
+                style={{padding:'6px 14px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'11px',cursor:page>=totalPages-1?'not-allowed':'pointer',opacity:page>=totalPages-1?.4:1,background:'var(--navy)',color:'var(--white)'}}>
+                Suivant ›
+              </button>
+              <button disabled={page>=totalPages-1} onClick={()=>load(totalPages-1)}
+                style={{padding:'6px 12px',border:'1px solid var(--border)',borderRadius:'4px',fontSize:'11px',cursor:page>=totalPages-1?'not-allowed':'pointer',opacity:page>=totalPages-1?.4:1,background:'var(--white)'}}>
+                »»
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </Page>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MULTI-SITES & FHIR — Phase 5.5
+══════════════════════════════════════════════════════════════ */
+function MultiSitePage(){
+  const [sites,setSites]=useState([]);
+  const [showModal,setShowModal]=useState(false);
+  const [form,setForm]=useState({nom:'',adresse:'',telephone:''});
+
+  useEffect(()=>{
+    api.get('/sites').then(setSites).catch(()=>{});
+  },[]);
+
+  const createSite=async()=>{
+    if(!form.nom)return;
+    await api.post('/sites',form);
+    const d=await api.get('/sites');setSites(d);
+    setShowModal(false);setForm({nom:'',adresse:'',telephone:''});
+  };
+
+  const FHIR_EXAMPLES=[
+    {method:'GET',path:'/fhir/metadata',desc:'Capacités FHIR R4 (CapabilityStatement)'},
+    {method:'GET',path:'/fhir/Patient',desc:'Liste patients (Bundle)'},
+    {method:'GET',path:'/fhir/Patient/:id',desc:'Patient individuel (Resource FHIR)'},
+    {method:'GET',path:'/fhir/Encounter?patient=:id',desc:'Consultations d\'un patient (Encounter)'},
+    {method:'GET',path:'/fhir/Observation?patient=:id',desc:'Constantes vitales (Observation)'},
+  ];
+
+  return(
+    <div style={{padding:'36px 48px',maxWidth:'1000px'}}>
+      <div className="page-header" style={{padding:'28px 0 24px',marginBottom:'32px'}}>
+        <p className="eyebrow" style={{marginBottom:'8px'}}>Expansion & interopérabilité</p>
+        <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:'16px'}}>
+          <div>
+            <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'clamp(28px,2.5vw,38px)',fontWeight:300,color:'var(--navy)',lineHeight:1.15}}>Multi-sites & FHIR</h1>
+            <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300,marginTop:'4px'}}>Gestion multi-établissements · API FHIR R4 · Interopérabilité</p>
+          </div>
+          <Btn variant="primary" icon={Ic.Plus} onClick={()=>setShowModal(true)}>Ajouter un site</Btn>
+        </div>
+      </div>
+
+      {/* Sites */}
+      <div style={{marginBottom:'32px'}}>
+        <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'14px'}}>Établissements</p>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))',gap:'12px'}}>
+          {sites.map(s=>(
+            <div key={s.id} style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'18px 20px'}}>
+              <div style={{fontWeight:500,color:'var(--navy)',fontSize:'14px',marginBottom:'6px'}}>{s.nom}</div>
+              {s.adresse&&<div style={{fontSize:'11px',color:'var(--muted)',marginBottom:'4px'}}>{s.adresse}</div>}
+              {s.telephone&&<div style={{fontSize:'11px',color:'var(--muted)'}}>{s.telephone}</div>}
+              <div style={{marginTop:'10px'}}>
+                <span style={{fontSize:'9px',letterSpacing:'0.15em',textTransform:'uppercase',color:'var(--green)',fontWeight:500,padding:'3px 8px',border:'1px solid rgba(74,124,107,0.3)',background:'rgba(74,124,107,0.05)'}}>Actif</span>
+              </div>
+            </div>
+          ))}
+          {sites.length===0&&<div style={{padding:'24px',fontSize:'12px',color:'var(--muted)'}}>Aucun site configuré.</div>}
+        </div>
+      </div>
+
+      {/* FHIR API */}
+      <div style={{marginBottom:'32px'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'14px'}}>
+          <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>API FHIR R4 — Endpoints disponibles</p>
+          <Btn variant="secondary" size="sm" onClick={()=>window.open('/fhir/metadata','_blank')}>Tester /fhir/metadata</Btn>
+        </div>
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',overflow:'hidden'}}>
+          {FHIR_EXAMPLES.map((e,i)=>(
+            <div key={e.path} style={{display:'flex',gap:'12px',padding:'12px 16px',borderBottom:i<FHIR_EXAMPLES.length-1?'1px solid var(--border)':'none',alignItems:'center'}}>
+              <span style={{fontSize:'9px',letterSpacing:'0.12em',fontWeight:700,color:'var(--white)',background:e.method==='GET'?'var(--green)':'#3B82F6',padding:'3px 8px',minWidth:'36px',textAlign:'center'}}>{e.method}</span>
+              <code style={{fontSize:'12px',color:'var(--navy)',fontFamily:'monospace',minWidth:'280px'}}>{e.path}</code>
+              <span style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>{e.desc}</span>
+              <button onClick={()=>window.open(e.path.replace(/:id/,'1'),'_blank')} style={{fontSize:'10px',color:'var(--gold)',background:'none',border:'none',cursor:'pointer',whiteSpace:'nowrap',marginLeft:'auto'}}>Tester →</button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Roles */}
+      <div>
+        <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'14px'}}>Rôles & permissions</p>
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',overflow:'hidden'}}>
+          {[
+            {role:'admin',label:'Administrateur',desc:'Accès total — gestion des utilisateurs, des sites, des paramètres'},
+            {role:'medecin',label:'Médecin',desc:'Consultations, patients, ordres, prescriptions, facturation'},
+            {role:'infirmier',label:'Infirmier(e)',desc:'Constantes, flow board, ordres, surveillance hospitalisation'},
+            {role:'secretaire',label:'Secrétaire médicale',desc:'Agenda, patients (admin), honoraires, portail patient'},
+            {role:'biologiste',label:'Biologiste / Radiologue',desc:'Résultats d\'examens, ordres médicaux (rendu)'},
+            {role:'patient',label:'Patient',desc:'Portail patient — documents, RDV, messagerie, paiements'},
+          ].map((r,i,arr)=>(
+            <div key={r.role} style={{display:'flex',gap:'16px',padding:'14px 18px',borderBottom:i<arr.length-1?'1px solid var(--border)':'none',alignItems:'center'}}>
+              <span style={{fontSize:'9px',letterSpacing:'0.15em',fontWeight:700,textTransform:'uppercase',color:'var(--white)',background:'var(--navy)',padding:'4px 10px',minWidth:'90px',textAlign:'center'}}>{r.role}</span>
+              <div>
+                <div style={{fontWeight:500,color:'var(--charcoal)',fontSize:'13px'}}>{r.label}</div>
+                <div style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>{r.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Add site modal */}
+      {showModal&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',padding:'16px'}}>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'420px',padding:'32px',boxShadow:'0 20px 60px rgba(0,0,0,0.15)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'24px'}}>
+              <h2 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:300,color:'var(--navy)'}}>Nouvel établissement</h2>
+              <button onClick={()=>setShowModal(false)} style={{fontSize:'18px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}>✕</button>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Nom *</label>
+                <input value={form.nom} onChange={e=>setForm(f=>({...f,nom:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Adresse</label>
+                <input value={form.adresse} onChange={e=>setForm(f=>({...f,adresse:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Téléphone</label>
+                <input value={form.telephone} onChange={e=>setForm(f=>({...f,telephone:e.target.value}))} style={{width:'100%',border:'1px solid var(--border)',padding:'10px 14px',fontSize:'13px',outline:'none'}}/>
+              </div>
+              <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+                <Btn variant="primary" onClick={createSite} style={{flex:1}}>Créer</Btn>
+                <Btn variant="secondary" onClick={()=>setShowModal(false)}>Annuler</Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PROTOCOLES CLINIQUES — Phase 4.2
+══════════════════════════════════════════════════════════════ */
+const PROTOCOLS=[
+  {id:'hta',label:'HTA',subtitle:'Bilan initial complet',icon:'❤️',color:'#C5472A',labo:8,imagerie:3},
+  {id:'diabete',label:'Diabète T2',subtitle:'Bilan trimestriel',icon:'🩸',color:'#B8935A',labo:7,imagerie:2},
+  {id:'grossesse_t1',label:'Grossesse T1',subtitle:'1er trimestre',icon:'🤰',color:'#4A7C6B',labo:11,imagerie:1},
+  {id:'grossesse_t2',label:'Grossesse T2',subtitle:'2ème trimestre',icon:'🤰',color:'#4A7C6B',labo:6,imagerie:1},
+  {id:'grossesse_t3',label:'Grossesse T3',subtitle:'3ème trimestre',icon:'🤰',color:'#4A7C6B',labo:6,imagerie:2},
+  {id:'douleur_thoracique',label:'Douleur thoracique',subtitle:'Bilan urgent',icon:'⚡',color:'#C5472A',labo:8,imagerie:3},
+  {id:'preop',label:'Préopératoire',subtitle:'Bilan standard',icon:'🔬',color:'#00725f',labo:8,imagerie:2},
+  {id:'checkup',label:'Check-up entreprise',subtitle:'Bilan annuel',icon:'🏢',color:'#00725f',labo:10,imagerie:2},
+  {id:'pediatrie',label:'Pédiatrique',subtitle:'Enfant 0–15 ans',icon:'👶',color:'#6366F1',labo:6,imagerie:1},
+];
+
+function ProtocolPanel({consultationId,patientId}){
+  const [result,setResult]=useState(null);
+  const [loading,setLoading]=useState(null);
+  const [error,setError]=useState(null);
+  const [showResult,setShowResult]=useState(false);
+
+  const launch=async(pid)=>{
+    if(!confirm(`Lancer le protocole "${PROTOCOLS.find(p=>p.id===pid)?.label}" ?\nCela créera automatiquement tous les ordres labo/imagerie.`))return;
+    setLoading(pid);setError(null);setResult(null);
+    try{
+      const r=await api.post(`/consultations/${consultationId}/protocol`,{protocol:pid});
+      setResult({...r,protocolId:pid});
+      setShowResult(true);
+    }catch(e){setError('Erreur lors du lancement du protocole.');}
+    finally{setLoading(null);}
+  };
+
+  return(
+    <div style={{padding:'24px'}}>
+      <div style={{marginBottom:'20px'}}>
+        <p style={{fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'4px'}}>Moteur de protocoles</p>
+        <p style={{fontSize:'12px',color:'var(--muted)',fontWeight:300}}>Sélectionnez un protocole pour créer automatiquement les ordres labo/imagerie, pré-remplir l'ordonnance et définir le prochain RDV.</p>
+      </div>
+
+      {error&&<div style={{marginBottom:'16px',background:'rgba(197,71,42,0.08)',border:'1px solid rgba(197,71,42,0.2)',borderLeft:'3px solid var(--accent)',padding:'10px 14px',fontSize:'12px',color:'var(--accent)'}}>{error}</div>}
+
+      {showResult&&result&&(
+        <div style={{marginBottom:'20px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'16px 20px'}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+            <p style={{fontSize:'11px',letterSpacing:'0.16em',textTransform:'uppercase',color:'var(--navy)',fontWeight:500}}>Protocole lancé — {result.label}</p>
+            <button onClick={()=>setShowResult(false)} style={{fontSize:'11px',color:'var(--muted)',background:'none',border:'none',cursor:'pointer'}}>✕</button>
+          </div>
+          <p style={{fontSize:'12px',color:'var(--charcoal)',marginBottom:'12px',fontWeight:300}}><strong>{result.created} ordres créés</strong> (visibles dans l'onglet Ordres)</p>
+
+          {result.prescription&&(
+            <div style={{marginBottom:'12px'}}>
+              <p style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>Ordonnance suggérée</p>
+              <pre style={{fontFamily:"'DM Sans',sans-serif",fontSize:'12px',color:'var(--charcoal)',whiteSpace:'pre-wrap',background:'var(--white)',border:'1px solid var(--border)',padding:'10px 14px',fontWeight:300,lineHeight:1.7}}>{result.prescription}</pre>
+            </div>
+          )}
+
+          <div style={{display:'flex',gap:'16px',flexWrap:'wrap'}}>
+            {result.rdvDelai>0&&<div style={{fontSize:'11px',color:'var(--muted)'}}><strong>Prochain RDV :</strong> dans {result.rdvDelai} jours</div>}
+            {result.adressage&&<div style={{fontSize:'11px',color:'var(--muted)'}}><strong>Adressage :</strong> {result.adressage}</div>}
+          </div>
+        </div>
+      )}
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'12px'}}>
+        {PROTOCOLS.map(p=>(
+          <button key={p.id} onClick={()=>launch(p.id)} disabled={loading===p.id}
+            style={{background:loading===p.id?'var(--cream)':'var(--white)',border:`1px solid var(--border)`,borderLeft:`3px solid ${p.color}`,padding:'16px 18px',textAlign:'left',cursor:loading===p.id?'wait':'pointer',opacity:loading&&loading!==p.id?0.6:1,transition:'box-shadow .15s,border-color .15s'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'8px'}}>
+              <span style={{fontSize:'22px',lineHeight:1}}>{p.icon}</span>
+              <div>
+                <div style={{fontSize:'13px',fontWeight:500,color:'var(--charcoal)'}}>{loading===p.id?'En cours…':p.label}</div>
+                <div style={{fontSize:'10px',color:'var(--muted)',fontWeight:300}}>{p.subtitle}</div>
+              </div>
+            </div>
+            <div style={{display:'flex',gap:'8px'}}>
+              <span style={{fontSize:'10px',background:'var(--cream2)',padding:'2px 8px',color:'var(--charcoal)',fontWeight:300}}>🧪 {p.labo} labo</span>
+              <span style={{fontSize:'10px',background:'var(--cream2)',padding:'2px 8px',color:'var(--charcoal)',fontWeight:300}}>📷 {p.imagerie} imagerie</span>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -3091,12 +4216,17 @@ function IntelligencePage({onViewPatient}){
   const [epidemio,setEpidemio]=useState(MOCK_EPIDEMIO);
   const [risk,setRisk]=useState(MOCK_RISK);
   const [forecast,setForecast]=useState(MOCK_FORECAST);
-  const [loading,setLoading]=useState({epidemio:false,risk:false,forecast:false});
-  const [errors,setErrors]=useState({epidemio:false,risk:false,forecast:false});
+  const [medicoEco,setMedicoEco]=useState(null);
+  const [perdus,setPerdus]=useState(null);
+  const [loading,setLoading]=useState({epidemio:false,risk:false,forecast:false,medicoEco:false,perdus:false});
+  const [errors,setErrors]=useState({epidemio:false,risk:false,forecast:false,medicoEco:false,perdus:false});
   const [riskFilter,setRiskFilter]=useState('all');
   const [useDemo,setUseDemo]=useState(false);
+  const [perdusFiltre,setPerdusFiltre]=useState(6);
+  const [rappelEnCours,setRappelEnCours]=useState(null);
+  const [rappelFait,setRappelFait]=useState({});
 
-  const tok=()=>localStorage.getItem('medpilot_token');
+  const tok=()=>localStorage.getItem('mv_token');
   const hdr=()=>({'Content-Type':'application/json','Authorization':'Bearer '+tok()});
 
   const fetchTab=(key,url,setter)=>{
@@ -3112,12 +4242,31 @@ function IntelligencePage({onViewPatient}){
     if(tab==='epidemio') fetchTab('epidemio','/api/analytics/epidemio',setEpidemio);
     if(tab==='risk') fetchTab('risk','/api/analytics/risk',setRisk);
     if(tab==='forecast') fetchTab('forecast','/api/analytics/forecast',setForecast);
+    if(tab==='medicoEco') fetchTab('medicoEco','/api/analytics/medico-eco',setMedicoEco);
+    if(tab==='perdus') fetchTab('perdus',`/api/intelligence/perdus-de-vue?mois=${perdusFiltre}`,setPerdus);
   },[tab]);
 
+  React.useEffect(()=>{
+    if(tab==='perdus') fetchTab('perdus',`/api/intelligence/perdus-de-vue?mois=${perdusFiltre}`,setPerdus);
+  },[perdusFiltre]);
+
+  const sendRappel=async(patientId,nom)=>{
+    if(!confirm(`Envoyer un rappel de suivi à ${nom} ?`))return;
+    setRappelEnCours(patientId);
+    try{
+      const r=await fetch(`/api/intelligence/rappel/${patientId}`,{method:'POST',headers:hdr(),body:JSON.stringify({})});
+      const d=await r.json();
+      setRappelFait(f=>({...f,[patientId]:d.channel==='email'?'Email envoyé':'Rappel enregistré'}));
+    }catch{setRappelFait(f=>({...f,[patientId]:'Erreur'}));}
+    setRappelEnCours(null);
+  };
+
   const TABS=[
-    {id:'epidemio',label:'Module A — Épidémiologie',icon:'🧬'},
-    {id:'risk',label:'Module B — Patients à risque',icon:'⚠️'},
-    {id:'forecast',label:'Module C — Prévision d\'activité',icon:'📈'},
+    {id:'epidemio',label:'Épidémiologie',icon:'🧬'},
+    {id:'risk',label:'Patients à risque',icon:'⚠️'},
+    {id:'forecast',label:'Prévision',icon:'📈'},
+    {id:'medicoEco',label:'Médico-économique',icon:'💰'},
+    {id:'perdus',label:'Perdus de vue',icon:'🔔'},
   ];
 
   return(
@@ -3141,7 +4290,7 @@ function IntelligencePage({onViewPatient}){
         {TABS.map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)}
             style={{padding:'12px 24px',fontSize:'11px',fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',background:'none',border:'none',borderBottom:tab===t.id?'2px solid var(--gold)':'2px solid transparent',color:tab===t.id?'var(--navy)':'var(--muted)',cursor:'pointer',marginBottom:'-1px',transition:'color .15s'}}>
-            {t.label.replace(/Module [A-C] — /,'')}
+            {t.icon} {t.label}
           </button>
         ))}
       </div>
@@ -3301,6 +4450,230 @@ function IntelligencePage({onViewPatient}){
               </div>
             );
           })()}
+        </div>
+      )}
+
+      {/* ── Module D — Médico-économique ── */}
+      {tab==='medicoEco'&&(
+        <div>
+          {loading.medicoEco&&<div style={{fontSize:'12px',color:'var(--muted)',textAlign:'right',marginBottom:'8px'}}>Chargement…</div>}
+          {!medicoEco&&!loading.medicoEco&&<div style={{fontSize:'13px',color:'var(--muted)',textAlign:'center',padding:'48px 0'}}>Aucune donnée de facturation disponible. Créez des lignes facturables pour voir ce tableau de bord.</div>}
+          {medicoEco&&(()=>{
+            const kpi=medicoEco.kpi;
+            const fmt=(n)=>new Intl.NumberFormat('fr-FR',{style:'currency',currency:'XAF',maximumFractionDigits:0}).format(n||0);
+            const DOW_LABELS=['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+            const maxDow=Math.max(...medicoEco.byDow.map(d=>d.n),1);
+            const maxCA=Math.max(...medicoEco.monthlyCA.map(d=>d.ca),1);
+            return(
+              <div>
+                {/* KPI strip */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'24px'}}>
+                  {[
+                    {label:'CA total',value:fmt(kpi.totalCA),sub:'toutes lignes',accent:'var(--navy)'},
+                    {label:'CA encaissé',value:fmt(kpi.caEncaisse),sub:`${kpi.tauxRecouvrement}% taux recouvrement`,accent:'var(--green)'},
+                    {label:'Non facturé',value:fmt(kpi.nonFactureTotal),sub:`${kpi.nonFactureN} ligne(s) en attente`,accent:'var(--accent)'},
+                    {label:'CA en attente',value:fmt(kpi.caFacture),sub:'facturé, non encaissé',accent:'var(--gold)'},
+                  ].map(k=>(
+                    <div key={k.label} style={{background:'var(--navy)',padding:'20px',borderLeft:`3px solid ${k.accent===`var(--navy)`?'var(--gold)':k.accent}`}}>
+                      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:300,color:'var(--gold)',lineHeight:1,marginBottom:'6px'}}>{k.value}</div>
+                      <div style={{fontSize:'10px',letterSpacing:'0.14em',textTransform:'uppercase',color:'rgba(250,250,248,0.6)'}}>{k.label}</div>
+                      <div style={{fontSize:'10px',color:'rgba(250,250,248,0.4)',marginTop:'4px'}}>{k.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Conversion funnel */}
+                <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px',marginBottom:'16px'}}>
+                  <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'16px'}}>Taux de conversion</p>
+                  <div style={{display:'flex',gap:'0',alignItems:'stretch'}}>
+                    {[
+                      {label:'Consultations',n:kpi.totalConsults,pct:100,color:'var(--navy)'},
+                      {label:'→ Labo',n:kpi.withLabo,pct:kpi.txConvLabo,color:'#3B82F6'},
+                      {label:'→ Imagerie',n:kpi.withImagerie,pct:kpi.txConvImagerie,color:'#6366F1'},
+                      {label:'→ Facturées',n:kpi.withFacturation,pct:kpi.txConvFacturation,color:'var(--green)'},
+                    ].map((s,i)=>(
+                      <div key={s.label} style={{flex:1,padding:'16px',borderLeft:i>0?'1px solid var(--border)':'none',textAlign:'center'}}>
+                        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:s.color,lineHeight:1}}>{s.n}</div>
+                        <div style={{fontSize:'10px',letterSpacing:'0.14em',textTransform:'uppercase',color:'var(--muted)',margin:'6px 0 4px'}}>{s.label}</div>
+                        {i>0&&<div style={{fontSize:'12px',fontWeight:500,color:s.pct>=50?'var(--green)':s.pct>=25?'var(--gold)':'var(--accent)'}}>{s.pct}%</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+                  {/* CA mensuel */}
+                  <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+                    <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'16px'}}>CA mensuel (12 derniers mois)</p>
+                    {medicoEco.monthlyCA.length===0&&<p style={{fontSize:'12px',color:'var(--muted)'}}>Aucune donnée</p>}
+                    <div style={{display:'flex',alignItems:'flex-end',gap:'4px',height:'80px'}}>
+                      {medicoEco.monthlyCA.map(m=>(
+                        <div key={m.month} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px'}}>
+                          <div style={{width:'100%',background:'var(--navy)',height:`${Math.round((m.ca/maxCA)*70)}px`,minHeight:'2px',transition:'height .3s'}}/>
+                          <span style={{fontSize:'8px',color:'var(--muted)',transform:'rotate(-45deg)',transformOrigin:'top left',whiteSpace:'nowrap'}}>{m.month.slice(5)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Productivité par jour */}
+                  <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+                    <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'16px'}}>Productivité par jour de semaine</p>
+                    {medicoEco.byDow.length===0&&<p style={{fontSize:'12px',color:'var(--muted)'}}>Aucune donnée</p>}
+                    <div style={{display:'flex',alignItems:'flex-end',gap:'4px',height:'80px'}}>
+                      {medicoEco.byDow.map(d=>(
+                        <div key={d.dow} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
+                          <div style={{width:'100%',background:'var(--gold)',height:`${Math.round((d.n/maxDow)*70)}px`,minHeight:'2px'}}/>
+                          <span style={{fontSize:'9px',color:'var(--muted)'}}>{DOW_LABELS[d.dow]}</span>
+                          <span style={{fontSize:'9px',color:'var(--charcoal)',fontWeight:500}}>{d.n}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px',marginBottom:'16px'}}>
+                  {/* Top actes */}
+                  <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+                    <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'12px'}}>Top 10 actes (CA)</p>
+                    {medicoEco.topActes.length===0&&<p style={{fontSize:'12px',color:'var(--muted)'}}>Aucun acte facturé</p>}
+                    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>
+                      {medicoEco.topActes.map((a,i)=>{
+                        const maxCA2=medicoEco.topActes[0]?.ca||1;
+                        return(
+                          <div key={a.codeActe||i} style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                            <span style={{fontSize:'10px',color:'var(--muted)',width:'16px',textAlign:'right'}}>{i+1}</span>
+                            <div style={{flex:1}}>
+                              <div style={{fontSize:'11px',fontWeight:500,color:'var(--charcoal)'}}>{a.libelleActe||a.codeActe||'—'}</div>
+                              <div style={{background:'var(--cream2)',height:'3px',marginTop:'2px',width:`${Math.round(a.ca/maxCA2*100)}%`,minWidth:'4px'}}/>
+                            </div>
+                            <span style={{fontSize:'10px',color:'var(--navy)',fontWeight:500,whiteSpace:'nowrap'}}>{fmt(a.ca)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Temps d'attente */}
+                  <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+                    <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'12px'}}>Temps d'attente moyen (minutes)</p>
+                    {Object.values(medicoEco.waitTimes).every(v=>v===null)&&<p style={{fontSize:'12px',color:'var(--muted)'}}>Activez le flow board pour mesurer les temps d'attente.</p>}
+                    {[
+                      {label:'Arrivée → check-in',v:medicoEco.waitTimes.arrivee},
+                      {label:'Check-in → triage',v:medicoEco.waitTimes.triage},
+                      {label:'Triage → en salle',v:medicoEco.waitTimes.salle},
+                      {label:'En salle → consultation',v:medicoEco.waitTimes.consultation},
+                      {label:'Durée consultation',v:medicoEco.waitTimes.dureeConsultation},
+                    ].filter(r=>r.v!==null).map(r=>(
+                      <div key={r.label} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
+                        <span style={{fontSize:'11px',color:'var(--charcoal)',fontWeight:300}}>{r.label}</span>
+                        <span style={{fontSize:'14px',fontFamily:"'Cormorant Garamond',serif",fontWeight:400,color:r.v>30?'var(--accent)':r.v>15?'var(--gold)':'var(--green)'}}>{r.v} min</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mix paiement */}
+                {medicoEco.byCaisse.length>0&&(
+                  <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+                    <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'12px'}}>Mix paiement par caisse</p>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:'8px'}}>
+                      {medicoEco.byCaisse.map(c=>(
+                        <div key={c.caisse} style={{background:'var(--cream)',border:'1px solid var(--border)',padding:'10px 16px',display:'flex',flexDirection:'column',gap:'4px'}}>
+                          <span style={{fontSize:'11px',fontWeight:500,color:'var(--navy)'}}>{c.caisse}</span>
+                          <span style={{fontSize:'10px',color:'var(--muted)'}}>{c.n} dossier(s)</span>
+                          <span style={{fontSize:'12px',fontWeight:500,color:'var(--charcoal)'}}>{fmt(c.montant)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── Module E — Perdus de vue ── */}
+      {tab==='perdus'&&(
+        <div>
+          {/* Filtre mois */}
+          <div style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'20px',flexWrap:'wrap'}}>
+            <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>Patients sans consultation depuis :</p>
+            {[3,6,12,18,24].map(m=>(
+              <button key={m} onClick={()=>setPerdusFiltre(m)}
+                style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',padding:'6px 14px',border:'1px solid var(--border)',background:perdusFiltre===m?'var(--navy)':'var(--white)',color:perdusFiltre===m?'var(--white)':'var(--muted)',cursor:'pointer',fontWeight:500}}>
+                {m} mois
+              </button>
+            ))}
+          </div>
+
+          {loading.perdus&&<div style={{fontSize:'12px',color:'var(--muted)',textAlign:'center',padding:'32px 0'}}>Analyse en cours…</div>}
+
+          {perdus&&(
+            <div>
+              {/* Summary */}
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px',marginBottom:'20px'}}>
+                <div style={{background:'var(--navy)',padding:'20px',borderLeft:'3px solid var(--accent)'}}>
+                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--gold)',lineHeight:1}}>{perdus.patients.length}</div>
+                  <div style={{fontSize:'10px',letterSpacing:'0.14em',textTransform:'uppercase',color:'rgba(250,250,248,0.6)',marginTop:'6px'}}>Patients perdus de vue</div>
+                  <div style={{fontSize:'10px',color:'rgba(250,250,248,0.4)',marginTop:'4px'}}>Sans consultation depuis &gt;{perdus.mois} mois</div>
+                </div>
+                <div style={{background:'var(--navy)',padding:'20px',borderLeft:'3px solid var(--gold)'}}>
+                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--gold)',lineHeight:1}}>
+                    {perdus.patients.length>0?Math.round(perdus.patients.reduce((s,p)=>s+p.jours_absence,0)/perdus.patients.length):0}j
+                  </div>
+                  <div style={{fontSize:'10px',letterSpacing:'0.14em',textTransform:'uppercase',color:'rgba(250,250,248,0.6)',marginTop:'6px'}}>Absence moyenne</div>
+                  <div style={{fontSize:'10px',color:'rgba(250,250,248,0.4)',marginTop:'4px'}}>en jours depuis dernière consultation</div>
+                </div>
+                <div style={{background:'var(--navy)',padding:'20px',borderLeft:'3px solid var(--green)'}}>
+                  <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'36px',fontWeight:300,color:'var(--gold)',lineHeight:1}}>{Object.keys(rappelFait).length}</div>
+                  <div style={{fontSize:'10px',letterSpacing:'0.14em',textTransform:'uppercase',color:'rgba(250,250,248,0.6)',marginTop:'6px'}}>Rappels envoyés</div>
+                  <div style={{fontSize:'10px',color:'rgba(250,250,248,0.4)',marginTop:'4px'}}>cette session</div>
+                </div>
+              </div>
+
+              {perdus.patients.length===0&&(
+                <div style={{textAlign:'center',padding:'48px 0',fontSize:'13px',color:'var(--muted)'}}>Aucun patient perdu de vue dans cette période. Bonne fidélisation ! 🎉</div>
+              )}
+
+              {/* Patient list */}
+              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                {perdus.patients.map(p=>{
+                  const absence=p.jours_absence;
+                  const urgence=absence>365?'var(--accent)':absence>180?'var(--gold)':'var(--green)';
+                  const nom=`${p.prenom} ${p.nom}`;
+                  return(
+                    <div key={p.id} style={{background:'var(--white)',border:'1px solid var(--border)',borderLeft:`3px solid ${urgence}`,padding:'14px 18px',display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap'}}>
+                      <div style={{flex:1,minWidth:'160px'}}>
+                        <div style={{fontWeight:500,color:'var(--charcoal)',fontSize:'14px'}}>{nom}</div>
+                        <div style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'2px'}}>
+                          {p.age?`${p.age} ans · `:''}{p.telephone||p.email||'—'}
+                        </div>
+                        {p.pathologies.length>0&&<div style={{fontSize:'10px',color:'var(--navy)',marginTop:'4px'}}>{p.pathologies.join(' · ')}</div>}
+                      </div>
+                      <div style={{textAlign:'right',minWidth:'100px'}}>
+                        <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:300,color:urgence,lineHeight:1}}>{absence}j</div>
+                        <div style={{fontSize:'9px',color:'var(--muted)',letterSpacing:'0.1em',textTransform:'uppercase'}}>sans suivi</div>
+                        {p.derniere_consult&&<div style={{fontSize:'10px',color:'var(--muted)',marginTop:'2px'}}>Dernier : {new Date(p.derniere_consult).toLocaleDateString('fr-FR')}</div>}
+                      </div>
+                      <div style={{display:'flex',flexDirection:'column',gap:'6px',alignItems:'flex-end'}}>
+                        {rappelFait[p.id]?(
+                          <span style={{fontSize:'11px',color:'var(--green)',fontWeight:500}}>✓ {rappelFait[p.id]}</span>
+                        ):(
+                          <button onClick={()=>sendRappel(p.id,nom)} disabled={rappelEnCours===p.id}
+                            style={{fontSize:'10px',letterSpacing:'0.12em',textTransform:'uppercase',padding:'8px 14px',background:'var(--navy)',color:'var(--white)',border:'none',cursor:rappelEnCours===p.id?'wait':'pointer',fontWeight:500}}>
+                            {rappelEnCours===p.id?'…':'🔔 Rappel'}
+                          </button>
+                        )}
+                        {onViewPatient&&<button onClick={()=>onViewPatient(p.id)} style={{fontSize:'10px',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--gold)',background:'none',border:'none',cursor:'pointer'}}>Dossier →</button>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -3509,17 +4882,85 @@ function ProfilePage({user,onUpdate}){
   const [pwSaving,setPwSaving]=useState(false);
   const [msg,setMsg]=useState('');
   const [pwMsg,setPwMsg]=useState('');
+  const [dispTab,setDispTab]=useState('profil');
+  const [plages,setPlages]=useState({lun:{actif:true,debut:'08:00',fin:'18:00'},mar:{actif:true,debut:'08:00',fin:'18:00'},mer:{actif:true,debut:'08:00',fin:'13:00'},jeu:{actif:true,debut:'08:00',fin:'18:00'},ven:{actif:true,debut:'08:00',fin:'17:00'},sam:{actif:false,debut:'08:00',fin:'12:00'},dim:{actif:false,debut:'08:00',fin:'12:00'}});
+  const [dureeRdv,setDureeRdv]=useState(30);
+  const [dispSaving,setDispSaving]=useState(false);
+  const [dispMsg,setDispMsg]=useState('');
 
-  useEffect(()=>{api.get('/auth/me').then(u=>{if(u?.id)setForm({nom:u.nom||'',prenom:u.prenom||'',rpps:u.rpps||'',specialite:u.specialite||'',telephone:u.telephone||'',adresse:u.adresse||'',photo:u.photo||''});});},[]);
+  useEffect(()=>{
+    api.get('/auth/me').then(u=>{if(u?.id)setForm({nom:u.nom||'',prenom:u.prenom||'',rpps:u.rpps||'',specialite:u.specialite||'',telephone:u.telephone||'',adresse:u.adresse||'',photo:u.photo||''});});
+    api.get('/profile/disponibilites').then(d=>{if(d.plages)setPlages(d.plages);if(d.duree_rdv)setDureeRdv(d.duree_rdv);}).catch(()=>{});
+  },[]);
 
   const saveProfile=async()=>{setSaving(true);const u=await api.put('/auth/profile',form);setSaving(false);if(u.id){setMsg('Profil mis à jour ✓');onUpdate(u);setTimeout(()=>setMsg(''),3000);}};
   const savePw=async()=>{if(pwForm.next!==pwForm.confirm){setPwMsg('Les mots de passe ne correspondent pas');return;}setPwSaving(true);const r=await api.put('/auth/password',{current:pwForm.current,next:pwForm.next});setPwSaving(false);if(r.ok){setPwMsg('Mot de passe mis à jour ✓');setPwForm({current:'',next:'',confirm:''});setTimeout(()=>setPwMsg(''),3000);}else setPwMsg(r.error||'Erreur');};
+  const saveDisp=async()=>{setDispSaving(true);await api.put('/profile/disponibilites',{plages,duree_rdv:dureeRdv});setDispSaving(false);setDispMsg('Planning mis à jour ✓');setTimeout(()=>setDispMsg(''),3000);};
   const set=k=>e=>setForm(f=>({...f,[k]:e.target.value}));
   const setPw=k=>e=>setPwForm(f=>({...f,[k]:e.target.value}));
+  const DOW_LABELS={lun:'Lundi',mar:'Mardi',mer:'Mercredi',jeu:'Jeudi',ven:'Vendredi',sam:'Samedi',dim:'Dimanche'};
 
   return(
     <Page title="Mon profil" subtitle="Gérez vos informations et votre accès">
-      <div className="max-w-2xl space-y-6">
+      {/* Profile sub-tabs */}
+      <div style={{display:'flex',borderBottom:'1px solid var(--border)',marginBottom:'24px'}}>
+        {[['profil','Mon profil'],['disponibilites','Planning & RDV']].map(([k,l])=>(
+          <button key={k} onClick={()=>setDispTab(k)}
+            style={{padding:'10px 20px',fontSize:'11px',fontWeight:500,letterSpacing:'0.12em',textTransform:'uppercase',background:'none',border:'none',borderBottom:dispTab===k?'2px solid var(--gold)':'2px solid transparent',color:dispTab===k?'var(--navy)':'var(--muted)',cursor:'pointer',marginBottom:'-1px'}}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {/* Disponibilités tab */}
+      {dispTab==='disponibilites'&&(
+        <div style={{maxWidth:'600px'}}>
+          <div style={{marginBottom:'20px',background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'12px 16px',fontSize:'12px',color:'var(--navy)'}}>
+            Configurez vos plages de consultation. Ces horaires seront utilisés pour la prise de RDV en ligne par vos patients via le portail.
+          </div>
+
+          <div style={{marginBottom:'20px'}}>
+            <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'10px'}}>Durée d'un rendez-vous</label>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+              {[15,20,30,45,60].map(d=>(
+                <button key={d} onClick={()=>setDureeRdv(d)}
+                  style={{padding:'8px 18px',fontSize:'13px',border:'1px solid',borderColor:dureeRdv===d?'var(--navy)':'var(--border)',background:dureeRdv===d?'var(--navy)':'var(--white)',color:dureeRdv===d?'var(--white)':'var(--charcoal)',cursor:'pointer',fontWeight:dureeRdv===d?500:300}}>
+                  {d} min
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'20px'}}>
+            <div style={{display:'grid',gridTemplateColumns:'90px 60px 1fr 16px 1fr',gap:'8px',alignItems:'center',padding:'0 0 6px',borderBottom:'1px solid var(--border)'}}>
+              <span style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>Jour</span>
+              <span style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>Ouvert</span>
+              <span style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>Début</span>
+              <span/>
+              <span style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500}}>Fin</span>
+            </div>
+            {Object.entries(DOW_LABELS).map(([key,label])=>(
+              <div key={key} style={{display:'grid',gridTemplateColumns:'90px 60px 1fr 16px 1fr',gap:'8px',alignItems:'center',padding:'6px 0',opacity:plages[key]?.actif?1:0.45}}>
+                <span style={{fontSize:'13px',fontWeight:plages[key]?.actif?500:300,color:'var(--charcoal)'}}>{label}</span>
+                <input type="checkbox" checked={!!plages[key]?.actif} onChange={e=>setPlages(p=>({...p,[key]:{...p[key],actif:e.target.checked}}))}
+                  style={{width:'16px',height:'16px',accentColor:'var(--navy)',cursor:'pointer'}}/>
+                <input type="time" value={plages[key]?.debut||'08:00'} disabled={!plages[key]?.actif}
+                  onChange={e=>setPlages(p=>({...p,[key]:{...p[key],debut:e.target.value}}))}
+                  style={{border:'1px solid var(--border)',padding:'7px 10px',fontSize:'13px',outline:'none',background:plages[key]?.actif?'var(--white)':'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}/>
+                <span style={{textAlign:'center',color:'var(--muted)',fontSize:'12px'}}>→</span>
+                <input type="time" value={plages[key]?.fin||'18:00'} disabled={!plages[key]?.actif}
+                  onChange={e=>setPlages(p=>({...p,[key]:{...p[key],fin:e.target.value}}))}
+                  style={{border:'1px solid var(--border)',padding:'7px 10px',fontSize:'13px',outline:'none',background:plages[key]?.actif?'var(--white)':'var(--cream)',fontFamily:"'DM Sans',sans-serif",fontWeight:300}}/>
+              </div>
+            ))}
+          </div>
+
+          {dispMsg&&<div style={{marginBottom:'12px',fontSize:'12px',color:'var(--green)',fontWeight:500}}>{dispMsg}</div>}
+          <Btn variant="primary" onClick={saveDisp} loading={dispSaving}>Sauvegarder le planning</Btn>
+        </div>
+      )}
+
+      {dispTab==='profil'&&<div className="max-w-2xl space-y-6">
         {/* Avatar header */}
         <div style={{background:'var(--navy)',padding:'32px 36px',display:'flex',alignItems:'center',gap:'24px',position:'relative',overflow:'hidden'}}>
           <div style={{position:'absolute',bottom:0,left:0,width:'56px',height:'2px',background:'var(--gold)'}}/>
@@ -3568,7 +5009,7 @@ function ProfilePage({user,onUpdate}){
             <Btn variant="primary" onClick={savePw} loading={pwSaving} icon={Ic.Key}>Changer le mot de passe</Btn>
           </div>
         </div>
-      </div>
+      </div>}
     </Page>
   );
 }
@@ -5424,6 +6865,11 @@ function App(){
     if(page==='audit')return<AuditLog/>;
     if(page==='honoraires')return<HonorairesPage/>;
     if(page==='facturation')return<FacturationPage/>;
+    if(page==='hospitalisations')return<HospitalisationsPage/>;
+    if(page==='teleconsultations')return<TeleconsultationsPage/>;
+    if(page==='portail')return<PortailAdminPage/>;
+    if(page==='multisite')return<MultiSitePage/>;
+    if(page==='tous-patients')return<TousPatientsPage/>;
     return<Dashboard onNav={nav} user={user}/>;
   };
 
