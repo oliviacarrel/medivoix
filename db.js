@@ -1054,4 +1054,30 @@ try { db.exec("ALTER TABLE nomenclature ADD COLUMN tarif_cnamgs REAL"); } catch(
 try { db.exec("ALTER TABLE nomenclature ADD COLUMN tarif_ascoma REAL"); } catch(e) {}
 try { db.exec("ALTER TABLE nomenclature ADD COLUMN nomenclature_cnamgs TEXT"); } catch(e) {}
 
+// ── Historique consultations CDL (import Excel) ────────────────────────────────
+db.exec(`
+  CREATE TABLE IF NOT EXISTS consultations_history (
+    id                 TEXT PRIMARY KEY,
+    code_consultation  TEXT UNIQUE,
+    patient_nom        TEXT,
+    date_naissance     TEXT,
+    date_consultation  TEXT,
+    medecin            TEXT,
+    montant            REAL DEFAULT 0,
+    montant_paye       REAL DEFAULT 0,
+    reste_a_payer      REAL DEFAULT 0,
+    convention         TEXT,
+    assurance          TEXT,
+    diagnostic         TEXT,
+    cree_par           TEXT,
+    categorie          TEXT,
+    num_ss             TEXT,
+    imported_at        TEXT DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_ch_date      ON consultations_history(date_consultation);
+  CREATE INDEX IF NOT EXISTS idx_ch_assurance ON consultations_history(assurance);
+  CREATE INDEX IF NOT EXISTS idx_ch_medecin   ON consultations_history(medecin);
+  CREATE INDEX IF NOT EXISTS idx_ch_num_ss    ON consultations_history(num_ss);
+`);
+
 export default db;

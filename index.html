@@ -348,6 +348,8 @@ const Ic={
   Key:        p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>,
   Phone:      p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>,
   Database:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3" strokeWidth={1.8}/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M21 12c0 1.657-4.03 3-9 3s-9-1.343-9-3"/><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 5v14c0 1.657 4.03 3 9 3s9-1.343 9-3V5"/></svg>,
+  TrendUp:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>,
+  Wallet:     p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 10h18M7 15h1m4 0h1m-7 4h14a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>,
 };
 
 /* ── Badge ── */
@@ -378,6 +380,7 @@ function Sidebar({page,onNav,user,onLogout}){
     {id:'agenda',label:'Agenda',Icon:Ic.Calendar},
     {id:'flowboard',label:'Circulation',Icon:Ic.Flow},
     {id:'analytics',label:'Analytiques',Icon:Ic.BarChart},
+    {id:'finances',label:'Finances CDL',Icon:Ic.Wallet},
     {id:'intelligence',label:'Intelligence IA',Icon:Ic.Brain},
     {id:'honoraires',label:'Honoraires',Icon:Ic.Money},
     {id:'facturation',label:'Facturation',Icon:Ic.ClipList},
@@ -4211,6 +4214,350 @@ function RiskPatientCard({p,onView}){
   );
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// FINANCES CDL — Tableau de bord financier historique (Jan–Mars 2026)
+// ══════════════════════════════════════════════════════════════════════════════
+function FinancesPage(){
+  const [data,setData]=useState(null);
+  const [impayes,setImpayes]=useState([]);
+  const [tab,setTab]=useState('overview');
+  const [loading,setLoading]=useState(true);
+  const [cnamgsActe,setCnamgsActe]=useState('C');
+  const [cnamgsAff,setCnamgsAff]=useState('courante');
+  const [cnamgsResult,setCnamgsResult]=useState(null);
+
+  useEffect(()=>{
+    Promise.all([
+      api.get('/api/finances/stats'),
+      api.get('/api/finances/impayes'),
+    ]).then(([s,imp])=>{setData(s);setImpayes(imp);setLoading(false);});
+  },[]);
+
+  const calcCNAMGS=async()=>{
+    const r=await api.get(`/api/cnamgs/calcul?acte=${cnamgsActe}&affection=${cnamgsAff}`);
+    setCnamgsResult(r);
+  };
+
+  const fmt=n=>n!=null?Math.round(n).toLocaleString('fr-FR')+' FCFA':'—';
+  const fmtK=n=>n!=null?(Math.round(n/1000)).toLocaleString('fr-FR')+' K':'—';
+  const pct=n=>n!=null?n+'%':'—';
+
+  const TABS=[
+    {id:'overview',label:'Vue générale'},
+    {id:'medecins',label:'Par médecin'},
+    {id:'assurances',label:'Par assurance'},
+    {id:'diagnostics',label:'Diagnostics'},
+    {id:'cnamgs',label:'Moteur CNAMGS'},
+  ];
+
+  const BarH=({label,value,max,color='var(--navy)',sub})=>{
+    const pctW=max>0?Math.max((value/max)*100,1):0;
+    return(
+      <div style={{marginBottom:'10px'}}>
+        <div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}>
+          <span style={{fontSize:'11px',color:'var(--charcoal)',fontWeight:400,maxWidth:'60%',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{label}</span>
+          <span style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>{sub||fmtK(value)}</span>
+        </div>
+        <div style={{height:'6px',background:'var(--cream2)',borderRadius:'3px',overflow:'hidden'}}>
+          <div style={{height:'100%',width:`${pctW}%`,background:color,borderRadius:'3px',transition:'width .5s ease'}}/>
+        </div>
+      </div>
+    );
+  };
+
+  const KpiCard=({label,value,sub,accent})=>(
+    <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px 18px',position:'relative',overflow:'hidden'}}>
+      <div style={{position:'absolute',top:0,left:0,width:'3px',height:'100%',background:accent||'var(--navy)'}}/>
+      <div style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',lineHeight:1,letterSpacing:'-0.02em',marginBottom:'6px'}}>{value}</div>
+      <div style={{fontSize:'10px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--charcoal)',marginBottom:'2px'}}>{label}</div>
+      {sub&&<div style={{fontSize:'9px',color:'var(--muted)',letterSpacing:'0.08em'}}>{sub}</div>}
+    </div>
+  );
+
+  if(loading)return<div style={{padding:'48px',textAlign:'center',color:'var(--muted)'}}>Chargement des données financières…</div>;
+  if(!data)return<div style={{padding:'48px',textAlign:'center',color:'var(--muted)'}}>Données indisponibles</div>;
+
+  const g=data.global||{};
+  const maxCA=(data.byMedecin||[]).reduce((m,r)=>Math.max(m,r.ca_total||0),1);
+  const maxCAA=(data.byAssurance||[]).reduce((m,r)=>Math.max(m,r.ca_total||0),1);
+
+  return(
+    <div style={{padding:'32px',maxWidth:'1100px',margin:'0 auto'}}>
+      {/* En-tête */}
+      <div style={{marginBottom:'28px'}}>
+        <h1 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',letterSpacing:'-0.01em',marginBottom:'4px'}}>Finances CDL</h1>
+        <p style={{fontSize:'11px',color:'var(--muted)',letterSpacing:'0.1em',textTransform:'uppercase'}}>Données réelles · Janvier–Mars 2026 · {g.total_consultations?.toLocaleString('fr-FR')} consultations</p>
+      </div>
+
+      {/* KPIs */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'16px',marginBottom:'28px'}}>
+        <KpiCard label="Chiffre d'affaires" value={g.ca_total?Math.round(g.ca_total/1000000)+'M FCFA':'—'} sub="Jan–Mars 2026" accent="var(--navy)"/>
+        <KpiCard label="Encaissé" value={g.ca_paye?Math.round(g.ca_paye/1000000)+'M FCFA':'—'} sub={`Taux : ${pct(g.taux_recouvrement)}`} accent="var(--green)"/>
+        <KpiCard label="Créances impayées" value={g.reste_total?Math.round(g.reste_total/1000000)+'M FCFA':'—'} sub={`${((g.reste_total||0)/(g.ca_total||1)*100).toFixed(0)}% du CA`} accent="var(--accent)"/>
+        <KpiCard label="Ticket moyen" value={g.montant_moyen?Math.round(g.montant_moyen).toLocaleString('fr-FR')+' F':'—'} sub={`${g.nb_medecins} médecins · ${g.nb_patients_uniq?.toLocaleString('fr-FR')} patients`} accent="var(--gold)"/>
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:'flex',gap:'4px',marginBottom:'24px',borderBottom:'1px solid var(--border)',paddingBottom:'0'}}>
+        {TABS.map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{padding:'8px 16px',fontSize:'11px',fontWeight:tab===t.id?600:400,letterSpacing:'0.08em',textTransform:'uppercase',color:tab===t.id?'var(--navy)':'var(--muted)',background:'none',border:'none',borderBottom:tab===t.id?'2px solid var(--navy)':'2px solid transparent',cursor:'pointer',whiteSpace:'nowrap',marginBottom:'-1px'}}>{t.label}</button>
+        ))}
+      </div>
+
+      {/* ── Tab : Vue générale ── */}
+      {tab==='overview'&&(
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
+          {/* Évolution mensuelle */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'16px'}}>Évolution mensuelle</h3>
+            {(data.byMonth||[]).map(m=>{
+              const maxM=Math.max(...(data.byMonth||[]).map(x=>x.ca_total||0),1);
+              return(
+                <div key={m.mois} style={{marginBottom:'14px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:'4px'}}>
+                    <span style={{fontSize:'12px',color:'var(--charcoal)',fontWeight:500}}>{m.mois}</span>
+                    <span style={{fontSize:'11px',color:'var(--muted)'}}>{m.consultations} consult · Recouvrement {pct(m.taux_recouvrement)}</span>
+                  </div>
+                  <div style={{height:'8px',background:'var(--cream2)',borderRadius:'4px',overflow:'hidden',position:'relative'}}>
+                    <div style={{position:'absolute',top:0,left:0,height:'100%',width:`${(m.ca_total/maxM*100).toFixed(1)}%`,background:'var(--navy)',borderRadius:'4px'}}/>
+                    <div style={{position:'absolute',top:0,left:0,height:'100%',width:`${(m.ca_paye/maxM*100).toFixed(1)}%`,background:'var(--green)',borderRadius:'4px',opacity:0.7}}/>
+                  </div>
+                  <div style={{display:'flex',gap:'12px',marginTop:'4px'}}>
+                    <span style={{fontSize:'9px',color:'var(--navy)',fontWeight:600}}>CA : {fmtK(m.ca_total)}</span>
+                    <span style={{fontSize:'9px',color:'var(--green)',fontWeight:600}}>Payé : {fmtK(m.ca_paye)}</span>
+                    <span style={{fontSize:'9px',color:'var(--accent)',fontWeight:600}}>Reste : {fmtK(m.reste)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Distribution montants */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'16px'}}>Distribution des tarifs</h3>
+            {(data.distMontants||[]).map(d=>{
+              const maxN=Math.max(...(data.distMontants||[]).map(x=>x.n),1);
+              return<BarH key={d.tranche} label={d.tranche+' FCFA'} value={d.n} max={maxN} sub={d.n+' actes'} color="var(--gold)"/>;
+            })}
+          </div>
+
+          {/* Impayés top 10 */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px',gridColumn:'span 2'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--accent)',marginBottom:'16px'}}>Créances impayées — Top conventions</h3>
+            <div style={{overflowX:'auto'}}>
+              <table style={{width:'100%',borderCollapse:'collapse',fontSize:'11px'}}>
+                <thead><tr style={{borderBottom:'1px solid var(--border)'}}>
+                  {['Assurance','Convention','Dossiers','Montant total','Payé','Reste','Taux'].map(h=><th key={h} style={{padding:'6px 8px',textAlign:'left',fontSize:'9px',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500}}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {(impayes||[]).slice(0,12).map((r,i)=>(
+                    <tr key={i} style={{borderBottom:'1px solid var(--border)',background:i%2===0?'var(--cream)':'var(--white)'}}>
+                      <td style={{padding:'7px 8px',fontWeight:500,color:'var(--navy)'}}>{r.assurance}</td>
+                      <td style={{padding:'7px 8px',color:'var(--charcoal)',maxWidth:'200px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{r.convention}</td>
+                      <td style={{padding:'7px 8px',textAlign:'center'}}>{r.nb_dossiers}</td>
+                      <td style={{padding:'7px 8px',textAlign:'right'}}>{fmtK(r.montant_total)}</td>
+                      <td style={{padding:'7px 8px',textAlign:'right',color:'var(--green)'}}>{fmtK(r.montant_paye)}</td>
+                      <td style={{padding:'7px 8px',textAlign:'right',color:'var(--accent)',fontWeight:600}}>{fmtK(r.reste)}</td>
+                      <td style={{padding:'7px 8px',textAlign:'center'}}><span style={{padding:'2px 8px',background:r.taux>=80?'#e8f5ee':r.taux>=50?'#fdf6ee':'#f7e2ea',color:r.taux>=80?'#1a6b3a':r.taux>=50?'#8a5220':'#8a3a55',fontSize:'10px',fontWeight:600}}>{pct(r.taux)}</span></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab : Par médecin ── */}
+      {tab==='medecins'&&(
+        <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+          <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'20px'}}>CA & recouvrement par médecin</h3>
+          {(data.byMedecin||[]).map((m,i)=>(
+            <div key={i} style={{marginBottom:'12px',paddingBottom:'12px',borderBottom:'1px solid var(--border)'}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:'5px'}}>
+                <span style={{fontSize:'12px',color:'var(--navy)',fontWeight:500}}>{m.medecin}</span>
+                <div style={{display:'flex',gap:'16px'}}>
+                  <span style={{fontSize:'10px',color:'var(--muted)'}}>{m.consultations} consult</span>
+                  <span style={{fontSize:'10px',color:'var(--navy)',fontWeight:600}}>{fmtK(m.ca_total)}</span>
+                  <span style={{fontSize:'10px',color:m.taux_recouvrement>=70?'var(--green)':'var(--accent)',fontWeight:600}}>{pct(m.taux_recouvrement)}</span>
+                </div>
+              </div>
+              <div style={{height:'6px',background:'var(--cream2)',borderRadius:'3px',overflow:'hidden'}}>
+                <div style={{height:'100%',width:`${(m.ca_total/maxCA*100).toFixed(1)}%`,background:'var(--navy)',borderRadius:'3px'}}/>
+              </div>
+              <div style={{height:'3px',background:'var(--cream2)',borderRadius:'3px',overflow:'hidden',marginTop:'2px'}}>
+                <div style={{height:'100%',width:`${m.taux_recouvrement||0}%`,background:'var(--green)',borderRadius:'3px'}}/>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Tab : Par assurance ── */}
+      {tab==='assurances'&&(
+        <div style={{display:'grid',gridTemplateColumns:'1.4fr 1fr',gap:'24px'}}>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'20px'}}>CA par assurance</h3>
+            {(data.byAssurance||[]).map((a,i)=><BarH key={i} label={a.assurance} value={a.ca_total} max={maxCAA} color={a.assurance==='Aucune'?'var(--muted)':a.assurance==='CNAMGS'?'var(--navy)':a.assurance==='ASCOMA'?'var(--gold)':'var(--green)'}/>)}
+          </div>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'20px'}}>Taux de recouvrement</h3>
+            {(data.byAssurance||[]).map((a,i)=>(
+              <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'6px 0',borderBottom:'1px solid var(--border)'}}>
+                <span style={{fontSize:'11px',color:'var(--charcoal)'}}>{a.assurance}</span>
+                <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+                  <span style={{fontSize:'10px',color:'var(--muted)'}}>{a.consultations} actes</span>
+                  <span style={{padding:'2px 10px',background:a.taux_recouvrement>=80?'#e8f5ee':a.taux_recouvrement>=50?'#fdf6ee':'#f7e2ea',color:a.taux_recouvrement>=80?'#1a6b3a':a.taux_recouvrement>=50?'#8a5220':'#8a3a55',fontSize:'10px',fontWeight:600,minWidth:'44px',textAlign:'center'}}>{pct(a.taux_recouvrement)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab : Diagnostics ── */}
+      {tab==='diagnostics'&&(
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'4px'}}>Top 30 diagnostics</h3>
+            <p style={{fontSize:'9px',color:'var(--muted)',marginBottom:'16px',letterSpacing:'0.08em',textTransform:'uppercase'}}>Jan–Mars 2026 · Données réelles CDL</p>
+            {(data.topDiags||[]).map((d,i)=>{
+              const maxOcc=(data.topDiags||[]).reduce((m,x)=>Math.max(m,x.occurrences),1);
+              return(
+                <div key={i} style={{marginBottom:'8px'}}>
+                  <div style={{display:'flex',justifyContent:'space-between',marginBottom:'3px'}}>
+                    <span style={{fontSize:'11px',color:'var(--charcoal)',textTransform:'capitalize',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',paddingRight:'8px'}}>{d.diagnostic}</span>
+                    <span style={{fontSize:'10px',color:'var(--muted)',whiteSpace:'nowrap'}}>{d.occurrences} cas · {d.pct}%</span>
+                  </div>
+                  <div style={{height:'5px',background:'var(--cream2)',borderRadius:'3px'}}>
+                    <div style={{height:'100%',width:`${(d.occurrences/maxOcc*100).toFixed(1)}%`,background:i<3?'var(--accent)':i<10?'var(--gold)':'var(--navy)',borderRadius:'3px',opacity:0.75}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'16px'}}>Épidémiologie CDL 2026</h3>
+            <div style={{padding:'14px',background:'var(--cream)',marginBottom:'16px'}}>
+              <p style={{fontSize:'12px',color:'var(--navy)',fontWeight:500,marginBottom:'8px'}}>Pathologies dominantes</p>
+              {[
+                {label:'Paludisme (toutes formes)',n:240,color:'var(--accent)'},
+                {label:'Pathologies ORL (angine, rhinite…)',n:160,color:'var(--gold)'},
+                {label:'Obstétrique (grossesse, CPN)',n:80,color:'var(--green)'},
+                {label:'Gastro-entérologie (gastrite, RGO)',n:55,color:'var(--navy)'},
+                {label:'Maladies chroniques (HTA, DT2)',n:41,color:'#6a3a9a'},
+                {label:'IST / Gynécologie',n:35,color:'#d48a9a'},
+              ].map((item,i)=>(
+                <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'4px 0',borderBottom:'1px solid var(--border)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <span style={{width:'8px',height:'8px',borderRadius:'50%',background:item.color,display:'inline-block'}}/>
+                    <span style={{fontSize:'11px',color:'var(--charcoal)'}}>{item.label}</span>
+                  </div>
+                  <span style={{fontSize:'11px',fontWeight:600,color:item.color}}>{item.n} cas</span>
+                </div>
+              ))}
+            </div>
+            <div style={{padding:'14px',background:'#fff8ed',border:'1px solid #c89050'}}>
+              <p style={{fontSize:'10px',fontWeight:600,color:'#8a5220',letterSpacing:'0.08em',textTransform:'uppercase',marginBottom:'6px'}}>Insight CNAMGS</p>
+              <p style={{fontSize:'11px',color:'#8a5220',lineHeight:1.6}}>56% des consultations sont des patients assurés (CNAMGS · ASCOMA · tiers payeurs). Taux de recouvrement ASCOMA : plus élevé que CNAMGS.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Tab : Moteur CNAMGS ── */}
+      {tab==='cnamgs'&&(
+        <div style={{display:'grid',gridTemplateColumns:'360px 1fr',gap:'24px'}}>
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'16px'}}>Calculateur de remboursement</h3>
+            <p style={{fontSize:'11px',color:'var(--muted)',marginBottom:'16px',lineHeight:1.6}}>Nomenclature officielle Gabon 2011 — Secteur privé, jours ouvrables</p>
+            <div style={{marginBottom:'12px'}}>
+              <label style={{fontSize:'10px',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--charcoal)',fontWeight:500,display:'block',marginBottom:'6px'}}>Type d'acte</label>
+              <select value={cnamgsActe} onChange={e=>setCnamgsActe(e.target.value)} style={{width:'100%',padding:'8px 10px',border:'1px solid var(--border)',fontSize:'12px',background:'var(--white)',color:'var(--navy)'}}>
+                <option value="C">C — Consultation généraliste (15 000 F)</option>
+                <option value="Cs">Cs — Consultation spécialiste (20 000 F)</option>
+                <option value="CNPSY">CNPSY — Psychiatre (25 000 F)</option>
+                <option value="CPr">CPr — Professeur (25 000 F)</option>
+                <option value="C_DENT">C_DENT — Chirurgien-dentiste (11 000 F)</option>
+                <option value="SF">SF — Sage-femme (6 500 F)</option>
+                <option value="AMI">AMI — Infirmier d'État (4 250 F)</option>
+                <option value="HOSP">HOSP — Hospitalisation /jour (20 000 F)</option>
+                <option value="ACC">ACC — Forfait accouchement (60 000 F)</option>
+              </select>
+            </div>
+            <div style={{marginBottom:'16px'}}>
+              <label style={{fontSize:'10px',letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--charcoal)',fontWeight:500,display:'block',marginBottom:'6px'}}>Type d'affection</label>
+              <div style={{display:'flex',gap:'8px'}}>
+                {[{v:'courante',l:'Affection courante'},{v:'ald',l:'Longue durée (ALD)'},{v:'grossesse',l:'Grossesse déclarée'}].map(opt=>(
+                  <button key={opt.v} onClick={()=>setCnamgsAff(opt.v)} style={{flex:1,padding:'7px 4px',fontSize:'10px',background:cnamgsAff===opt.v?'var(--navy)':'var(--cream)',color:cnamgsAff===opt.v?'var(--white)':'var(--charcoal)',border:'1px solid var(--border)',cursor:'pointer',fontWeight:cnamgsAff===opt.v?600:400}}>{opt.l}</button>
+                ))}
+              </div>
+            </div>
+            <button onClick={calcCNAMGS} style={{width:'100%',padding:'10px',background:'var(--navy)',color:'var(--white)',border:'none',fontSize:'11px',letterSpacing:'0.1em',textTransform:'uppercase',fontWeight:600,cursor:'pointer'}}>Calculer →</button>
+
+            {cnamgsResult&&(
+              <div style={{marginTop:'20px',padding:'16px',background:'var(--cream)'}}>
+                <p style={{fontSize:'10px',fontWeight:700,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'12px'}}>{cnamgsResult.acte}</p>
+                {[
+                  {l:'Tarif privé CDL',v:fmt(cnamgsResult.tarif_prive),c:'var(--charcoal)'},
+                  {l:'Tarif conventionné CNAMGS',v:fmt(cnamgsResult.tarif_conventionne),c:'var(--navy)'},
+                  {l:'Prise en charge CNAMGS',v:fmt(cnamgsResult.cnamgs_part),c:'var(--green)',bold:true},
+                  {l:'Ticket modérateur assuré',v:fmt(cnamgsResult.ticket_moderateur),c:'var(--gold)'},
+                  {l:'Dépassement d\'honoraires',v:fmt(cnamgsResult.depassement_honoraires),c:'var(--accent)'},
+                  {l:'Total à la charge du patient',v:fmt(cnamgsResult.patient_total),c:'var(--accent)',bold:true},
+                ].map((row,i)=>(
+                  <div key={i} style={{display:'flex',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid var(--border)'}}>
+                    <span style={{fontSize:'11px',color:'var(--charcoal)'}}>{row.l}</span>
+                    <span style={{fontSize:'11px',fontWeight:row.bold?700:500,color:row.c}}>{row.v}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Tableau de référence CNAMGS */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'24px'}}>
+            <h3 style={{fontSize:'11px',fontWeight:600,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--navy)',marginBottom:'4px'}}>Tarifs conventionnés — Secteur privé</h3>
+            <p style={{fontSize:'9px',color:'var(--muted)',marginBottom:'16px',letterSpacing:'0.08em',textTransform:'uppercase'}}>Annexe 3 · Nomenclature officielle Gabon 2011 · Hôpitaux privés · Jours ouvrables</p>
+            <table style={{width:'100%',borderCollapse:'collapse',fontSize:'11px'}}>
+              <thead><tr style={{background:'var(--navy)'}}>
+                {['Acte','Libellé','Tarif privé','Conv. CNAMGS','CNAMGS 80%','Ticket 20%','Dépassement'].map(h=><th key={h} style={{padding:'8px 10px',textAlign:'left',color:'var(--white)',fontSize:'9px',letterSpacing:'0.1em',textTransform:'uppercase',fontWeight:500}}>{h}</th>)}
+              </tr></thead>
+              <tbody>
+                {[
+                  {acte:'C',l:'Généraliste',p:15000,c:7500},
+                  {acte:'Cs',l:'Spécialiste',p:20000,c:10000},
+                  {acte:'CNPSY',l:'Psychiatre',p:25000,c:12000},
+                  {acte:'CPr',l:'Professeur',p:25000,c:12000},
+                  {acte:'C_DENT',l:'Dentiste',p:11000,c:7500},
+                  {acte:'SF',l:'Sage-femme',p:6500,c:4200},
+                  {acte:'AMI',l:'Infirmier',p:4250,c:3500},
+                  {acte:'HOSP',l:'Hospitalisation/j',p:20000,c:20000},
+                  {acte:'REA',l:'Réanimation/j',p:60000,c:60000},
+                  {acte:'ACC',l:'Accouchement',p:60000,c:60000},
+                ].map((r,i)=>(
+                  <tr key={i} style={{borderBottom:'1px solid var(--border)',background:i%2===0?'var(--cream)':'var(--white)'}}>
+                    <td style={{padding:'7px 10px',fontWeight:700,color:'var(--navy)',fontFamily:"'Cormorant Garamond',serif",fontSize:'13px'}}>{r.acte}</td>
+                    <td style={{padding:'7px 10px',color:'var(--charcoal)'}}>{r.l}</td>
+                    <td style={{padding:'7px 10px',textAlign:'right',fontWeight:600}}>{r.p.toLocaleString('fr-FR')} F</td>
+                    <td style={{padding:'7px 10px',textAlign:'right',color:'var(--navy)',fontWeight:600}}>{r.c.toLocaleString('fr-FR')} F</td>
+                    <td style={{padding:'7px 10px',textAlign:'right',color:'var(--green)',fontWeight:600}}>{Math.round(r.c*0.8).toLocaleString('fr-FR')} F</td>
+                    <td style={{padding:'7px 10px',textAlign:'right',color:'var(--gold)',fontWeight:600}}>{Math.round(r.c*0.2).toLocaleString('fr-FR')} F</td>
+                    <td style={{padding:'7px 10px',textAlign:'right',color:'var(--accent)',fontWeight:600}}>{Math.max(0,r.p-r.c).toLocaleString('fr-FR')} F</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div style={{marginTop:'16px',padding:'12px',background:'#fff8ed',border:'1px solid #c89050',fontSize:'11px',color:'#8a5220',lineHeight:1.6}}>
+              <strong>Lettres-clés pour actes techniques (Annexe 1) :</strong> B (biologie) = 125 F/point · KC (chirurgie spé) = 1 300 F · KE (échographie) = 1 200 F · Z (radio ionisante) = 1 000 F · ZN (nucléaire) = 1 100 F · D (dentaire) = 1 100 F
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function IntelligencePage({onViewPatient}){
   const [tab,setTab]=useState('epidemio');
   const [epidemio,setEpidemio]=useState(MOCK_EPIDEMIO);
@@ -6858,6 +7205,7 @@ function App(){
     if(page==='edit-patient')return<PatientForm patientId={params.patientId} onSave={()=>nav('patient/'+params.patientId)} onBack={()=>nav('patient/'+params.patientId)}/>;
     if(page==='consultation')return<ConsultationScreen consultationId={params.consultationId} patientId={params.patientId} onBack={()=>nav('patient/'+params.patientId)}/>;
     if(page==='analytics')return<AnalyticsPage/>;
+    if(page==='finances')return<FinancesPage/>;
     if(page==='intelligence')return<IntelligencePage onViewPatient={id=>{setParams(p=>({...p,patientId:id}));nav('patient/'+id);}}/>;
     if(page==='agenda')return<AgendaPage/>;
     if(page==='flowboard')return<FlowBoardPage/>;

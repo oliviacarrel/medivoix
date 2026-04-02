@@ -2853,6 +2853,207 @@ app.get('/fhir/metadata', (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// FINANCES CDL — Historique consultations importé
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Lettres-clés Nomenclature officielle Gabon 2011 (Annexe 1, p.172)
+const LETTRES_CLES = {
+  K:   { valeur: 1200, desc: 'Chirurgie — médecin généraliste' },
+  KC:  { valeur: 1300, desc: 'Chirurgie — médecin spécialiste' },
+  KE:  { valeur: 1200, desc: 'Échographie, Doppler — spécialiste' },
+  B:   { valeur: 125,  desc: 'Biologie médicale' },
+  Z:   { valeur: 1000, desc: 'Radiodiagnostic ionisant' },
+  ZN:  { valeur: 1100, desc: 'Radiologie non ionisante / nucléaire' },
+  P:   { valeur: 150,  desc: 'Anatomie-cytologie pathologique' },
+  PRO: { valeur: 800,  desc: 'Prothèses' },
+  SF:  { valeur: 900,  desc: 'Actes sage-femme' },
+  SFI: { valeur: 700,  desc: 'Actes infirmiers sage-femme' },
+  AIS: { valeur: 600,  desc: 'Actes infirmiers — diagnostic infirmier' },
+  AMI: { valeur: 900,  desc: 'Actes infirmiers prescrits par médecin' },
+  AMK: { valeur: 900,  desc: 'Kinésithérapeute' },
+  AMP: { valeur: 900,  desc: 'Puéricultrice' },
+  AMO: { valeur: 900,  desc: 'Orthophoniste' },
+  AMY: { valeur: 900,  desc: 'Orthoptiste' },
+  AMS: { valeur: 900,  desc: 'Masseur' },
+  D:   { valeur: 1100, desc: 'Actes dentaires' },
+};
+
+// Tarifs conventionnés CNAMGS — Secteur privé, jours ouvrables (Annexe 3, p.176)
+const TARIFS_CONV_PRIVES = {
+  'C':     { tarif_prive: 15000, tarif_conv: 7500,  libelle: 'Consultation généraliste' },
+  'CPSYC': { tarif_prive: 15000, tarif_conv: 7500,  libelle: 'Psychologue clinicien' },
+  'Cs':    { tarif_prive: 20000, tarif_conv: 10000, libelle: 'Consultation spécialiste' },
+  'CNPSY': { tarif_prive: 25000, tarif_conv: 12000, libelle: 'Psychiatre / neuropsychiatre' },
+  'CPr':   { tarif_prive: 25000, tarif_conv: 12000, libelle: 'Professeur' },
+  'C_DENT':{ tarif_prive: 11000, tarif_conv: 7500,  libelle: 'Chirurgien-dentiste' },
+  'SF':    { tarif_prive: 6500,  tarif_conv: 4200,  libelle: 'Sage-femme' },
+  'AMI':   { tarif_prive: 4250,  tarif_conv: 3500,  libelle: 'Infirmier d\'État' },
+  'CDt':   { tarif_prive: 4250,  tarif_conv: 3500,  libelle: 'Diététicien' },
+  'HOSP':  { tarif_prive: 20000, tarif_conv: 20000, libelle: 'Journée d\'hospitalisation' },
+  'REA':   { tarif_prive: 60000, tarif_conv: 60000, libelle: 'Journée réanimation' },
+  'ACC':   { tarif_prive: 60000, tarif_conv: 60000, libelle: 'Forfait accouchement' },
+};
+
+// Calcul remboursement CNAMGS selon type d'affection
+function calcCNAMGS(typeActe, typeAffection = 'courante', prixFacture = null) {
+  const t = TARIFS_CONV_PRIVES[typeActe];
+  if (!t) return null;
+  const taux = typeAffection === 'ald' ? 0.9 : typeAffection === 'grossesse' ? 1.0 : 0.8;
+  const base = t.tarif_conv;
+  const cnamgsPart    = Math.round(base * taux);
+  const ticketMod     = Math.round(base * (1 - taux));
+  const depassement   = Math.max(0, (prixFacture || t.tarif_prive) - base);
+  const patientTotal  = ticketMod + depassement;
+  return {
+    acte: t.libelle, type_affection: typeAffection,
+    tarif_prive: prixFacture || t.tarif_prive,
+    tarif_conventionne: base,
+    cnamgs_part: cnamgsPart,
+    ticket_moderateur: ticketMod,
+    depassement_honoraires: depassement,
+    patient_total: patientTotal,
+  };
+}
+
+// GET /api/cnamgs/tarifs — Référentiel des tarifs conventionnés
+app.get('/api/cnamgs/tarifs', auth, (req, res) => {
+  res.json({ tarifs: TARIFS_CONV_PRIVES, lettres_cles: LETTRES_CLES });
+});
+
+// GET /api/cnamgs/calcul?acte=C&affection=courante&prix=15000
+app.get('/api/cnamgs/calcul', auth, (req, res) => {
+  const { acte = 'C', affection = 'courante', prix } = req.query;
+  const result = calcCNAMGS(acte, affection, prix ? parseFloat(prix) : null);
+  if (!result) return res.status(404).json({ error: 'Acte inconnu' });
+  res.json(result);
+});
+
+// GET /api/finances/stats — KPIs globaux de l'historique CDL
+app.get('/api/finances/stats', auth, (req, res) => {
+  const global = db.prepare(`
+    SELECT
+      COUNT(*)                                                       AS total_consultations,
+      SUM(montant)                                                   AS ca_total,
+      SUM(montant_paye)                                              AS ca_paye,
+      SUM(reste_a_payer)                                             AS reste_total,
+      ROUND(SUM(montant_paye)*100.0 / NULLIF(SUM(montant),0), 1)    AS taux_recouvrement,
+      COUNT(DISTINCT medecin)                                        AS nb_medecins,
+      COUNT(DISTINCT patient_nom)                                    AS nb_patients_uniq,
+      ROUND(AVG(montant), 0)                                         AS montant_moyen
+    FROM consultations_history
+  `).get();
+
+  const byMonth = db.prepare(`
+    SELECT
+      strftime('%Y-%m', date_consultation)                           AS mois,
+      COUNT(*)                                                       AS consultations,
+      SUM(montant)                                                   AS ca_total,
+      SUM(montant_paye)                                              AS ca_paye,
+      SUM(reste_a_payer)                                             AS reste,
+      ROUND(SUM(montant_paye)*100.0 / NULLIF(SUM(montant),0), 1)    AS taux_recouvrement
+    FROM consultations_history
+    WHERE date_consultation IS NOT NULL
+    GROUP BY mois ORDER BY mois
+  `).all();
+
+  const byAssurance = db.prepare(`
+    SELECT
+      assurance,
+      COUNT(*)                                                       AS consultations,
+      SUM(montant)                                                   AS ca_total,
+      SUM(montant_paye)                                              AS ca_paye,
+      SUM(reste_a_payer)                                             AS reste,
+      ROUND(SUM(montant_paye)*100.0 / NULLIF(SUM(montant),0), 1)    AS taux_recouvrement
+    FROM consultations_history
+    WHERE assurance IS NOT NULL
+    GROUP BY assurance ORDER BY ca_total DESC LIMIT 20
+  `).all();
+
+  const byMedecin = db.prepare(`
+    SELECT
+      medecin,
+      COUNT(*)                                                       AS consultations,
+      SUM(montant)                                                   AS ca_total,
+      SUM(montant_paye)                                              AS ca_paye,
+      ROUND(SUM(montant_paye)*100.0 / NULLIF(SUM(montant),0), 1)    AS taux_recouvrement
+    FROM consultations_history
+    WHERE medecin IS NOT NULL
+    GROUP BY medecin ORDER BY ca_total DESC LIMIT 20
+  `).all();
+
+  const topDiags = db.prepare(`
+    SELECT
+      diagnostic,
+      COUNT(*)                                                       AS occurrences,
+      ROUND(COUNT(*)*100.0 / (SELECT COUNT(*) FROM consultations_history WHERE diagnostic IS NOT NULL), 1) AS pct
+    FROM consultations_history
+    WHERE diagnostic IS NOT NULL AND trim(diagnostic) != ''
+    GROUP BY lower(trim(diagnostic)) ORDER BY occurrences DESC LIMIT 30
+  `).all();
+
+  const distMontants = db.prepare(`
+    SELECT
+      CASE
+        WHEN montant < 10000  THEN '< 10 000'
+        WHEN montant < 15000  THEN '10 000–15 000'
+        WHEN montant = 15000  THEN '15 000'
+        WHEN montant < 20000  THEN '15 000–20 000'
+        WHEN montant = 20000  THEN '20 000'
+        WHEN montant < 25000  THEN '20 000–25 000'
+        WHEN montant = 25000  THEN '25 000'
+        WHEN montant < 30000  THEN '25 000–30 000'
+        WHEN montant = 30000  THEN '30 000'
+        ELSE '> 30 000'
+      END AS tranche,
+      COUNT(*) AS n
+    FROM consultations_history WHERE montant > 0
+    GROUP BY tranche ORDER BY MIN(montant)
+  `).all();
+
+  res.json({ global, byMonth, byAssurance, byMedecin, topDiags, distMontants });
+});
+
+// GET /api/finances/impayés — Tableau des créances par assurance
+app.get('/api/finances/impayes', auth, (req, res) => {
+  const rows = db.prepare(`
+    SELECT
+      assurance,
+      convention,
+      COUNT(*)                   AS nb_dossiers,
+      SUM(montant)               AS montant_total,
+      SUM(montant_paye)          AS montant_paye,
+      SUM(reste_a_payer)         AS reste,
+      ROUND(SUM(montant_paye)*100.0 / NULLIF(SUM(montant),0), 1) AS taux
+    FROM consultations_history
+    WHERE reste_a_payer > 0
+    GROUP BY assurance, convention ORDER BY reste DESC LIMIT 50
+  `).all();
+  res.json(rows);
+});
+
+// GET /api/nomenclature/officielle?q=fracture — Recherche actes nomenclature 2011
+// (codes MAL F00xxx avec lettre-clé et coefficient)
+// La nomenclature PDF est importée dans la table nomenclature via import-nomenclature.mjs
+// On redirige vers la recherche nomenclature existante enrichie du calcul KC
+app.get('/api/nomenclature/officielle', auth, (req, res) => {
+  const { q = '', categorie } = req.query;
+  const search = `%${q}%`;
+  let query = `SELECT code, libelle, categorie, montant_base, tarif_cnamgs, tarif_ascoma, nomenclature_cnamgs
+               FROM nomenclature WHERE libelle LIKE ? `;
+  const params = [search];
+  if (categorie) { query += ' AND categorie = ?'; params.push(categorie); }
+  query += ' ORDER BY libelle LIMIT 50';
+  const rows = db.prepare(query).all(...params);
+  // Enrichit avec calcul CNAMGS si tarif_cnamgs dispo
+  const enriched = rows.map(r => ({
+    ...r,
+    cnamgs_80pct: r.tarif_cnamgs ? Math.round(r.tarif_cnamgs * 0.8) : null,
+    cnamgs_90pct: r.tarif_cnamgs ? Math.round(r.tarif_cnamgs * 0.9) : null,
+  }));
+  res.json(enriched);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -2896,6 +3097,14 @@ app.post('/api/admin/backup', auth, async (req, res) => {
     console.log(`ℹ️  Nomenclature incomplète (${nomCount} actes) — import tarification CDL…`);
     const { runNomenclatureImport } = await import('./import-nomenclature.mjs');
     await runNomenclatureImport();
+  }
+
+  // Import historique consultations CDL (13 441 lignes avec montants)
+  const histCount = db.prepare('SELECT COUNT(*) as n FROM consultations_history').get().n;
+  if (histCount < 100) {
+    console.log(`ℹ️  Historique vide (${histCount} lignes) — import consultations CDL 2026…`);
+    const { runHistoryImport } = await import('./import-history.mjs');
+    await runHistoryImport();
   }
 
   app.listen(PORT, () => {
