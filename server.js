@@ -1642,6 +1642,302 @@ app.get('/api/patients/:id/dossier-status', auth, (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 3 — PHASE 3.1 : NOMENCLATURE & LIGNES FACTURABLES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/nomenclature', auth, (req, res) => {
+  const q = req.query.q ? `%${req.query.q}%` : null;
+  const rows = q
+    ? db.prepare("SELECT * FROM nomenclature WHERE libelle LIKE ? OR code LIKE ? OR categorie LIKE ? ORDER BY categorie,libelle").all(q, q, q)
+    : db.prepare("SELECT * FROM nomenclature ORDER BY categorie,libelle").all();
+  res.json(rows);
+});
+
+// Auto-generate billable lines from a validated consultation
+app.post('/api/consultations/:id/auto-facturation', auth, (req, res) => {
+  const c = db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
+  if (!c) return res.status(404).json({ error: 'Consultation introuvable' });
+  const patient = db.prepare('SELECT * FROM patients WHERE id=?').get(c.patientId);
+  const dr = db.prepare('SELECT specialite FROM users WHERE id=?').get(c.userId);
+  const note = c.noteJson ? (() => { try { return JSON.parse(decrypt(c.noteJson)); } catch { return null; } })() : null;
+
+  // Determine base consultation code
+  const isSpec = dr?.specialite && !['Médecine générale','Généraliste'].includes(dr.specialite);
+  const baseCode = isSpec ? 'CS' : 'C';
+  const baseNom = db.prepare('SELECT * FROM nomenclature WHERE code=?').get(baseCode);
+
+  const created = [];
+  const existingCodes = db.prepare('SELECT codeActe FROM lignes_facturables WHERE consultationId=?').all(c.id).map(r => r.codeActe);
+
+  const addLine = (code, libelle, montant, source = 'auto') => {
+    if (existingCodes.includes(code)) return;
+    const id = randomUUID();
+    db.prepare('INSERT INTO lignes_facturables (id,consultationId,patientId,userId,codeActe,libelleActe,montant,source) VALUES (?,?,?,?,?,?,?,?)')
+      .run(id, c.id, c.patientId, req.user.id, code, libelle, montant, source);
+    created.push({ id, code, libelle, montant, source });
+  };
+
+  // Add base consultation line
+  addLine(baseCode, baseNom?.libelle || 'Consultation', baseNom?.montant_base || 15000);
+
+  // Scan note for acts keywords → suggest codes
+  if (note) {
+    const text = JSON.stringify(note).toLowerCase();
+    const keywords = [
+      { kw: ['suture','point','plaie'], code: 'PC1', libelle: 'Suture simple', montant: 10000 },
+      { kw: ['pansement'], code: 'S1', libelle: 'Pansement simple', montant: 3000 },
+      { kw: ['injection','im','iv'], code: 'I1', libelle: 'Injection intramusculaire', montant: 2000 },
+      { kw: ['perfusion'], code: 'I3', libelle: 'Pose de perfusion', montant: 5000 },
+      { kw: ['ecg','électrocardiogramme'], code: 'ECG', libelle: 'ECG 12 dérivations', montant: 12000 },
+      { kw: ['radio','radiographie','rx'], code: 'RX1', libelle: 'Radiographie', montant: 20000 },
+      { kw: ['échographie','echo','echographie'], code: 'ECH1', libelle: 'Échographie', montant: 35000 },
+      { kw: ['nfs','numération','formule'], code: 'NFS', libelle: 'Numération formule sanguine', montant: 8000 },
+      { kw: ['glycémie','glycemie','gluc'], code: 'GLY', libelle: 'Glycémie à jeun', montant: 3000 },
+      { kw: ['paludisme','malaria','ge '], code: 'GE', libelle: 'GE / TDR paludisme', montant: 5000 },
+      { kw: ['vih','hiv'], code: 'VIH', libelle: 'Test VIH', montant: 5000 },
+      { kw: ['vaccination','vaccin'], code: 'VAC', libelle: 'Vaccination', montant: 3000 },
+      { kw: ['spiromét','spirometrie','efr'], code: 'SPI', libelle: 'Spirométrie', montant: 15000 },
+      { kw: ['accouchement'], code: 'ACC', libelle: 'Accouchement', montant: 80000 },
+      { kw: ['cpn','prénatale','prenatal'], code: 'CPN', libelle: 'Consultation prénatale', montant: 15000 },
+    ];
+    for (const { kw, code, libelle, montant } of keywords) {
+      if (kw.some(k => text.includes(k))) addLine(code, libelle, montant);
+    }
+  }
+
+  // Add ordres médicaux linked to this consultation as suggestions
+  const ordres = db.prepare("SELECT * FROM ordres_medicaux WHERE consultationId=? AND statut IN ('valide','rendu')").all(c.id);
+  for (const o of ordres) {
+    const cat = o.type === 'labo' ? 'Biologie' : 'Imagerie';
+    const items = JSON.parse(o.catalogue || '[]');
+    const label = items.slice(0,3).join(', ') + (items.length > 3 ? '…' : '');
+    addLine(null, `[${cat}] ${label}`, 0, 'ordre');
+  }
+
+  audit(req, 'AUTO_FACTURATION', 'consultation', c.id, `${created.length} lignes créées`);
+  res.json({ created, total: created.length });
+});
+
+app.get('/api/lignes-facturables', auth, (req, res) => {
+  const { statut, patientId } = req.query;
+  let sql = `SELECT lf.*, p.nom, p.prenom, p.typeAssurance, p.numAssurance,
+               c.date as consultDate, c.motif
+             FROM lignes_facturables lf
+             JOIN patients p ON p.id = lf.patientId
+             LEFT JOIN consultations c ON c.id = lf.consultationId
+             WHERE lf.userId = ?`;
+  const args = [req.user.id];
+  if (statut) { sql += ' AND lf.statut = ?'; args.push(statut); }
+  if (patientId) { sql += ' AND lf.patientId = ?'; args.push(patientId); }
+  sql += ' ORDER BY lf.createdAt DESC LIMIT 200';
+  res.json(db.prepare(sql).all(...args));
+});
+
+app.get('/api/patients/:id/lignes-facturables', auth, (req, res) => {
+  res.json(db.prepare(`SELECT lf.*, c.date as consultDate, c.motif FROM lignes_facturables lf LEFT JOIN consultations c ON c.id=lf.consultationId WHERE lf.patientId=? ORDER BY lf.createdAt DESC`).all(req.params.id));
+});
+
+app.get('/api/consultations/:id/lignes-facturables', auth, (req, res) => {
+  res.json(db.prepare('SELECT * FROM lignes_facturables WHERE consultationId=? ORDER BY createdAt ASC').all(req.params.id));
+});
+
+app.post('/api/lignes-facturables', auth, (req, res) => {
+  const { consultationId, patientId, codeActe, libelleActe, montant, quantite, notes } = req.body;
+  if (!patientId || !libelleActe) return res.status(400).json({ error: 'patientId et libelleActe requis' });
+  const id = randomUUID();
+  db.prepare('INSERT INTO lignes_facturables (id,consultationId,patientId,userId,codeActe,libelleActe,montant,quantite,notes,source) VALUES (?,?,?,?,?,?,?,?,?,?)')
+    .run(id, consultationId||null, patientId, req.user.id, codeActe||null, libelleActe, montant||0, quantite||1, notes||'', 'manuel');
+  audit(req, 'CREATE_LIGNE', 'ligne_facturable', id);
+  res.json(db.prepare('SELECT * FROM lignes_facturables WHERE id=?').get(id));
+});
+
+app.put('/api/lignes-facturables/:id', auth, (req, res) => {
+  const { codeActe, libelleActe, montant, quantite, statut, notes } = req.body;
+  db.prepare(`UPDATE lignes_facturables SET codeActe=COALESCE(?,codeActe),libelleActe=COALESCE(?,libelleActe),montant=COALESCE(?,montant),quantite=COALESCE(?,quantite),statut=COALESCE(?,statut),notes=COALESCE(?,notes),updatedAt=datetime('now') WHERE id=? AND userId=?`)
+    .run(codeActe, libelleActe, montant, quantite, statut, notes, req.params.id, req.user.id);
+  audit(req, 'UPDATE_LIGNE', 'ligne_facturable', req.params.id, `statut=${statut}`);
+  res.json(db.prepare('SELECT * FROM lignes_facturables WHERE id=?').get(req.params.id));
+});
+
+app.delete('/api/lignes-facturables/:id', auth, (req, res) => {
+  db.prepare('DELETE FROM lignes_facturables WHERE id=? AND userId=?').run(req.params.id, req.user.id);
+  res.json({ ok: true });
+});
+
+// Facturation alerts: non-billed acts, blocking files
+app.get('/api/facturation/alertes', auth, (req, res) => {
+  const uid = req.user.id;
+  // Validated consultations with no billable lines
+  const nonFactures = db.prepare(`
+    SELECT c.id, c.date, c.motif, p.nom, p.prenom, p.typeAssurance
+    FROM consultations c
+    JOIN patients p ON p.id = c.patientId
+    WHERE c.userId=? AND c.statut='validee'
+      AND NOT EXISTS (SELECT 1 FROM lignes_facturables lf WHERE lf.consultationId=c.id)
+    ORDER BY c.date DESC LIMIT 30
+  `).all(uid);
+
+  // Lignes non facturées older than 7 days
+  const enRetard = db.prepare(`
+    SELECT lf.*, p.nom, p.prenom FROM lignes_facturables lf JOIN patients p ON p.id=lf.patientId
+    WHERE lf.userId=? AND lf.statut='non_facture'
+      AND lf.createdAt < datetime('now','-7 days')
+    ORDER BY lf.createdAt ASC LIMIT 30
+  `).all(uid);
+
+  // Patients with missing assurance info but have billable lines
+  const assuranceManquante = db.prepare(`
+    SELECT DISTINCT p.id, p.nom, p.prenom, p.typeAssurance, p.numAssurance
+    FROM lignes_facturables lf JOIN patients p ON p.id=lf.patientId
+    WHERE lf.userId=? AND (p.typeAssurance IS NULL OR p.typeAssurance='' OR p.numAssurance IS NULL OR p.numAssurance='')
+    LIMIT 20
+  `).all(uid);
+
+  // Rejected dossiers needing action
+  const rejets = db.prepare(`
+    SELECT da.*, p.nom, p.prenom FROM dossiers_assurance da JOIN patients p ON p.id=da.patientId
+    WHERE da.userId=? AND da.statut='rejete' AND (da.actionCorrective IS NULL OR da.actionCorrective='')
+    ORDER BY da.createdAt DESC LIMIT 20
+  `).all(uid);
+
+  res.json({ nonFactures, enRetard, assuranceManquante, rejets });
+});
+
+// Facturation dashboard
+app.get('/api/facturation/dashboard', auth, (req, res) => {
+  const uid = req.user.id;
+  const now = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+  const byStatut = db.prepare(`SELECT statut, COUNT(*) as n, COALESCE(SUM(montant*quantite),0) as total FROM lignes_facturables WHERE userId=? GROUP BY statut`).all(uid);
+  const byCaisse = db.prepare(`SELECT da.caisse, da.statut, COUNT(*) as n, COALESCE(SUM(da.montantDemande),0) as demande, COALESCE(SUM(da.montantAccorde),0) as accorde FROM dossiers_assurance da WHERE da.userId=? GROUP BY da.caisse, da.statut`).all(uid);
+
+  // Délai moyen acte→facture (non_facture→facture) in days
+  const delaiMoyen = db.prepare(`
+    SELECT AVG(CAST((julianday(updatedAt) - julianday(createdAt)) AS REAL)) as jours
+    FROM lignes_facturables WHERE userId=? AND statut IN ('facture','encaisse')
+  `).get(uid);
+
+  // Monthly totals last 6 months
+  const monthly = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(); d.setMonth(d.getMonth() - i);
+    const ym = d.toISOString().slice(0, 7);
+    const row = db.prepare(`SELECT COALESCE(SUM(montant*quantite),0) as t FROM lignes_facturables WHERE userId=? AND statut IN ('facture','encaisse') AND strftime('%Y-%m',updatedAt)=?`).get(uid, ym);
+    monthly.push({ mois: ym, total: row.t });
+  }
+
+  const dossiers = {
+    constitution: db.prepare("SELECT COUNT(*) as n FROM dossiers_assurance WHERE userId=? AND statut='constitution'").get(uid).n,
+    soumis: db.prepare("SELECT COUNT(*) as n FROM dossiers_assurance WHERE userId=? AND statut='soumis'").get(uid).n,
+    accepte: db.prepare("SELECT COUNT(*) as n FROM dossiers_assurance WHERE userId=? AND statut='accepte'").get(uid).n,
+    rejete: db.prepare("SELECT COUNT(*) as n FROM dossiers_assurance WHERE userId=? AND statut='rejete'").get(uid).n,
+    paye: db.prepare("SELECT COUNT(*) as n FROM dossiers_assurance WHERE userId=? AND statut='paye'").get(uid).n,
+  };
+
+  res.json({ byStatut, byCaisse, delaiMoyen: delaiMoyen?.jours || null, monthly, dossiers });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 3 — PHASE 3.2 : WORKFLOW ASSURANCES
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.post('/api/dossiers-assurance', auth, (req, res) => {
+  const { patientId, caisse, montantDemande, consultationIds, pieces, notes } = req.body;
+  if (!patientId || !caisse) return res.status(400).json({ error: 'patientId et caisse requis' });
+  const id = randomUUID();
+  db.prepare('INSERT INTO dossiers_assurance (id,patientId,userId,caisse,montantDemande,consultationIds,pieces,notes) VALUES (?,?,?,?,?,?,?,?)')
+    .run(id, patientId, req.user.id, caisse, montantDemande||0, JSON.stringify(consultationIds||[]), JSON.stringify(pieces||[]), notes||'');
+  audit(req, 'CREATE_DOSSIER_ASSURANCE', 'dossier_assurance', id, `caisse=${caisse}`);
+  res.json(db.prepare('SELECT * FROM dossiers_assurance WHERE id=?').get(id));
+});
+
+app.get('/api/dossiers-assurance', auth, (req, res) => {
+  const { statut, caisse } = req.query;
+  let sql = `SELECT da.*, p.nom, p.prenom, p.typeAssurance, p.numAssurance FROM dossiers_assurance da JOIN patients p ON p.id=da.patientId WHERE da.userId=?`;
+  const args = [req.user.id];
+  if (statut) { sql += ' AND da.statut=?'; args.push(statut); }
+  if (caisse) { sql += ' AND da.caisse=?'; args.push(caisse); }
+  sql += ' ORDER BY da.createdAt DESC';
+  res.json(db.prepare(sql).all(...args).map(d => ({ ...d, pieces: JSON.parse(d.pieces||'[]'), consultationIds: JSON.parse(d.consultationIds||'[]') })));
+});
+
+app.get('/api/patients/:id/dossiers-assurance', auth, (req, res) => {
+  const rows = db.prepare('SELECT * FROM dossiers_assurance WHERE patientId=? ORDER BY createdAt DESC').all(req.params.id);
+  res.json(rows.map(d => ({ ...d, pieces: JSON.parse(d.pieces||'[]'), consultationIds: JSON.parse(d.consultationIds||'[]') })));
+});
+
+app.put('/api/dossiers-assurance/:id', auth, (req, res) => {
+  const { statut, reference, montantDemande, montantAccorde, motifRejet, actionCorrective, pieces, notes, dateSubmission, dateRetour, datePaiement } = req.body;
+  const now = new Date().toISOString();
+  const existing = db.prepare('SELECT * FROM dossiers_assurance WHERE id=? AND userId=?').get(req.params.id, req.user.id);
+  if (!existing) return res.status(404).json({ error: 'Dossier introuvable' });
+
+  const piecesJson = pieces !== undefined ? JSON.stringify(pieces) : existing.pieces;
+  db.prepare(`UPDATE dossiers_assurance SET
+    statut=COALESCE(?,statut), reference=COALESCE(?,reference), montantDemande=COALESCE(?,montantDemande),
+    montantAccorde=COALESCE(?,montantAccorde), motifRejet=COALESCE(?,motifRejet),
+    actionCorrective=COALESCE(?,actionCorrective), pieces=?, notes=COALESCE(?,notes),
+    dateSubmission=COALESCE(?,dateSubmission), dateRetour=COALESCE(?,dateRetour),
+    datePaiement=COALESCE(?,datePaiement), updatedAt=?
+    WHERE id=? AND userId=?`)
+    .run(statut, reference, montantDemande, montantAccorde, motifRejet, actionCorrective,
+      piecesJson, notes, dateSubmission, dateRetour, datePaiement, now, req.params.id, req.user.id);
+  audit(req, `DOSSIER_${(statut||'UPDATE').toUpperCase()}`, 'dossier_assurance', req.params.id);
+  const d = db.prepare('SELECT * FROM dossiers_assurance WHERE id=?').get(req.params.id);
+  res.json({ ...d, pieces: JSON.parse(d.pieces||'[]'), consultationIds: JSON.parse(d.consultationIds||'[]') });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SÉRIE 3 — PHASE 3.3 : MOTEUR DE COMPLÉTUDE
+// ═══════════════════════════════════════════════════════════════════════════════
+
+app.get('/api/consultations/:id/completude', auth, (req, res) => {
+  const c = db.prepare('SELECT * FROM consultations WHERE id=?').get(req.params.id);
+  if (!c) return res.status(404).json({ error: 'Consultation introuvable' });
+  const p = db.prepare('SELECT * FROM patients WHERE id=?').get(c.patientId);
+  const note = c.noteJson ? (() => { try { return JSON.parse(decrypt(c.noteJson)); } catch { return null; } })() : null;
+  const constantes = c.constantes ? (() => { try { return JSON.parse(c.constantes); } catch { return null; } })() : null;
+  const lignes = db.prepare('SELECT * FROM lignes_facturables WHERE consultationId=?').all(c.id);
+  const dossiers = db.prepare("SELECT * FROM dossiers_assurance WHERE patientId=? AND statut NOT IN ('rejete')", ).all(c.patientId);
+
+  const clinical = [
+    { key:'motif', label:'Motif documenté', ok:!!(c.motif?.trim()), blocking:true },
+    { key:'note', label:'Note clinique générée', ok:!!note, blocking:true },
+    { key:'note_validee', label:'Note validée par le médecin', ok:c.statut==='validee', blocking:true },
+    { key:'cim10', label:'Code CIM-10 renseigné', ok:!!(note?.cim10?.code), blocking:false },
+    { key:'constantes', label:'Constantes vitales enregistrées', ok:!!(constantes && Object.values(constantes).some(v=>v!==''&&v!=null)), blocking:false },
+    { key:'conduite', label:'Conduite à tenir documentée', ok:!!(note?.conduite?.trim()), blocking:false },
+  ];
+
+  const admin = [
+    { key:'identite', label:'Identité patient complète', ok:!!(p?.nom&&p?.prenom&&p?.dateNaissance), blocking:true },
+    { key:'contact', label:'Contact (tél ou email)', ok:!!(p?.telephone||p?.email), blocking:false },
+    { key:'assurance_type', label:'Type d\'assurance renseigné', ok:!!(p?.typeAssurance&&p?.typeAssurance.trim()), blocking:true },
+    { key:'assurance_num', label:'Numéro d\'assurance renseigné', ok:!!(p?.numAssurance&&p?.numAssurance.trim()), blocking:true },
+    { key:'groupe_sanguin', label:'Groupe sanguin', ok:!!(p?.groupe_sanguin), blocking:false },
+  ];
+
+  const facturation = [
+    { key:'lignes', label:'Ligne(s) facturable(s) créée(s)', ok:lignes.length>0, blocking:true },
+    { key:'montant', label:'Montant renseigné', ok:lignes.some(l=>l.montant>0), blocking:true },
+    { key:'code_acte', label:'Code acte (nomenclature)', ok:lignes.some(l=>l.codeActe), blocking:false },
+    { key:'non_facture', label:'Aucun acte en attente de facturation', ok:lignes.every(l=>l.statut!=='non_facture'), blocking:false },
+  ];
+
+  const encaissement = [
+    { key:'dossier_cree', label:'Dossier assurance constitué', ok:dossiers.length>0, blocking:!!(p?.typeAssurance&&p.typeAssurance!=='Aucune'&&p.typeAssurance!=='Particulier') },
+    { key:'dossier_soumis', label:'Dossier soumis à la caisse', ok:dossiers.some(d=>['soumis','en_attente','accepte','paye'].includes(d.statut)), blocking:false },
+    { key:'pas_rejet', label:'Aucun rejet en attente d\'action', ok:!db.prepare("SELECT 1 FROM dossiers_assurance WHERE patientId=? AND statut='rejete' AND (actionCorrective IS NULL OR actionCorrective='')").get(c.patientId), blocking:false },
+  ];
+
+  const allChecks = [...clinical, ...admin, ...facturation, ...encaissement];
+  const score = Math.round(allChecks.filter(c=>c.ok).length / allChecks.length * 100);
+  const blockers = allChecks.filter(c=>!c.ok&&c.blocking);
+
+  res.json({ score, blockers, clinical, admin, facturation, encaissement });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // START
 // ═══════════════════════════════════════════════════════════════════════════════
 

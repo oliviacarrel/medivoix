@@ -150,6 +150,107 @@ db.exec(`
   );
 `);
 
+// Série 3 — Facturation et complétude
+db.exec(`
+  CREATE TABLE IF NOT EXISTS nomenclature (
+    code        TEXT PRIMARY KEY,
+    libelle     TEXT NOT NULL,
+    categorie   TEXT,
+    montant_base REAL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS lignes_facturables (
+    id             TEXT PRIMARY KEY,
+    consultationId TEXT REFERENCES consultations(id),
+    patientId      TEXT NOT NULL REFERENCES patients(id),
+    userId         TEXT NOT NULL REFERENCES users(id),
+    codeActe       TEXT REFERENCES nomenclature(code),
+    libelleActe    TEXT NOT NULL,
+    montant        REAL DEFAULT 0,
+    quantite       INTEGER DEFAULT 1,
+    statut         TEXT DEFAULT 'non_facture',
+    source         TEXT DEFAULT 'manuel',
+    honoraireId    TEXT REFERENCES honoraires(id),
+    notes          TEXT,
+    createdAt      TEXT DEFAULT (datetime('now')),
+    updatedAt      TEXT DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS dossiers_assurance (
+    id              TEXT PRIMARY KEY,
+    patientId       TEXT NOT NULL REFERENCES patients(id),
+    userId          TEXT NOT NULL REFERENCES users(id),
+    caisse          TEXT NOT NULL,
+    reference       TEXT,
+    montantDemande  REAL DEFAULT 0,
+    montantAccorde  REAL,
+    statut          TEXT DEFAULT 'constitution',
+    dateSubmission  TEXT,
+    dateRetour      TEXT,
+    datePaiement    TEXT,
+    motifRejet      TEXT,
+    actionCorrective TEXT,
+    pieces          TEXT DEFAULT '[]',
+    consultationIds TEXT DEFAULT '[]',
+    notes           TEXT,
+    createdAt       TEXT DEFAULT (datetime('now')),
+    updatedAt       TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+// Seed nomenclature (CEMAC/Gabon)
+if (db.prepare('SELECT COUNT(*) as n FROM nomenclature').get().n === 0) {
+  const ins = db.prepare('INSERT INTO nomenclature (code,libelle,categorie,montant_base) VALUES (?,?,?,?)');
+  const actes = [
+    ['C','Consultation générale','Consultation',15000],
+    ['CS','Consultation spécialisée','Consultation',25000],
+    ['V','Visite à domicile','Consultation',20000],
+    ['CS-URG','Consultation urgence','Consultation',30000],
+    ['PC1','Suture simple (< 5 points)','Chirurgie ambulatoire',10000],
+    ['PC2','Suture complexe (≥ 5 points)','Chirurgie ambulatoire',18000],
+    ['PC3','Incision / drainage d\'abcès','Chirurgie ambulatoire',12000],
+    ['I1','Injection intramusculaire','Actes infirmiers',2000],
+    ['I2','Injection intraveineuse directe','Actes infirmiers',3000],
+    ['I3','Pose de perfusion','Actes infirmiers',5000],
+    ['PR','Prise de sang / prélèvement','Actes infirmiers',3000],
+    ['RX1','Radiographie pulmonaire','Imagerie',20000],
+    ['RX2','Radiographie osseuse / articulaire','Imagerie',18000],
+    ['ECH1','Échographie abdominale','Imagerie',35000],
+    ['ECH2','Échographie obstétricale','Imagerie',30000],
+    ['ECH3','Échographie cardiaque (ETT)','Imagerie',45000],
+    ['ECH4','Écho-Doppler vasculaire','Imagerie',40000],
+    ['ECG','Électrocardiogramme 12 dérivations','Imagerie',12000],
+    ['TDM1','Scanner cérébral','Imagerie',80000],
+    ['TDM2','Scanner thoracique','Imagerie',90000],
+    ['TDM3','Scanner abdomino-pelvien','Imagerie',90000],
+    ['NFS','Numération formule sanguine','Biologie',8000],
+    ['BHC','Bilan hépatique complet (ASAT/ALAT/bilirubine)','Biologie',25000],
+    ['GLY','Glycémie à jeun','Biologie',3000],
+    ['HBA1C','Hémoglobine glyquée (HbA1c)','Biologie',15000],
+    ['LIPID','Bilan lipidique complet','Biologie',18000],
+    ['CREAT','Créatinine / urée','Biologie',8000],
+    ['GE','Goutte épaisse / TDR paludisme','Biologie',5000],
+    ['ECBU','Examen cytobactériologique urinaire','Biologie',10000],
+    ['VIH','Dépistage VIH','Biologie',5000],
+    ['HBS','Sérologie hépatite B (Ag HBs)','Biologie',8000],
+    ['CRP','CRP quantitative','Biologie',5000],
+    ['IONO','Ionogramme sanguin','Biologie',12000],
+    ['TSH','Thyréostimuline (TSH)','Biologie',15000],
+    ['BHCG','β-HCG (grossesse)','Biologie',8000],
+    ['S1','Pansement simple','Soins',3000],
+    ['S2','Pansement complexe / brûlure','Soins',6000],
+    ['VAC','Acte de vaccination','Soins',3000],
+    ['SPI','Spirométrie (EFR)','Spécialisé',15000],
+    ['FO','Fond d\'œil','Spécialisé',20000],
+    ['EEG','Électroencéphalogramme','Spécialisé',30000],
+    ['ENDO','Endoscopie digestive','Spécialisé',60000],
+    ['ACC','Accouchement normal','Obstétrique',80000],
+    ['ACC-C','Accouchement par césarienne','Obstétrique',150000],
+    ['CPN','Consultation prénatale','Obstétrique',15000],
+  ];
+  actes.forEach(a => ins.run(...a));
+}
+
 // Honoraires & Tarifs
 db.exec(`
   CREATE TABLE IF NOT EXISTS tarifs (

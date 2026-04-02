@@ -336,6 +336,10 @@ const Ic={
   ClipList:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>,
   DoorOpen:   p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 21h18M9 21V5a2 2 0 012-2h4a2 2 0 012 2v16M9 10.5h.01M9 14h.01"/></svg>,
   ChevronDown:p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7"/></svg>,
+  Receipt:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/></svg>,
+  Folder:     p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>,
+  Percent:    p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19" strokeWidth={2} strokeLinecap="round"/><circle cx="6.5" cy="6.5" r="2.5" strokeWidth={1.8}/><circle cx="17.5" cy="17.5" r="2.5" strokeWidth={1.8}/></svg>,
+  Bolt:       p=><svg {...p} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>,
 };
 
 /* ── Badge ── */
@@ -367,6 +371,7 @@ function Sidebar({page,onNav,user,onLogout}){
     {id:'analytics',label:'Analytiques',Icon:Ic.BarChart},
     {id:'intelligence',label:'Intelligence IA',Icon:Ic.Brain},
     {id:'honoraires',label:'Honoraires',Icon:Ic.Money},
+    {id:'facturation',label:'Facturation',Icon:Ic.ClipList},
     {id:'profile',label:'Mon profil',Icon:Ic.User},
     {id:'audit',label:'Journal d\'audit',Icon:Ic.Shield},
   ];
@@ -2687,6 +2692,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                       ):(
                         <>
                           <Btn variant="secondary" icon={ttsLoad?null:Ic.Volume} onClick={()=>speak(noteEdit?.conseils_patient)} loading={ttsLoad} size="sm">Consignes</Btn>
+                          <Btn variant="secondary" icon={Ic.Receipt} onClick={async()=>{const r=await api.post(`/consultations/${consultationId}/auto-facturation`,{});alert(`${r.total} ligne(s) facturable(s) créée(s) automatiquement.`);}} size="sm">Auto-facturer</Btn>
                           <Btn variant="secondary" icon={Ic.FileText} onClick={()=>setDocModal(true)} size="sm">Documents</Btn>
                           <Btn variant="secondary" icon={Ic.Mail} onClick={()=>setEmailModal(true)} size="sm">Email</Btn>
                           <Btn variant="primary" icon={pdfLoad?null:Ic.Download} onClick={dlPdf} loading={pdfLoad} size="sm">PDF</Btn>
@@ -2702,6 +2708,7 @@ function ConsultationScreen({consultationId,patientId,onBack}){
                       <p style={{fontSize:'12px',color:'var(--navy)',fontFamily:"'DM Sans',sans-serif"}}>Proposition générée par IA — vérifiez et corrigez avant de valider.</p>
                     </div>
                   )}
+                  {validated&&<CompletudeBanner consultationId={consultationId}/>}
 
                   {noteEdit?.cim10?.code&&(
                     <div className="flex items-center gap-2 mb-4">
@@ -4479,6 +4486,595 @@ function FactureModal({consult,tarifs,onClose,onSave}){
   );
 }
 
+/* ══════════════════════════════════════════════════════════════
+   SÉRIE 3 — FACTURATION (Actes · Dossiers assurance · Dashboard)
+══════════════════════════════════════════════════════════════ */
+const CAISSES=['CNAMGS','CNSS','Saham Assurance','NSIA','Allianz','Particulier','Autre'];
+const DOSSIER_STATUTS={
+  constitution:{label:'En constitution',color:'gray'},
+  soumis:{label:'Soumis',color:'blue'},
+  en_attente:{label:'En attente',color:'amber'},
+  accepte:{label:'Accepté',color:'green'},
+  rejete:{label:'Rejeté',color:'red'},
+  paye:{label:'Payé',color:'teal'},
+};
+const CNAMGS_CHECKLIST=[
+  'Formulaire CNAMGS rempli et signé',
+  'Copie CNI ou passeport patient',
+  'Attestation d\'affiliation CNAMGS',
+  'Ordonnances originales (tampon médecin)',
+  'Résultats d\'examens de biologie (originaux)',
+  'Rapport médical / compte-rendu',
+  'Factures originales acquittées',
+  'Relevé de soins (tableau récapitulatif)',
+];
+const LIGNE_STATUT_COLOR={non_facture:'gray',facture:'blue',encaisse:'green',annule:'red'};
+const LIGNE_STATUT_LABEL={non_facture:'Non facturé',facture:'Facturé',encaisse:'Encaissé',annule:'Annulé'};
+
+function NomenclatureSearch({onSelect}){
+  const [q,setQ]=useState('');
+  const [results,setResults]=useState([]);
+  useEffect(()=>{
+    if(q.length>=2)api.get(`/nomenclature?q=${encodeURIComponent(q)}`).then(r=>setResults(r||[])).catch(()=>{});
+    else setResults([]);
+  },[q]);
+  return(
+    <div style={{position:'relative'}}>
+      <input value={q} onChange={e=>setQ(e.target.value)} placeholder="Rechercher code acte (ex: C, ECG, NFS…)"
+        style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+      {results.length>0&&(
+        <div style={{position:'absolute',zIndex:20,left:0,right:0,background:'var(--white)',border:'1px solid var(--border)',marginTop:'1px',boxShadow:'0 8px 24px rgba(0,0,0,0.1)',maxHeight:'200px',overflow:'auto'}}>
+          {results.map(n=>(
+            <button key={n.code} onClick={()=>{onSelect(n);setQ('');setResults([]);}}
+              className="data-row w-full text-left" style={{padding:'8px 14px',display:'flex',alignItems:'center',gap:'12px',background:'none',border:'none',cursor:'pointer'}}>
+              <span style={{fontSize:'10px',fontWeight:700,color:'var(--navy)',background:'var(--cream)',padding:'2px 8px',fontFamily:'monospace',flexShrink:0,minWidth:'60px',textAlign:'center'}}>{n.code}</span>
+              <div style={{flex:1,minWidth:0}}>
+                <p style={{fontSize:'12px',color:'var(--charcoal)',fontWeight:400}}>{n.libelle}</p>
+                <p style={{fontSize:'9px',color:'var(--muted)'}}>{n.categorie} · {fmtFCFA(n.montant_base)}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CompletudeBanner({consultationId}){
+  const [data,setData]=useState(null);
+  useEffect(()=>{
+    api.get(`/consultations/${consultationId}/completude`).then(setData).catch(()=>{});
+  },[consultationId]);
+  if(!data||data.score===100)return null;
+  const blockers=data.blockers||[];
+  return(
+    <div style={{background:blockers.length?'#fdf5f3':'var(--gold-pale)',border:`1px solid ${blockers.length?'rgba(180,60,40,0.3)':'rgba(184,147,90,0.3)'}`,borderLeft:`3px solid ${blockers.length?'var(--accent)':'var(--gold)'}`,padding:'10px 16px',marginBottom:'12px',display:'flex',alignItems:'flex-start',gap:'10px'}}>
+      <Ic.Bolt style={{width:'13px',height:'13px',color:blockers.length?'var(--accent)':'var(--gold)',flexShrink:0,marginTop:'2px'}}/>
+      <div style={{flex:1}}>
+        <p style={{fontSize:'11px',fontWeight:500,color:blockers.length?'var(--accent)':'var(--navy)',marginBottom:'4px'}}>
+          Complétude {data.score}% {blockers.length?`— ${blockers.length} point(s) bloquant(s)`:''}
+        </p>
+        {blockers.slice(0,3).map(b=>(
+          <p key={b.key} style={{fontSize:'10px',color:blockers.length?'#8a2a1a':'var(--charcoal)',fontWeight:300,marginBottom:'1px'}}>· {b.label}</p>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function FacturationPage(){
+  const [tab,setTab]=useState('actes');
+  const [lignes,setLignes]=useState([]);
+  const [dossiers,setDossiers]=useState([]);
+  const [alertes,setAlertes]=useState(null);
+  const [dashboard,setDashboard]=useState(null);
+  const [loading,setLoading]=useState(true);
+  // New ligne form
+  const [newLigne,setNewLigne]=useState({libelleActe:'',codeActe:'',montant:'',quantite:1,notes:''});
+  const [newLigneOpen,setNewLigneOpen]=useState(false);
+  const [patients,setPatients]=useState([]);
+  const [patSearch,setPatSearch]=useState('');
+  const [selPat,setSelPat]=useState(null);
+  // Dossier form
+  const [dossierModal,setDossierModal]=useState(null);
+  const [dossierForm,setDossierForm]=useState({caisse:'CNAMGS',montantDemande:'',pieces:[],notes:''});
+  const [dossierPatSearch,setDossierPatSearch]=useState('');
+  const [dossierSelPat,setDossierSelPat]=useState(null);
+  const [saving,setSaving]=useState(false);
+  const [filterStatut,setFilterStatut]=useState('');
+  const [filterCaisse,setFilterCaisse]=useState('');
+
+  const load=async()=>{
+    setLoading(true);
+    const [l,d,a,dash,pats]=await Promise.all([
+      api.get('/lignes-facturables'),
+      api.get('/dossiers-assurance'),
+      api.get('/facturation/alertes'),
+      api.get('/facturation/dashboard'),
+      api.get('/patients').then(r=>r.patients||r||[]),
+    ]);
+    setLignes(l||[]);setDossiers(d||[]);setAlertes(a||{});setDashboard(dash||{});setPatients(pats);setLoading(false);
+  };
+  useEffect(()=>{load();},[]);
+
+  const filtPats=q=>q.length>=2?patients.filter(p=>`${p.prenom} ${p.nom}`.toLowerCase().includes(q.toLowerCase())).slice(0,6):[];
+
+  const createLigne=async()=>{
+    if(!selPat||!newLigne.libelleActe)return;
+    setSaving(true);
+    const r=await api.post('/lignes-facturables',{...newLigne,patientId:selPat.id,montant:Number(newLigne.montant)||0});
+    setLignes(l=>[r,...l]);
+    setNewLigne({libelleActe:'',codeActe:'',montant:'',quantite:1,notes:''});setNewLigneOpen(false);setSelPat(null);setPatSearch('');
+    setSaving(false);
+  };
+
+  const updateLigneStatut=async(id,statut)=>{
+    const r=await api.put('/lignes-facturables/'+id,{statut});
+    setLignes(l=>l.map(x=>x.id===id?{...x,...r}:x));
+  };
+
+  const deleteLigne=async(id)=>{
+    if(!confirm('Supprimer cette ligne ?'))return;
+    await api.delete('/lignes-facturables/'+id);
+    setLignes(l=>l.filter(x=>x.id!==id));
+  };
+
+  const createDossier=async()=>{
+    if(!dossierSelPat||!dossierForm.caisse)return;
+    setSaving(true);
+    const r=await api.post('/dossiers-assurance',{...dossierForm,patientId:dossierSelPat.id,montantDemande:Number(dossierForm.montantDemande)||0});
+    setDossiers(d=>[{...r,nom:dossierSelPat.nom,prenom:dossierSelPat.prenom},...d]);
+    setDossierModal(null);setDossierSelPat(null);setDossierPatSearch('');
+    setDossierForm({caisse:'CNAMGS',montantDemande:'',pieces:[],notes:''});
+    setSaving(false);
+  };
+
+  const updateDossier=async(id,fields)=>{
+    const r=await api.put('/dossiers-assurance/'+id,fields);
+    setDossiers(d=>d.map(x=>x.id===id?{...x,...r}:x));
+  };
+
+  const filteredLignes=lignes.filter(l=>(!filterStatut||l.statut===filterStatut));
+  const filteredDossiers=dossiers.filter(d=>(!filterStatut||d.statut===filterStatut)&&(!filterCaisse||d.caisse===filterCaisse));
+
+  const totalNonFacture=lignes.filter(l=>l.statut==='non_facture').reduce((s,l)=>s+(l.montant*l.quantite),0);
+  const totalEncaisse=lignes.filter(l=>l.statut==='encaisse').reduce((s,l)=>s+(l.montant*l.quantite),0);
+  const alertCount=(alertes?.nonFactures?.length||0)+(alertes?.rejets?.length||0)+(alertes?.enRetard?.length||0);
+
+  return(
+    <Page title="Facturation" subtitle="Actes · Assurances · Complétude"
+      actions={
+        <div style={{display:'flex',gap:'8px'}}>
+          {alertCount>0&&<span style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'11px',padding:'6px 12px',background:'rgba(197,71,42,0.1)',border:'1px solid rgba(197,71,42,0.25)',color:'var(--accent)',fontWeight:500}}>
+            <Ic.Bell style={{width:'11px',height:'11px'}}/>{alertCount} alerte(s)
+          </span>}
+          <Btn icon={Ic.Refresh} variant="secondary" size="sm" onClick={load}>Actualiser</Btn>
+        </div>
+      }>
+
+      {/* KPI strip */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'12px',marginBottom:'28px'}}>
+        {[
+          {label:'Non facturé',val:fmtFCFA(totalNonFacture),color:'var(--accent)',icon:Ic.Warn},
+          {label:'Encaissé (total)',val:fmtFCFA(totalEncaisse),color:'var(--green)',icon:Ic.Money},
+          {label:'Dossiers en attente',val:(dashboard?.dossiers?.soumis||0)+(dashboard?.dossiers?.constitution||0),color:'var(--gold)',icon:Ic.Folder},
+          {label:'Dossiers rejetés',val:dashboard?.dossiers?.rejete||0,color:'var(--accent)',icon:Ic.Receipt},
+        ].map(({label,val,color,icon:Icon})=>(
+          <div key={label} style={{background:'var(--white)',border:'1px solid var(--border)',padding:'18px 20px',position:'relative',borderLeft:`3px solid ${color}`}}>
+            <Icon style={{width:'13px',height:'13px',color,marginBottom:'8px'}}/>
+            <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'24px',fontWeight:400,color:'var(--navy)',lineHeight:1}}>{val}</p>
+            <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500,marginTop:'6px'}}>{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div style={{display:'flex',borderBottom:'1px solid var(--border)',marginBottom:'24px'}}>
+        {[['actes','📋 Actes facturables'],['dossiers','📁 Dossiers assurance'],['alertes','⚠️ Alertes & Complétude'],['dashboard','📊 Dashboard']].map(([k,l])=>(
+          <button key={k} onClick={()=>{setTab(k);setFilterStatut('');setFilterCaisse('');}}
+            style={tab===k?{padding:'12px 20px',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',fontWeight:500,color:'var(--navy)',borderBottom:'2px solid var(--gold)',background:'var(--cream)'}:{padding:'12px 20px',fontSize:'11px',letterSpacing:'0.15em',textTransform:'uppercase',fontWeight:400,color:'var(--muted)',borderBottom:'2px solid transparent',background:'var(--white)'}}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {/* ── ACTES FACTURABLES ── */}
+      {tab==='actes'&&(
+        <div>
+          <div style={{display:'flex',gap:'8px',marginBottom:'16px',alignItems:'center'}}>
+            <select value={filterStatut} onChange={e=>setFilterStatut(e.target.value)}
+              style={{border:'1px solid var(--border)',background:'var(--white)',padding:'7px 10px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none',color:'var(--charcoal)'}}>
+              <option value="">Tous statuts</option>
+              {Object.entries(LIGNE_STATUT_LABEL).map(([k,v])=><option key={k} value={k}>{v}</option>)}
+            </select>
+            <div style={{flex:1}}/>
+            <Btn icon={Ic.Plus} onClick={()=>setNewLigneOpen(true)} size="sm">Nouvelle ligne</Btn>
+          </div>
+
+          {/* New ligne form */}
+          {newLigneOpen&&(
+            <div style={{background:'var(--cream)',border:'1px solid var(--border)',borderLeft:'3px solid var(--navy)',padding:'20px',marginBottom:'16px'}} className="fade-in">
+              <p className="eyebrow" style={{marginBottom:'16px'}}>Nouvelle ligne facturable</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'12px'}}>
+                <div style={{position:'relative'}}>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>Patient *</label>
+                  <input value={patSearch} onChange={e=>{setPatSearch(e.target.value);if(!e.target.value)setSelPat(null);}} placeholder="Rechercher…"
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                  {filtPats(patSearch).length>0&&(
+                    <div style={{position:'absolute',zIndex:10,left:0,right:0,background:'var(--white)',border:'1px solid var(--border)',marginTop:'1px',boxShadow:'0 8px 24px rgba(0,0,0,0.1)'}}>
+                      {filtPats(patSearch).map(p=><button key={p.id} className="data-row w-full text-left" style={{padding:'8px 12px',background:'none',border:'none',cursor:'pointer',display:'flex',gap:'8px',alignItems:'center'}}
+                        onClick={()=>{setSelPat(p);setPatSearch(`${p.prenom} ${p.nom}`);}}>
+                        <span style={{fontSize:'11px',color:'var(--navy)',fontWeight:400}}>{p.prenom} {p.nom}</span>
+                      </button>)}
+                    </div>
+                  )}
+                  {selPat&&<p style={{fontSize:'9px',color:'var(--green)',marginTop:'3px'}}>✓ {selPat.prenom} {selPat.nom}</p>}
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>Code acte (nomenclature)</label>
+                  <NomenclatureSearch onSelect={n=>{setNewLigne(l=>({...l,codeActe:n.code,libelleActe:n.libelle,montant:String(n.montant_base)}));}}/>
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 100px 100px',gap:'12px',marginBottom:'12px'}}>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>Libellé acte *</label>
+                  <input value={newLigne.libelleActe} onChange={e=>setNewLigne(l=>({...l,libelleActe:e.target.value}))} placeholder="Ex: Consultation spécialisée"
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>Montant (FCFA)</label>
+                  <input value={newLigne.montant} onChange={e=>setNewLigne(l=>({...l,montant:e.target.value}))} type="number" placeholder="0"
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'6px'}}>Qté</label>
+                  <input value={newLigne.quantite} onChange={e=>setNewLigne(l=>({...l,quantite:Number(e.target.value)||1}))} type="number" min="1"
+                    style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'8px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                </div>
+              </div>
+              <div style={{display:'flex',gap:'8px'}}>
+                <Btn variant="secondary" onClick={()=>{setNewLigneOpen(false);setSelPat(null);setPatSearch('');}}>Annuler</Btn>
+                <Btn onClick={createLigne} loading={saving} disabled={!selPat||!newLigne.libelleActe} icon={Ic.Plus}>Créer la ligne</Btn>
+              </div>
+            </div>
+          )}
+
+          {/* Lignes table */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{display:'grid',gridTemplateColumns:'180px 1fr 80px 100px 100px 120px 90px',padding:'8px 16px',borderBottom:'1px solid var(--border)',background:'var(--cream)'}}>
+              {['Patient','Acte','Qté','Montant','Total','Statut',''].map(h=><span key={h} style={{fontSize:'8px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500}}>{h}</span>)}
+            </div>
+            {filteredLignes.length===0&&<div style={{padding:'48px',textAlign:'center',color:'var(--muted)'}}>
+              <Ic.Receipt style={{width:'28px',height:'28px',margin:'0 auto 8px',opacity:0.2}}/>
+              <p style={{fontSize:'12px',fontWeight:300}}>Aucune ligne facturable{filterStatut?' pour ce statut':''}</p>
+            </div>}
+            {filteredLignes.map(l=>(
+              <div key={l.id} className="data-row" style={{display:'grid',gridTemplateColumns:'180px 1fr 80px 100px 100px 120px 90px',padding:'10px 16px',alignItems:'center',gap:'4px'}}>
+                <div>
+                  <p style={{fontSize:'11px',fontWeight:400,color:'var(--navy)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.prenom} {l.nom}</p>
+                  {l.consultDate&&<p style={{fontSize:'9px',color:'var(--muted)',fontWeight:300}}>{new Date(l.consultDate).toLocaleDateString('fr-FR')}</p>}
+                </div>
+                <div>
+                  <p style={{fontSize:'11px',color:'var(--charcoal)',fontWeight:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{l.libelleActe}</p>
+                  {l.codeActe&&<span style={{fontSize:'9px',fontFamily:'monospace',color:'var(--muted)',background:'var(--cream)',padding:'0 4px'}}>{l.codeActe}</span>}
+                </div>
+                <span style={{fontSize:'11px',color:'var(--charcoal)',textAlign:'center'}}>{l.quantite||1}</span>
+                <span style={{fontSize:'11px',color:'var(--charcoal)',fontFamily:'monospace'}}>{fmtFCFA(l.montant)}</span>
+                <span style={{fontSize:'11px',color:'var(--navy)',fontWeight:500,fontFamily:'monospace'}}>{fmtFCFA((l.montant||0)*(l.quantite||1))}</span>
+                <div>
+                  <select value={l.statut} onChange={e=>updateLigneStatut(l.id,e.target.value)}
+                    style={{border:'none',background:'transparent',fontSize:'10px',fontFamily:"'DM Sans',sans-serif",color:l.statut==='encaisse'?'var(--green)':l.statut==='non_facture'?'var(--muted)':l.statut==='facture'?'var(--navy)':'var(--accent)',fontWeight:500,cursor:'pointer',outline:'none',padding:'0'}}>
+                    {Object.entries(LIGNE_STATUT_LABEL).map(([k,v])=><option key={k} value={k}>{v}</option>)}
+                  </select>
+                </div>
+                <button onClick={()=>deleteLigne(l.id)} style={{padding:'4px 8px',background:'none',border:'none',cursor:'pointer',color:'var(--light)',fontSize:'11px'}}
+                  onMouseEnter={e=>e.currentTarget.style.color='var(--accent)'}
+                  onMouseLeave={e=>e.currentTarget.style.color='var(--light)'}>
+                  <Ic.Trash style={{width:'11px',height:'11px'}}/>
+                </button>
+              </div>
+            ))}
+            {filteredLignes.length>0&&(
+              <div style={{padding:'10px 16px',borderTop:'1px solid var(--border)',background:'var(--cream)',display:'flex',justifyContent:'flex-end',gap:'24px'}}>
+                <span style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>Total affiché</span>
+                <span style={{fontSize:'13px',fontWeight:500,color:'var(--navy)',fontFamily:'monospace'}}>{fmtFCFA(filteredLignes.reduce((s,l)=>s+(l.montant||0)*(l.quantite||1),0))}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── DOSSIERS ASSURANCE ── */}
+      {tab==='dossiers'&&(
+        <div>
+          <div style={{display:'flex',gap:'8px',marginBottom:'16px',alignItems:'center'}}>
+            <select value={filterStatut} onChange={e=>setFilterStatut(e.target.value)}
+              style={{border:'1px solid var(--border)',background:'var(--white)',padding:'7px 10px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none',color:'var(--charcoal)'}}>
+              <option value="">Tous statuts</option>
+              {Object.entries(DOSSIER_STATUTS).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}
+            </select>
+            <select value={filterCaisse} onChange={e=>setFilterCaisse(e.target.value)}
+              style={{border:'1px solid var(--border)',background:'var(--white)',padding:'7px 10px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",outline:'none',color:'var(--charcoal)'}}>
+              <option value="">Toutes caisses</option>
+              {CAISSES.map(c=><option key={c} value={c}>{c}</option>)}
+            </select>
+            <div style={{flex:1}}/>
+            <Btn icon={Ic.Plus} onClick={()=>setDossierModal(true)} size="sm">Nouveau dossier</Btn>
+          </div>
+
+          <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+            {filteredDossiers.length===0&&<div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'48px',textAlign:'center',color:'var(--muted)'}}>
+              <Ic.Folder style={{width:'28px',height:'28px',margin:'0 auto 8px',opacity:0.2}}/>
+              <p style={{fontSize:'12px',fontWeight:300}}>Aucun dossier assurance</p>
+            </div>}
+            {filteredDossiers.map(d=>{
+              const st=DOSSIER_STATUTS[d.statut]||{label:d.statut,color:'gray'};
+              const piecesChecked=(d.pieces||[]).length;
+              const totalPieces=CNAMGS_CHECKLIST.length;
+              return(
+                <div key={d.id} style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+                  <div style={{padding:'14px 18px',display:'flex',alignItems:'flex-start',gap:'12px'}}>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:'flex',alignItems:'center',gap:'8px',marginBottom:'4px'}}>
+                        <p style={{fontSize:'13px',fontWeight:500,color:'var(--navy)'}}>{d.prenom} {d.nom}</p>
+                        <Badge color={st.color} size="xs">{st.label}</Badge>
+                        {d.caisse&&<span style={{fontSize:'9px',fontWeight:600,color:'var(--gold)',letterSpacing:'0.1em',textTransform:'uppercase'}}>{d.caisse}</span>}
+                        {d.priorite==='urgent'&&<Badge color="red" size="xs">URGENT</Badge>}
+                      </div>
+                      <div style={{display:'flex',gap:'16px',flexWrap:'wrap'}}>
+                        {d.montantDemande>0&&<span style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>Demandé : <strong style={{color:'var(--navy)'}}>{fmtFCFA(d.montantDemande)}</strong></span>}
+                        {d.montantAccorde>0&&<span style={{fontSize:'11px',color:'var(--muted)',fontWeight:300}}>Accordé : <strong style={{color:'var(--green)'}}>{fmtFCFA(d.montantAccorde)}</strong></span>}
+                        {d.reference&&<span style={{fontSize:'10px',color:'var(--muted)',fontFamily:'monospace'}}>Réf : {d.reference}</span>}
+                        {d.dateSubmission&&<span style={{fontSize:'10px',color:'var(--muted)'}}>Soumis le {new Date(d.dateSubmission).toLocaleDateString('fr-FR')}</span>}
+                        {d.dateRetour&&<span style={{fontSize:'10px',color:'var(--muted)'}}>Retour le {new Date(d.dateRetour).toLocaleDateString('fr-FR')}</span>}
+                      </div>
+                      {d.motifRejet&&<div style={{marginTop:'8px',padding:'6px 10px',background:'#fdf5f3',border:'1px solid rgba(180,60,40,0.2)',borderLeft:'2px solid var(--accent)',fontSize:'11px',color:'var(--accent)'}}><strong>Rejet :</strong> {d.motifRejet}</div>}
+                      {/* Checklist pieces */}
+                      {d.caisse==='CNAMGS'&&(
+                        <div style={{marginTop:'8px'}}>
+                          <div style={{display:'flex',gap:'4px',height:'4px',background:'var(--cream2)',marginBottom:'4px'}}>
+                            <div style={{height:'100%',width:`${(d.pieces||[]).length/CNAMGS_CHECKLIST.length*100}%`,background:'var(--green)'}}/>
+                          </div>
+                          <p style={{fontSize:'9px',color:'var(--muted)',fontWeight:300}}>{(d.pieces||[]).length}/{CNAMGS_CHECKLIST.length} pièces confirmées</p>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{display:'flex',flexDirection:'column',gap:'4px',flexShrink:0}}>
+                      {/* Status advance */}
+                      {d.statut==='constitution'&&<Btn size="sm" variant="secondary" onClick={()=>updateDossier(d.id,{statut:'soumis',dateSubmission:new Date().toISOString().slice(0,10)})}>Marquer soumis</Btn>}
+                      {d.statut==='soumis'&&<>
+                        <Btn size="sm" icon={Ic.Check} onClick={()=>updateDossier(d.id,{statut:'accepte',dateRetour:new Date().toISOString().slice(0,10)})}>Accepté</Btn>
+                        <Btn size="sm" variant="danger" onClick={()=>{const m=prompt('Motif de rejet :');if(m)updateDossier(d.id,{statut:'rejete',motifRejet:m,dateRetour:new Date().toISOString().slice(0,10)});}}>Rejeté</Btn>
+                      </>}
+                      {d.statut==='accepte'&&<Btn size="sm" icon={Ic.Money} onClick={()=>{const m=prompt('Montant accordé (FCFA) :');if(m)updateDossier(d.id,{statut:'paye',montantAccorde:Number(m),datePaiement:new Date().toISOString().slice(0,10)});}}>Marquer payé</Btn>}
+                      {d.statut==='rejete'&&<Btn size="sm" variant="secondary" onClick={()=>{const m=prompt('Action corrective :');if(m)updateDossier(d.id,{actionCorrective:m});}}>Action corrective</Btn>}
+                    </div>
+                  </div>
+                  {/* CNAMGS checklist (inline when CNAMGS) */}
+                  {d.caisse==='CNAMGS'&&d.statut==='constitution'&&(
+                    <div style={{borderTop:'1px solid var(--border)',padding:'12px 18px'}}>
+                      <p style={{fontSize:'9px',letterSpacing:'0.2em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'10px'}}>Pièces requises CNAMGS</p>
+                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'6px'}}>
+                        {CNAMGS_CHECKLIST.map(piece=>{
+                          const checked=(d.pieces||[]).includes(piece);
+                          return(
+                            <button key={piece} onClick={()=>{
+                              const newPieces=checked?(d.pieces||[]).filter(p=>p!==piece):[...(d.pieces||[]),piece];
+                              updateDossier(d.id,{pieces:newPieces});
+                            }}
+                              style={{display:'flex',alignItems:'center',gap:'8px',padding:'5px 8px',background:checked?'#edf7f3':'var(--cream)',border:`1px solid ${checked?'rgba(74,124,107,0.3)':'var(--border)'}`,cursor:'pointer',textAlign:'left'}}>
+                              <span style={{width:'14px',height:'14px',flexShrink:0,display:'inline-flex',alignItems:'center',justifyContent:'center',background:checked?'var(--green)':'var(--cream2)',flexShrink:0}}>
+                                {checked&&<Ic.Check style={{width:'8px',height:'8px',color:'var(--white)'}}/>}
+                              </span>
+                              <span style={{fontSize:'10px',color:checked?'var(--green)':'var(--charcoal)',fontWeight:checked?400:300}}>{piece}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── ALERTES & COMPLÉTUDE ── */}
+      {tab==='alertes'&&alertes&&(
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'24px'}}>
+          {/* Actes non facturés */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{padding:'14px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+              <Ic.Warn style={{width:'13px',height:'13px',color:'var(--accent)'}}/>
+              <p className="eyebrow" style={{flex:1}}>Consultations non facturées</p>
+              <Badge color="red" size="xs">{alertes.nonFactures?.length||0}</Badge>
+            </div>
+            <div style={{padding:'12px'}}>
+              {(alertes.nonFactures||[]).length===0&&<p style={{fontSize:'12px',color:'var(--muted)',padding:'16px',fontWeight:300,textAlign:'center'}}>Aucune — bien joué ✓</p>}
+              {(alertes.nonFactures||[]).map(c=>(
+                <div key={c.id} style={{padding:'8px 12px',background:'var(--cream)',border:'1px solid var(--border)',marginBottom:'6px'}}>
+                  <p style={{fontSize:'11px',fontWeight:400,color:'var(--navy)'}}>{c.prenom} {c.nom}</p>
+                  <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300}}>{c.motif} · {new Date(c.date).toLocaleDateString('fr-FR')}</p>
+                  <p style={{fontSize:'9px',color:'var(--gold)',marginTop:'2px'}}>{c.typeAssurance||'Assurance non renseignée'}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Lignes en retard */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{padding:'14px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+              <Ic.Clock style={{width:'13px',height:'13px',color:'var(--gold)'}}/>
+              <p className="eyebrow" style={{flex:1}}>Lignes en retard (> 7 j)</p>
+              <Badge color="amber" size="xs">{alertes.enRetard?.length||0}</Badge>
+            </div>
+            <div style={{padding:'12px'}}>
+              {(alertes.enRetard||[]).length===0&&<p style={{fontSize:'12px',color:'var(--muted)',padding:'16px',fontWeight:300,textAlign:'center'}}>Aucune — à jour ✓</p>}
+              {(alertes.enRetard||[]).map(l=>(
+                <div key={l.id} style={{padding:'8px 12px',background:'var(--gold-pale)',border:'1px solid rgba(184,147,90,0.3)',marginBottom:'6px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div>
+                    <p style={{fontSize:'11px',fontWeight:400,color:'var(--navy)'}}>{l.prenom} {l.nom}</p>
+                    <p style={{fontSize:'10px',color:'var(--muted)',fontWeight:300}}>{l.libelleActe}</p>
+                  </div>
+                  <span style={{fontSize:'11px',fontWeight:500,color:'var(--gold)',fontFamily:'monospace'}}>{fmtFCFA(l.montant)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Assurance manquante */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{padding:'14px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+              <Ic.Shield style={{width:'13px',height:'13px',color:'var(--gold)'}}/>
+              <p className="eyebrow" style={{flex:1}}>Assurance non vérifiée</p>
+              <Badge color="amber" size="xs">{alertes.assuranceManquante?.length||0}</Badge>
+            </div>
+            <div style={{padding:'12px'}}>
+              {(alertes.assuranceManquante||[]).length===0&&<p style={{fontSize:'12px',color:'var(--muted)',padding:'16px',fontWeight:300,textAlign:'center'}}>Tout est renseigné ✓</p>}
+              {(alertes.assuranceManquante||[]).map(p=>(
+                <div key={p.id} style={{padding:'8px 12px',background:'var(--cream)',border:'1px solid var(--border)',marginBottom:'6px'}}>
+                  <p style={{fontSize:'11px',fontWeight:400,color:'var(--navy)'}}>{p.prenom} {p.nom}</p>
+                  <p style={{fontSize:'10px',color:'var(--accent)',fontWeight:300}}>
+                    {!p.typeAssurance?'Type d\'assurance manquant':''}{!p.numAssurance?' · Numéro assurance manquant':''}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rejets CNAMGS à traiter */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)'}}>
+            <div style={{padding:'14px 18px',borderBottom:'1px solid var(--border)',display:'flex',alignItems:'center',gap:'8px'}}>
+              <Ic.Receipt style={{width:'13px',height:'13px',color:'var(--accent)'}}/>
+              <p className="eyebrow" style={{flex:1}}>Rejets sans action corrective</p>
+              <Badge color="red" size="xs">{alertes.rejets?.length||0}</Badge>
+            </div>
+            <div style={{padding:'12px'}}>
+              {(alertes.rejets||[]).length===0&&<p style={{fontSize:'12px',color:'var(--muted)',padding:'16px',fontWeight:300,textAlign:'center'}}>Aucun rejet en attente ✓</p>}
+              {(alertes.rejets||[]).map(d=>(
+                <div key={d.id} style={{padding:'8px 12px',background:'#fdf5f3',border:'1px solid rgba(180,60,40,0.2)',borderLeft:'2px solid var(--accent)',marginBottom:'6px'}}>
+                  <p style={{fontSize:'11px',fontWeight:400,color:'var(--navy)'}}>{d.prenom} {d.nom} · <span style={{color:'var(--gold)'}}>{d.caisse}</span></p>
+                  <p style={{fontSize:'10px',color:'var(--accent)',fontWeight:300}}>{d.motifRejet||'Motif non renseigné'}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DASHBOARD ── */}
+      {tab==='dashboard'&&dashboard&&(
+        <div>
+          {/* Dossiers par statut */}
+          <div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:'10px',marginBottom:'24px'}}>
+            {Object.entries(DOSSIER_STATUTS).map(([k,v])=>(
+              <div key={k} style={{background:'var(--white)',border:'1px solid var(--border)',padding:'16px',textAlign:'center',borderTop:`3px solid ${k==='rejete'?'var(--accent)':k==='paye'?'var(--green)':k==='accepte'?'var(--green)':k==='soumis'?'var(--navy)':'var(--gold)'}`}}>
+                <p style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'28px',fontWeight:300,color:'var(--navy)',lineHeight:1}}>{dashboard.dossiers?.[k]||0}</p>
+                <p style={{fontSize:'9px',letterSpacing:'0.18em',textTransform:'uppercase',color:'var(--muted)',fontWeight:500,marginTop:'6px'}}>{v.label}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Monthly trend */}
+          <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px',marginBottom:'20px'}}>
+            <p className="eyebrow" style={{marginBottom:'16px'}}>Actes facturés / encaissés — 6 derniers mois</p>
+            <div style={{display:'flex',gap:'8px',alignItems:'flex-end',height:'80px'}}>
+              {(dashboard.monthly||[]).map(m=>{
+                const max=Math.max(...(dashboard.monthly||[]).map(x=>x.total),1);
+                const h=Math.round((m.total/max)*70);
+                return(
+                  <div key={m.mois} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'4px'}}>
+                    <span style={{fontSize:'9px',color:'var(--navy)',fontWeight:500,fontFamily:'monospace'}}>{m.total>0?Math.round(m.total/1000)+'k':''}</span>
+                    <div style={{width:'100%',height:`${h}px`,minHeight:'2px',background:'var(--navy)',opacity:0.85}}/>
+                    <span style={{fontSize:'8px',color:'var(--muted)',fontWeight:300}}>{m.mois.slice(5)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* By caisse */}
+          {(dashboard.byCaisse||[]).length>0&&(
+            <div style={{background:'var(--white)',border:'1px solid var(--border)',padding:'20px'}}>
+              <p className="eyebrow" style={{marginBottom:'16px'}}>Par caisse d\'assurance</p>
+              <div style={{display:'flex',flexDirection:'column',gap:'8px'}}>
+                {dashboard.byCaisse.map(r=>(
+                  <div key={`${r.caisse}-${r.statut}`} style={{display:'flex',alignItems:'center',gap:'12px',padding:'8px 12px',background:'var(--cream)',border:'1px solid var(--border)'}}>
+                    <span style={{fontSize:'11px',fontWeight:500,color:'var(--navy)',flex:'0 0 100px'}}>{r.caisse}</span>
+                    <Badge color={DOSSIER_STATUTS[r.statut]?.color||'gray'} size="xs">{DOSSIER_STATUTS[r.statut]?.label||r.statut}</Badge>
+                    <span style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,flex:1}}>{r.n} dossier(s)</span>
+                    {r.demande>0&&<span style={{fontSize:'11px',fontFamily:'monospace',color:'var(--charcoal)'}}>Demandé : {fmtFCFA(r.demande)}</span>}
+                    {r.accorde>0&&<span style={{fontSize:'11px',fontFamily:'monospace',color:'var(--green)'}}>Accordé : {fmtFCFA(r.accorde)}</span>}
+                  </div>
+                ))}
+              </div>
+              {dashboard.delaiMoyen!=null&&(
+                <p style={{fontSize:'11px',color:'var(--muted)',fontWeight:300,marginTop:'12px'}}>
+                  Délai moyen acte → encaissement : <strong style={{color:'var(--navy)'}}>{Math.round(dashboard.delaiMoyen)} jour(s)</strong>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── DOSSIER CREATION MODAL ── */}
+      {dossierModal&&(
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" onClick={()=>setDossierModal(null)}>
+          <div style={{background:'var(--white)',width:'100%',maxWidth:'480px',padding:0}} onClick={e=>e.stopPropagation()} className="fade-in">
+            <div style={{padding:'20px 28px',borderBottom:'1px solid var(--border)'}}>
+              <p className="eyebrow" style={{marginBottom:'4px'}}>Nouveau dossier assurance</p>
+              <h3 style={{fontFamily:"'Cormorant Garamond',serif",fontSize:'22px',fontWeight:300,color:'var(--navy)'}}>Constitution du dossier</h3>
+            </div>
+            <div style={{padding:'20px 28px',display:'flex',flexDirection:'column',gap:'14px'}}>
+              {/* Patient */}
+              <div style={{position:'relative'}}>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Patient *</label>
+                <input value={dossierPatSearch} onChange={e=>{setDossierPatSearch(e.target.value);if(!e.target.value)setDossierSelPat(null);}} placeholder="Rechercher un patient…"
+                  style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+                {filtPats(dossierPatSearch).length>0&&(
+                  <div style={{position:'absolute',zIndex:10,left:0,right:0,background:'var(--white)',border:'1px solid var(--border)',marginTop:'1px',boxShadow:'0 8px 24px rgba(0,0,0,0.1)'}}>
+                    {filtPats(dossierPatSearch).map(p=><button key={p.id} className="data-row w-full text-left" style={{padding:'10px 12px',background:'none',border:'none',cursor:'pointer',display:'block',width:'100%',textAlign:'left'}}
+                      onClick={()=>{setDossierSelPat(p);setDossierPatSearch(`${p.prenom} ${p.nom}`);}}>
+                      <span style={{fontSize:'12px',color:'var(--navy)'}}>{p.prenom} {p.nom}</span>
+                    </button>)}
+                  </div>
+                )}
+                {dossierSelPat&&<p style={{fontSize:'9px',color:'var(--green)',marginTop:'3px'}}>✓ {dossierSelPat.prenom} {dossierSelPat.nom} — {dossierSelPat.typeAssurance||'assurance non renseignée'}</p>}
+              </div>
+              {/* Caisse */}
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Caisse *</label>
+                <select value={dossierForm.caisse} onChange={e=>setDossierForm(f=>({...f,caisse:e.target.value}))}
+                  style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none',color:'var(--charcoal)'}}>
+                  {CAISSES.map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              {/* Montant */}
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Montant demandé (FCFA)</label>
+                <input value={dossierForm.montantDemande} onChange={e=>setDossierForm(f=>({...f,montantDemande:e.target.value}))} type="number" placeholder="Ex: 75000"
+                  style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'13px',fontFamily:"'DM Sans',sans-serif",outline:'none'}}/>
+              </div>
+              {/* Notes */}
+              <div>
+                <label style={{display:'block',fontSize:'9px',letterSpacing:'0.22em',textTransform:'uppercase',color:'var(--gold)',fontWeight:500,marginBottom:'8px'}}>Notes</label>
+                <textarea value={dossierForm.notes} onChange={e=>setDossierForm(f=>({...f,notes:e.target.value}))} rows={2} placeholder="Contexte, date de soins couverts…"
+                  style={{width:'100%',border:'1px solid var(--border)',background:'var(--white)',padding:'10px 12px',fontSize:'12px',fontFamily:"'DM Sans',sans-serif",fontWeight:300,resize:'none',outline:'none'}}/>
+              </div>
+            </div>
+            <div style={{padding:'16px 28px',borderTop:'1px solid var(--border)',display:'flex',gap:'8px',justifyContent:'flex-end'}}>
+              <Btn variant="secondary" onClick={()=>setDossierModal(null)}>Annuler</Btn>
+              <Btn onClick={createDossier} loading={saving} disabled={!dossierSelPat||!dossierForm.caisse} icon={Ic.Folder}>Créer le dossier</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </Page>
+  );
+}
+
 function HonorairesPage(){
   const[tab,setTab]=useState('overview');
   const[data,setData]=useState(null);
@@ -4827,6 +5423,7 @@ function App(){
     if(page==='profile')return<ProfilePage user={user} onUpdate={u=>setUser(u)}/>;
     if(page==='audit')return<AuditLog/>;
     if(page==='honoraires')return<HonorairesPage/>;
+    if(page==='facturation')return<FacturationPage/>;
     return<Dashboard onNav={nav} user={user}/>;
   };
 
