@@ -2875,11 +2875,19 @@ app.post('/api/admin/backup', auth, async (req, res) => {
   const { existsSync, statSync } = await import('fs');
   const { DB_PATH } = await import('./backup.mjs');
 
-  // Restore uniquement si la DB n'existe pas ou est vide (ex: redémarrage Render)
+  // Restore depuis S3 si la DB est absente ou vide
   const dbMissing = !existsSync(DB_PATH) || statSync(DB_PATH).size < 4096;
   if (dbMissing) {
-    console.log('⚠️  DB locale absente ou vide — tentative de restauration S3…');
+    console.log('⚠️  DB locale absente — tentative de restauration S3…');
     await restoreFromS3().catch(e => console.error('Restore S3 échoué:', e.message));
+  }
+
+  // Import patients CDL si la table est quasi-vide (< 100 = seed seulement)
+  const patientCount = db.prepare('SELECT COUNT(*) as n FROM patients').get().n;
+  if (patientCount < 100) {
+    console.log(`ℹ️  Seulement ${patientCount} patients — lancement de l'import CDL…`);
+    const { runImport } = await import('./import-patients.mjs');
+    await runImport();
   }
 
   app.listen(PORT, () => {
