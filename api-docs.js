@@ -874,7 +874,7 @@ Obtenez votre token via \`POST /api/auth/login\`.
           montant_paye:  { type: 'number' },
           reste:         { type: 'number' },
           taux:          { type: 'number' },
-        }}}}}}}},
+        }}}}}}},
       },
     },
 
@@ -916,7 +916,7 @@ Obtenez votre token via \`POST /api/auth/login\`.
           ticket_moderateur:      { type: 'number', example: 1500, description: '20% à la charge de l\'assuré' },
           depassement_honoraires: { type: 'number', example: 7500, description: 'Au-delà du conventionné' },
           patient_total:          { type: 'number', example: 9000, description: 'Ticket + dépassement' },
-        }}}}}}, 404: { description: 'Code acte inconnu' }},
+        }}}}}, 404: { description: 'Code acte inconnu' }},
       },
     },
 
@@ -1228,7 +1228,7 @@ Obtenez votre token via \`POST /api/auth/login\`.
             message: { type: 'string' },
             key:     { type: 'string', nullable: true, description: 'Clé S3 du fichier' },
             size:    { type: 'integer', nullable: true, description: 'Taille compressée (octets)' },
-          }}}}}},
+          }}}}},
         },
       },
     },
