@@ -13,6 +13,7 @@ import bcrypt from 'bcrypt';
 import PDFDocument from 'pdfkit';
 import nodemailer from 'nodemailer';
 import { restoreFromS3, scheduleBackup, backupToS3 } from './backup.mjs';
+import { spec as apiSpec } from './api-docs.js';
 import db from './db.js';
 import { encrypt, decrypt } from './crypto-utils.js';
 
@@ -2850,6 +2851,191 @@ app.get('/fhir/metadata', (req, res) => {
       ]
     }]
   });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DOCUMENTATION API — Swagger UI
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Spec JSON brute
+app.get('/api/docs.json', (req, res) => res.json(apiSpec));
+
+// Page Swagger UI interactive
+app.get('/api/documentation', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MediVox — Documentation API</title>
+  <meta name="description" content="Documentation interactive de l'API MediVox — Plateforme médicale CDL Gabon"/>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-size: 14px; }
+    body { margin: 0; background: #f7f6f3; font-family: 'Inter', -apple-system, sans-serif; }
+
+    /* ── Top bar ── */
+    #topbar {
+      background: #00725f;
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(0,114,95,.35);
+    }
+    #topbar .brand {
+      font-family: Georgia, serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+    #topbar .brand em { font-style: italic; color: #B8935A; }
+    #topbar .meta {
+      font-size: 11px;
+      color: rgba(255,255,255,.65);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+    #topbar .badge {
+      background: #B8935A;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 10px;
+      letter-spacing: .08em;
+    }
+
+    /* ── Swagger UI overrides ── */
+    .swagger-ui .topbar { display: none !important; }
+    .swagger-ui { background: transparent; }
+    .swagger-ui .info { margin: 32px 0 16px; }
+    .swagger-ui .info .title {
+      font-family: Georgia, serif !important;
+      font-size: 28px !important;
+      font-weight: 300 !important;
+      color: #00725f !important;
+    }
+    .swagger-ui .info .description p { color: #4a5568; line-height: 1.7; }
+    .swagger-ui .scheme-container {
+      background: #fff !important;
+      box-shadow: none !important;
+      border: 1px solid #e2e8f0 !important;
+      padding: 16px 20px !important;
+    }
+
+    /* Tags (section headers) */
+    .swagger-ui .opblock-tag {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      color: #00725f !important;
+      border-bottom: 2px solid #00725f22 !important;
+      padding: 12px 0 8px !important;
+    }
+    .swagger-ui .opblock-tag:hover { background: #f0faf8 !important; }
+
+    /* Operation blocks */
+    .swagger-ui .opblock {
+      border-radius: 0 !important;
+      border: 1px solid #e2e8f0 !important;
+      margin: 4px 0 !important;
+      box-shadow: none !important;
+    }
+    .swagger-ui .opblock.opblock-get    { border-left: 4px solid #3b82f6 !important; background: #eff6ff !important; }
+    .swagger-ui .opblock.opblock-post   { border-left: 4px solid #10b981 !important; background: #f0fdf4 !important; }
+    .swagger-ui .opblock.opblock-put    { border-left: 4px solid #f59e0b !important; background: #fffbeb !important; }
+    .swagger-ui .opblock.opblock-patch  { border-left: 4px solid #8b5cf6 !important; background: #f5f3ff !important; }
+    .swagger-ui .opblock.opblock-delete { border-left: 4px solid #ef4444 !important; background: #fff1f2 !important; }
+    .swagger-ui .opblock-summary { padding: 10px 14px !important; }
+    .swagger-ui .opblock-summary-method {
+      font-family: 'SF Mono', 'Fira Code', monospace !important;
+      font-size: 11px !important;
+      font-weight: 700 !important;
+      min-width: 60px !important;
+      border-radius: 0 !important;
+    }
+    .swagger-ui .opblock-summary-path {
+      font-family: 'SF Mono', 'Fira Code', monospace !important;
+      font-size: 13px !important;
+      color: #1e293b !important;
+    }
+    .swagger-ui .opblock-summary-description {
+      font-size: 12px !important;
+      color: #64748b !important;
+    }
+
+    /* Models */
+    .swagger-ui section.models { border: 1px solid #e2e8f0 !important; border-radius: 0 !important; }
+    .swagger-ui section.models h4 { color: #00725f !important; }
+
+    /* Buttons */
+    .swagger-ui .btn.authorize {
+      background: #00725f !important;
+      border-color: #00725f !important;
+      color: #fff !important;
+      border-radius: 0 !important;
+    }
+    .swagger-ui .btn.execute {
+      background: #B8935A !important;
+      border-color: #B8935A !important;
+      border-radius: 0 !important;
+    }
+
+    /* Filter */
+    .swagger-ui .filter-container input {
+      border: 1px solid #d1d5db !important;
+      border-radius: 0 !important;
+      font-size: 13px !important;
+    }
+
+    #swagger-ui-wrapper { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <div class="brand">Medi<em>Vox</em> <span style="font-size:13px;color:rgba(255,255,255,.5);font-family:sans-serif;font-style:normal;margin-left:8px">API</span></div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <span class="meta">Centre de Libreville · Gabon</span>
+      <span class="badge">v1.0.0</span>
+    </div>
+  </div>
+  <div id="swagger-ui-wrapper">
+    <div id="swagger-ui"></div>
+  </div>
+  <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+  <script>
+    SwaggerUIBundle({
+      url: '/api/docs.json',
+      dom_id: '#swagger-ui',
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+      layout: 'StandaloneLayout',
+      docExpansion: 'none',
+      defaultModelsExpandDepth: 1,
+      defaultModelExpandDepth: 2,
+      filter: true,
+      deepLinking: true,
+      persistAuthorization: true,
+      displayRequestDuration: true,
+      tryItOutEnabled: true,
+      requestInterceptor: (req) => {
+        // Ajoute automatiquement le token stocké dans localStorage
+        const token = localStorage.getItem('mv_token') || localStorage.getItem('medpilot_token');
+        if (token && !req.url.includes('/api/auth/login') && !req.url.includes('/api/auth/register')) {
+          req.headers['Authorization'] = 'Bearer ' + token;
+        }
+        return req;
+      },
+    });
+  </script>
+</body>
+</html>`);
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
